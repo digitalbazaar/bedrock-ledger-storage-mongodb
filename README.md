@@ -4,6 +4,7 @@ A MongoDB ledger storage subsystem for bedrock-ledger. This API exposes
 the following methods:
 
 * Ledger Storage API
+  * api.getAllLedgers(actor, options, callback(err, ledgerIds))
   * api.getStorage(ledgerId, options, callback(err, storage))
   * storage.create(actor, configBlock, options, callback(err, ledger))
   * storage.delete(actor, options, callback(err))
@@ -36,6 +37,32 @@ creating a new ledger node API.
 
 The MongoDB ledger storage API is capable of mapping ledger node 
 storage requests to a set of MongoDB collections. 
+
+### Get a List of All Ledgers
+
+Gets all of the known ledgers for the storage system.
+
+* actor - the actor performing the action.
+* query - a set of query parameters used to retrieve the 
+  list of ledger nodes.
+* options - a set of options to use when retrieving the list.
+* callback(err, ledgerIds) - the callback to call when finished.
+  * err - An Error if an error occurred, null otherwise
+  * ledgerIds - An array of all ledgers matching the query.
+
+```javascript
+const actor = 'admin';
+const query = {};
+const options = {};
+
+bedrockLedger.getLedgers(actor, query, options, (err, ledgerIds) => {
+  if(err) {
+    throw new Error("Failed to fetch ledgers:", err);
+  }
+  
+  console.log("Ledgers:", ledgerIds);
+});
+```
 
 ### Get the Ledger API
 
