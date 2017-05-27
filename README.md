@@ -1,4 +1,4 @@
-# bedrock-ledger-storage-mongodb - MongoDB Ledger Storage API
+# bedrock-ledger-storage-mongodb
 
 A MongoDB ledger storage subsystem for bedrock-ledger. This API exposes
 the following methods:
