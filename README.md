@@ -1,24 +1,31 @@
 # bedrock-ledger-storage-mongodb
 
-A MongoDB ledger storage subsystem for bedrock-ledger. This API exposes
-the following methods:
+A MongoDB ledger storage subsystem for bedrock-ledger that enables the
+storage and retrieval of ledgers, blocks, and events. The relationship
+of these objects are shown below:
+
+<img alt="Ledgers contain blocks, blocks contain events"
+  src="https://w3c.github.io/web-ledger/diagrams/blocks.svg" 
+  width=450px;/>
+
+This API exposes the following methods:
 
 * Ledger Storage API
   * api.getAllLedgers(actor, options, callback(err, ledgerIds))
   * api.getStorage(ledgerId, options, callback(err, storage))
   * storage.create(actor, configBlock, options, callback(err, ledger))
   * storage.delete(actor, options, callback(err))
-* Blocks API
+* Block Storage API
   * storage.blocks.create(actor, block, options, callback(err))
   * storage.blocks.get(actor, query, options, callback(err, blocks))
   * storage.blocks.update(actor, block, options, callback(err, block, meta))
   * storage.blocks.delete(actor, blockId, options, callback(err))
-* Events API
+* Event Storage API
   * storage.events.create(actor, event, options, callback(err))
   * storage.events.get(actor, query, options, callback(err, events))
   * storage.events.update(actor, event, options, callback(err, event, meta))
   * storage.events.delete(actor, eventId, options, callback(err))
-* Low-level Driver API
+* Database Driver API
   * storage.driver.get()
 
 ##  Configuration
