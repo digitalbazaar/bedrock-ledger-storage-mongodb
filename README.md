@@ -32,23 +32,7 @@ The API in this module is designed to be used by the
 module. Do not use this API directly unless you are
 creating a new ledger node API.
 
-```javascript
-let blStorage = require('bedrock-ledger-storage-mongodb');
-
-const actor = { /* actor performing the operation */ };
-const configBlock = { /* block config stuff goes here */ };
-const options = { /* ledger config options go here */ };
-
-blStorage.createLedger(actor, configBlock, options, (err, ledger) => {
-  if(err) {
-    throw new Error('Failed to create ledger:', err);
-  }
-  
-  console.log('Ledger created', ledger);
-});
-```
-
-## MongoDB Ledger Storage API
+## Ledger API
 
 The MongoDB ledger storage API is capable of mapping ledger node 
 storage requests to a set of MongoDB collections. 
