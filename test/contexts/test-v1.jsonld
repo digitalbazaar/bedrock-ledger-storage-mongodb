@@ -1,0 +1,17 @@
+{
+  "@context": {
+    "id": "@id",
+    "type": "@type",
+
+    "cred": "https://w3id.org/credentials#",
+    "dhs": "https://w3id.org/dhs#",
+    "@vocab": "https://w3id.org/dhs#",
+
+    "Credential": "cred:Credential",
+    "EmergencyResponseCredential": "dhs:EmergencyResponseCredential",
+
+    "claim": {"@id": "cred:claim", "@type": "@id"},
+
+    "emsLicense": {"@id": "dhs:emsLicense", "@type": "@id"}
+  }
+}
