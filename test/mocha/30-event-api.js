@@ -20,7 +20,7 @@ const baseUri = 'http://example.com';
 // use local JSON-LD processor for signatures
 jsigs.use('jsonld', bedrock.jsonld);
 
-describe('Ledger Storage API', () => {
+describe('Event Storage API', () => {
   before(done => {
     helpers.prepareDatabase(mockData, done);
   });
