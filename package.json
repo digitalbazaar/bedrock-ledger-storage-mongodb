@@ -1,0 +1,31 @@
+{
+  "name": "bedrock-ledger-storage-mongodb",
+  "version": "0.1.0-0",
+  "description": "Bedrock ledger storage module for MongoDB",
+  "main": "./lib",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/digitalbazaar/bedrock-ledger-storage-mongodb.git"
+  },
+  "author": {
+    "name": "Digital Bazaar, Inc.",
+    "email": "support@digitalbazaar.com",
+    "url": "https://digitalbazaar.com/"
+  },
+  "bugs": {
+    "url": "https://github.com/digitalbazaar/bedrock-ledger-storage-mongodb/issues/"
+  },
+  "homepage": "https://github.com/digitalbazaar/bedrock-ledger-storage-mongodb/",
+  "dependencies": {
+    "async": "^2.4.0"
+  },
+  "peerDependencies": {
+    "bedrock": "^1.2.4",
+    "bedrock-mongodb": "^3.0.0",
+    "bedrock-permission": "^2.3.2",
+    "jsonld": "^0.4.11"
+  },
+  "engines": {
+    "node": ">=6.3.0"
+  }
+}
