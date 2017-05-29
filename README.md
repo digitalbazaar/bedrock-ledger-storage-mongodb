@@ -13,20 +13,20 @@ This API exposes the following methods:
 * Ledger Storage API
   * api.getAllLedgers(actor, options, callback(err, ledgerIds))
   * api.getStorage(ledgerId, options, callback(err, storage))
-  * storage.create(actor, configBlock, options, callback(err, ledger))
+  * storage.create(actor, record, options, callback(err, ledger))
   * storage.delete(actor, options, callback(err))
 * Block Storage API
-  * storage.blocks.create(actor, block, options, callback(err))
-  * storage.blocks.get(actor, query, options, callback(err, blocks))
-  * storage.blocks.update(actor, block, options, callback(err, {block: required, meta: optional}))
+  * storage.blocks.create(actor, record, options, callback(err))
+  * storage.blocks.get(actor, query, options, callback(err, records))
+  * storage.blocks.update(actor, record, options, callback(err, record))
   * storage.blocks.delete(actor, blockId, options, callback(err))
 * Event Storage API
-  * storage.events.create(actor, event, options, callback(err))
-  * storage.events.get(actor, query, options, callback(err, events))
-  * storage.events.update(actor, event, options, callback(err, {event: required, meta: optional}))
+  * storage.events.create(actor, record, options, callback(err))
+  * storage.events.get(actor, query, options, callback(err, records))
+  * storage.events.update(actor, record, options, callback(err, record))
   * storage.events.delete(actor, eventId, options, callback(err))
 * Database Driver API
-  * storage.driver.get()
+  * storage.driver
 
 ##  Configuration
 
