@@ -18,12 +18,12 @@ This API exposes the following methods:
 * Block Storage API
   * storage.blocks.create(actor, block, options, callback(err))
   * storage.blocks.get(actor, query, options, callback(err, blocks))
-  * storage.blocks.update(actor, block, options, callback(err, block, meta))
+  * storage.blocks.update(actor, block, options, callback(err, {block: required, meta: optional}))
   * storage.blocks.delete(actor, blockId, options, callback(err))
 * Event Storage API
   * storage.events.create(actor, event, options, callback(err))
   * storage.events.get(actor, query, options, callback(err, events))
-  * storage.events.update(actor, event, options, callback(err, event, meta))
+  * storage.events.update(actor, event, options, callback(err, {event: required, meta: optional}))
   * storage.events.delete(actor, eventId, options, callback(err))
 * Database Driver API
   * storage.driver.get()
@@ -112,6 +112,7 @@ and a set of options.
 const configBlock = {
     id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1',
     type: 'WebLedgerConfigurationBlock',
+    ledger: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59',
     consensusMethod: {
       type: 'Continuity2017'
     },
@@ -140,12 +141,12 @@ const configBlock = {
 };
 const options = {};
 
-storage.create(actor, configBlock, options, (err, ledger) => {
+storage.create(actor, configBlock, options, (err, record) => {
   if(err) {
     throw new Error("Failed to create ledger:", err);
   }
   
-  console.log("Ledger created", ledger);
+  console.log("Ledger created", record.block, record.meta);
 });
 ```
 
@@ -185,28 +186,33 @@ Creates a block in the ledger given a block and a set of options.
 
 ```javascript
 const actor = 'admin';
-const block = {
-  '@context': 'https://w3id.org/webledger/v1',
-  id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/2',
-  type: 'WebLedgerEventBlock',
-  event: [/* { ... JSON-LD-OBJECT ... }, ... */],
-  previousBlock: 'did:v1:e7adbe7-79f2-425a-9dfb-76a234782f30/blocks/1',
-  previousBlockHash: 'ni:///sha-256;cGBSKHn2cBJ563oSt3SAf4OxZXXfwtSxj1xFO5LtkGkW',
-  signature: {
-    type: 'RsaSignature2017',
-    created: '2017-05-10T19:47:15Z',
-    creator: 'http://example.com/keys/789',
-    signatureValue: 'JoS27wqa...BFMgXIMw=='
-  }
+const record = {
+  block: {
+    '@context': 'https://w3id.org/webledger/v1',
+    id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/2',
+    type: 'WebLedgerEventBlock',
+    event: [/* { ... JSON-LD-OBJECT ... }, ... */],
+    previousBlock: 'did:v1:e7adbe7-79f2-425a-9dfb-76a234782f30/blocks/1',
+    previousBlockHash: 'ni:///sha-256;cGBSKHn2cBJ563oSt3SAf4OxZXXfwtSxj1xFO5LtkGkW',
+    signature: {
+      type: 'RsaSignature2017',
+      created: '2017-05-10T19:47:15Z',
+      creator: 'http://example.com/keys/789',
+      signatureValue: 'JoS27wqa...BFMgXIMw=='
+    }
+   },
+   meta: {
+     pending: true
+   }
 }
 const options = {};
 
-storage.blocks.create(actor, block, options, err => {
+storage.blocks.create(actor, block, options, (err, record) => {
   if(err) {
     throw new Error("Failed to create the block:", err);
   }
   
-  console.log("Block creation successful.");
+  console.log('Block creation successful:', record.block, record.meta);
 });
 ```
 
@@ -217,11 +223,14 @@ query and a set of options.
 
 * actor - the actor performing the action.
 * query - a query that matches one or more blocks
-  * id - the blockID to search for
+  * block - the block query to use
+    * id - the blockID to search for
+  * meta - the meta query to use
 * options - a set of options used when creating the block.
   * pending - if true, get all pending blocks
-* callback(err) - the callback to call when finished.
+* callback(err, records) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
+  * records - an array containing zero or more block records
 
 ```javascript
 const query = {
@@ -229,12 +238,12 @@ const query = {
 };
 const options = {};
 
-storage.blocks.get(actor, query, options, (err, blocks) => {
+storage.blocks.get(actor, query, options, (err, records) => {
   if(err) {
     throw new Error("Block query failed:", err);
   }
   
-  console.log("Blocks matching query:", blocks);
+  console.log("Blocks matching query:", records);
 });
 ```
 
@@ -254,8 +263,6 @@ a block update and a set of options.
     * set - replace the entire block with ```block```
     * update - only update the fields specified in ```block```
     * delete - only delete the fields specified in ```block```
-  * meta - the metadata fields to modify
-    * pending - true if the block is pending consensus
 * callback(err, result) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
   * result - the value of the updated block.
@@ -263,21 +270,23 @@ a block update and a set of options.
 ```javascript
 // remove the pending flag metadata for a block
 const block = {
-  id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1'
+  block: {
+    id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1'
+  },
+  meta: {
+    pending: 'this value will be deleted'
+  }
 };
 const options = {
   metaOperation: 'delete',
-  meta: {
-    pending: 0
-  }
 };
 
-storage.blocks.update(actor, block, options, (err, block, meta) => {
+storage.blocks.update(actor, block, options, (err, record) => {
   if(err) {
     throw new Error("Block update failed:", err);
   }
   
-  console.log("Block update success:", block, meta);
+  console.log("Block update success:", record.block, record.meta);
 });
 ```
 ### Delete a Block
@@ -291,8 +300,8 @@ Delete a block in the ledger given a blockID and a set of options.
   * err - An Error if an error occurred, null otherwise.
 
 ```javascript
-const options = {};
 const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1';
+const options = {};
 
 storage.blocks.delete(actor, blockId, options, (err) => {
   if(err) {
@@ -322,32 +331,37 @@ event and a set of options.
 ```javascript
 const actor = 'admin';
 const event = {
-  '@context': 'https://schema.org/',
-  type: 'Event',
-  name: 'Big Band Concert in New York City',
-  startDate: '2017-07-14T21:30',
-  location: 'https://example.org/the-venue',
-  offers: {
-    type: 'Offer',
-    price: '13.00',
-    priceCurrency: 'USD',
-    url: 'https://www.ticketfly.com/purchase/309433'
+  event: {
+    '@context': 'https://schema.org/',
+    type: 'Event',
+    name: 'Big Band Concert in New York City',
+    startDate: '2017-07-14T21:30',
+    location: 'https://example.org/the-venue',
+    offers: {
+      type: 'Offer',
+      price: '13.00',
+      priceCurrency: 'USD',
+      url: 'https://www.ticketfly.com/purchase/309433'
+    },
+    signature: {
+      type: 'RsaSignature2017',
+      created: '2017-05-10T19:47:15Z',
+      creator: 'https://www.ticketfly.com/keys/789',
+      signatureValue: 'JoS27wqa...BFMgXIMw=='
+    }
   },
-  signature: {
-    type: 'RsaSignature2017',
-    created: '2017-05-10T19:47:15Z',
-    creator: 'https://www.ticketfly.com/keys/789',
-    signatureValue: 'JoS27wqa...BFMgXIMw=='
+  meta: {
+    pending: true
   }
 }
 const options = {};
 
-storage.events.create(actor, event, options, (err, event) => {
+storage.events.create(actor, event, options, (err, record) => {
   if(err) {
     throw new Error("Failed to create the event:", err);
   }
   
-  console.log('Event creation successful:', event.id);
+  console.log('Event creation successful:', record.event.id, record.meta);
 });
 ```
 
@@ -358,7 +372,9 @@ query and a set of options.
 
 * actor - the actor performing the action.
 * query - a query that matches one or more events
-  * id - the event identifier to search for
+  * event - the event query
+    * id - the event identifier to search for
+  * meta - the metadata query
 * options - a set of options used when retrieving the event.
   * pending - if true, get all pending events
 * callback(err) - the callback to call when finished.
@@ -366,16 +382,21 @@ query and a set of options.
 
 ```javascript
 const query = {
-  id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/76b17d64-abb1-4d19-924f-427a743489f0'
+  event: {
+    id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/76b17d64-abb1-4d19-924f-427a743489f0'
+  },
+  meta: {
+    pending: true
+  }
 };
 const options = {};
 
-storage.events.get(actor, query, options, (err, events) => {
+storage.events.get(actor, query, options, (err, records) => {
   if(err) {
     throw new Error("Event query failed:", err);
   }
   
-  console.log("Events matching query:", events);
+  console.log("Events matching query:", records);
 });
 ```
 
@@ -385,7 +406,11 @@ Update an existing event associated with the ledger given
 an event update and a set of options.
 
 * actor - the actor performing the action.
-* event - the new values for the event.
+* record - the new values for the event record.
+  * event - the event fields to modify
+    * id - the identifier for the event
+  * meta - the metadata fields to modify
+    * pending - true if the event is pending consensus
 * options - a set of options used when updating the event.
   * eventOperation - the operation to perform on the event.
     * set - replace the entire event with ```event```
@@ -395,30 +420,30 @@ an event update and a set of options.
     * set - replace the entire event with ```event```
     * update - only update the fields specified in ```event```
     * delete - only delete the fields specified in ```event```
-  * meta - the metadata fields to modify
-    * pending - true if the event is pending consensus
 * callback(err, result) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
   * result - the value of the updated event.
 
 ```javascript
 // remove the pending flag metadata for an event
-const event = {
-  id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/76b17d64-abb1-4d19-924f-427a743489f0'
+const record = {
+  event: {
+    id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/76b17d64-abb1-4d19-924f-427a743489f0'
+  },
+  meta: {
+    block: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/2'
+  }  
 };
 const options = {
   metaOperation: 'set',
-  meta: {
-    block: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/2'
-  }
 };
 
-storage.events.update(actor, event, options, (err, event, meta) => {
+storage.events.update(actor, event, options, (err, record) => {
   if(err) {
     throw new Error("Event update failed:", err);
   }
   
-  console.log("Event update success:", event, meta);
+  console.log("Event update success:", record.event, record.meta);
 });
 ```
 ### Delete an Event
@@ -451,5 +476,5 @@ Usage of the raw driver to enact database changes is strongly
 discouraged as it breaks the storage layer abstraction.
 
 ```javascript
-const mongodbDriver = storage.driver.get();
+const mongodbDriver = storage.driver
 ```
