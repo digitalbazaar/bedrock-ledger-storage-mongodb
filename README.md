@@ -191,89 +191,115 @@ particular ledger.
 
 ### Create a Block 
 
-Creates a block in the ledger given a block and a set of options.
+Creates a block in the ledger given a block, metadata associated
+with the block, and a set of options.
 
 * actor - the actor performing the action.
 * block - the block to create in the ledger.
+* meta - the metadata associated with the block.
 * options - a set of options used when creating the block.
 * callback(err) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
+  * result - the result of the operation.
+    * block - the block that was committed to storage.
+    * meta - the metadata that was committed to storage.
 
 ```javascript
 const actor = 'admin';
-const record = {
-  block: {
-    '@context': 'https://w3id.org/webledger/v1',
-    id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/2',
-    type: 'WebLedgerEventBlock',
-    event: [/* { ... JSON-LD-OBJECT ... }, ... */],
-    previousBlock: 'did:v1:e7adbe7-79f2-425a-9dfb-76a234782f30/blocks/1',
-    previousBlockHash: 'ni:///sha-256;cGBSKHn2cBJ563oSt3SAf4OxZXXfwtSxj1xFO5LtkGkW',
-    signature: {
-      type: 'RsaSignature2017',
-      created: '2017-05-10T19:47:15Z',
-      creator: 'http://example.com/keys/789',
-      signatureValue: 'JoS27wqa...BFMgXIMw=='
-    }
-   },
-   meta: {
-     pending: true
-   }
-}
+const block = {
+  '@context': 'https://w3id.org/webledger/v1',
+  id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/2',
+  type: 'WebLedgerEventBlock',
+  event: [/* { ... JSON-LD-OBJECT ... }, ... */],
+  previousBlock: 'did:v1:e7adbe7-79f2-425a-9dfb-76a234782f30/blocks/1',
+  previousBlockHash: 'ni:///sha-256;cGBSKHn2cBJ563oSt3SAf4OxZXXfwtSxj1xFO5LtkGkW',
+  signature: {
+    type: 'RsaSignature2017',
+    created: '2017-05-10T19:47:15Z',
+    creator: 'http://example.com/keys/789',
+    signatureValue: 'JoS27wqa...BFMgXIMw=='
+  }
+};
+const meta = {
+  pending: true
+};
 const options = {};
 
-storage.blocks.create(actor, block, options, (err, record) => {
+storage.blocks.create(actor, block, options, (err, result) => {
   if(err) {
     throw new Error("Failed to create the block:", err);
   }
   
-  console.log('Block creation successful:', record.block, record.meta);
+  console.log('Block creation successful:', result.block, result.meta);
 });
 ```
 
 ### Get a Block 
 
-Gets one or more blocks in the ledger given a 
-query and a set of options.
+Gets a block and its associated metadata from a the ledger 
+given a blockId.
 
 * actor - the actor performing the action.
-* query - a query that matches one or more blocks
-  * block - the block query to use
-    * id - the blockID to search for
-  * meta - the meta query to use
-* options - a set of options used when creating the block.
-  * pending - if true, get all pending blocks
+* blockId - the identifier of the block to fetch from the ledger.
+* options - a set of options used when retrieving the block.
 * callback(err, records) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
-  * records - an array containing zero or more block records
+  * result - the result of the retrieval.
+    * block - the block.
+    * meta - metadata about the block.
 
 ```javascript
-const query = {
-  id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1'
-};
+const actor = 'admin';
+const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1';
 const options = {};
 
-storage.blocks.get(actor, query, options, (err, records) => {
+storage.blocks.get(actor, blockId, options, (err, result) => {
   if(err) {
     throw new Error("Block query failed:", err);
   }
   
-  console.log("Blocks matching query:", records);
+  console.log("Block:", result.block, result.meta);
+});
+```
+
+### Get Latest Blocks
+
+Retrieves the latest events block and the latest configuration
+block from the ledger.
+
+* actor - the actor performing the action.
+* options - a set of options used when retrieving the latest blocks.
+* callback(err, result) - the callback to call when finished.
+  * err - An Error if an error occurred, null otherwise.
+  * result - the latest events and configuration blocks.
+    * configurationBlock - the latest configuration block.
+    * eventsBlock - the latest events block.
+
+```javascript
+const actor = 'admin';
+const options = {};
+
+storage.blocks.getLatest(actor, options, (err, result) => {
+  if(err) {
+    throw new Error("Failed to get latest blocks:", err);
+  }
+  
+  console.log("Latest config block:", result.configurationBlock);
+  console.log("Latest events block:", result.eventsBlock);
 });
 ```
 
 ### Update an Existing Block 
 
-Update an existing block in the ledger given
-a block update and a set of options.
+Update an existing block in the ledger given a blockId,
+an array of patch instructions, and a set of options.
 
 * actor - the actor performing the action.
-* blockId - the new values for the block.
+* blockId - the URI of the block to update.
 * patch - the patch instructions to execute on the block.
 * options - a set of options used when updating the block.
-* callback(err, result) - the callback to call when finished.
+* callback(err) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
-  * result - the value of the updated block.
 
 ```javascript
 const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1';
@@ -301,14 +327,15 @@ const patch = [{
 }];
 const options = {};
 
-storage.blocks.update(actor, blockId, patch, options, (err, record) => {
+storage.blocks.update(actor, blockId, patch, options, (err) => {
   if(err) {
     throw new Error("Block update failed:", err);
   }
   
-  console.log("Block update success:", record.block, record.meta);
+  console.log("Block update succeeded.");
 });
 ```
+
 ### Delete a Block
 
 Delete a block in the ledger given a blockID and a set of options.
