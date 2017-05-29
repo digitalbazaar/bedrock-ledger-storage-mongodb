@@ -254,35 +254,40 @@ Update an existing block in the ledger given
 a block update and a set of options.
 
 * actor - the actor performing the action.
-* block - the new values for the block.
-* options - a set of options used when creating the block.
-  * blockOperation - the operation to perform on the block.
-    * set - replace the entire block with ```block```
-    * update - only update the fields specified in ```block```
-    * delete - only delete the fields specified in ```block```
-  * metaOperation - the operation to perform on the metadata.
-    * set - replace the entire block with ```block```
-    * update - only update the fields specified in ```block```
-    * delete - only delete the fields specified in ```block```
+* blockId - the new values for the block.
+* patch - the patch instructions to execute on the block.
+* options - a set of options used when updating the block.
 * callback(err, result) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
   * result - the value of the updated block.
 
 ```javascript
-// remove the pending flag metadata for a block
-const block = {
-  block: {
-    id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1'
-  },
-  meta: {
-    pending: 'this value will be deleted'
+const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1';
+const patch = [{
+  op: 'delete',
+  changes: {
+    meta: {
+      pending: true
+    }
   }
-};
-const options = {
-  metaOperation: 'delete',
-};
+}, {
+  op: 'set',
+  changes: {
+    block: {
+      proof: { /* proof goes here */ }
+    }
+  }
+}, {
+  op: 'add',
+  changes: {
+    block: {
+      signature: { /* signature goes here */ }
+    }
+  }
+}];
+const options = {};
 
-storage.blocks.update(actor, block, options, (err, record) => {
+storage.blocks.update(actor, blockId, patch, options, (err, record) => {
   if(err) {
     throw new Error("Block update failed:", err);
   }
@@ -407,39 +412,40 @@ Update an existing event associated with the ledger given
 an event update and a set of options.
 
 * actor - the actor performing the action.
-* record - the new values for the event record.
-  * event - the event fields to modify
-    * id - the identifier for the event
-  * meta - the metadata fields to modify
-    * pending - true if the event is pending consensus
+* eventId - the ID of the event to update
+* patch - a list of patch commands for the event
 * options - a set of options used when updating the event.
-  * eventOperation - the operation to perform on the event.
-    * set - replace the entire event with ```event```
-    * update - only update the fields specified in ```event```
-    * delete - only delete the fields specified in ```event```
-  * metaOperation - the operation to perform on the metadata.
-    * set - replace the entire event with ```event```
-    * update - only update the fields specified in ```event```
-    * delete - only delete the fields specified in ```event```
 * callback(err, result) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
   * result - the value of the updated event.
 
 ```javascript
-// remove the pending flag metadata for an event
-const record = {
-  event: {
-    id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/76b17d64-abb1-4d19-924f-427a743489f0'
-  },
-  meta: {
-    block: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/2'
-  }  
-};
-const options = {
-  metaOperation: 'set',
-};
+const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/76b17d64-abb1-4d19-924f-427a743489f';
+const patch = [{
+  op: 'delete',
+  changes: {
+    meta: {
+      pending: true
+    }
+  }
+}, {
+  op: 'set',
+  changes: {
+    meta: {
+      block: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/2'
+    }
+  }
+}, {
+  op: 'add',
+  changes: {
+    event: {
+      signature: { /* signature goes here */ }
+    }
+  }
+}];
+const options = {};
 
-storage.events.update(actor, event, options, (err, record) => {
+storage.events.update(actor, eventId, patch, options, (err, record) => {
   if(err) {
     throw new Error("Event update failed:", err);
   }
