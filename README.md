@@ -46,69 +46,22 @@ creating a new ledger node API.
 The MongoDB ledger storage API is capable of mapping ledger node 
 storage requests to a set of MongoDB collections. 
 
-### Get a List of All Ledgers
-
-Gets all of the known ledgers for the storage system.
-
-* actor - the actor performing the action.
-* query - a set of query parameters used to retrieve the 
-  list of ledger nodes.
-* options - a set of options to use when retrieving the list.
-* callback(err, ledgerIds) - the callback to call when finished.
-  * err - An Error if an error occurred, null otherwise
-  * ledgerIds - An array of all ledgers matching the query.
-
-```javascript
-const actor = 'admin';
-const query = {};
-const options = {};
-
-bedrockLedger.getLedgers(actor, query, options, (err, ledgerIds) => {
-  if(err) {
-    throw new Error("Failed to fetch ledgers:", err);
-  }
-  
-  console.log("Ledgers:", ledgerIds);
-});
-```
-
-### Get the Ledger API
-
-Retrieves an API for performing operations on a ledger.
-
-* ledgerId - a URI identifying the ledger.
-* options - a set of options used when retrieving the ledger API.
-* callback(err, storage) - the callback to call when finished.
-  * err - An Error if an error occurred, null otherwise
-  * storage - A ledger storage API
-
-```javascript
-const blsMongodb = require('bedrock-ledger-storage-mongodb');
-
-const ledgerId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59';
-const options = {};
-
-blsMongodb.getStorage(ledgerId, options, (err, storage) => {
-  storage.events.create( /* write new events to the ledger storage */ );
-  /* ... perform other operations on ledger storage ... */
-});
-```
-
 ### Creating a Ledger
 
 Create a new ledger given an initial configuration block, 
-and a set of options.
+block metadata, and a set of options.
 
 * actor - the actor performing the action.
 * configBlock - the initial configuration block for the ledger.
+* meta - the metadata associated with the configuration block.
 * options - a set of options used when creating the ledger.
-* callback(err, ledger) - the callback to call when finished.
+* callback(err, storage) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise
-  * ledger - A ledger object containing the latest 
-  ```configurationBlock``` as well as the ```latestBlock``` 
-  that has achieved consensus
+  * storage - The storage to use for the purposes of accessing
+    and modifying the ledger.
 
 ```javascript
+const blsMongodb = require('bedrock-ledger-storage-mongodb');
 
 const configBlock = {
     id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1',
@@ -140,14 +93,41 @@ const configBlock = {
     }
   }
 };
+const meta = {};
 const options = {};
 
-storage.create(actor, configBlock, options, (err, record) => {
+blsMongodb.create(actor, configBlock, meta, options, (err, storage) => {
   if(err) {
     throw new Error("Failed to create ledger:", err);
   }
   
-  console.log("Ledger created", record.block, record.meta);
+  // use the storage API to read and write to the ledger
+  storage.events.create( /* create new events */ );
+  storage.blocks.create( /* create new blocks */ );
+});
+```
+
+### Retrieving a Ledger
+
+Retrieves a storage API for performing operations on a ledger.
+
+* actor - the actor performing the action.
+* ledgerId - a URI identifying the ledger.
+* options - a set of options used when retrieving the storage API.
+* callback(err, storage) - the callback to call when finished.
+  * err - An Error if an error occurred, null otherwise
+  * storage - A ledger storage API.
+
+```javascript
+const blsMongodb = require('bedrock-ledger-storage-mongodb');
+
+const actor = 'admin';
+const ledgerId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59';
+const options = {};
+
+blsMongodb.get(actor, ledgerId, options, (err, storage) => {
+  storage.events.create( /* write new events to the ledger storage */ );
+  /* ... perform other operations on ledger storage ... */
 });
 ```
 
@@ -156,17 +136,51 @@ storage.create(actor, configBlock, options, (err, record) => {
 Deletes a ledger given a set of options.
 
 * actor - the actor performing the action.
+* ledgerId - the URI of the ledger to delete.
 * options - a set of options used when deleting the ledger.
 * callback(err) - the callback to call when finished.
-  * err - An Error if an error occurred, null otherwise
+  * err - An Error if an error occurred, null otherwise.
 
 ```javascript
-storage.delete(actor, {}, err => {
+const blsMongodb = require('bedrock-ledger-storage-mongodb');
+
+const actor = 'admin';
+const ledgerId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59';
+const options = {};
+
+blsMongodb.delete(actor, ledgerId, options, err => {
   if(err) {
     throw new Error("Failed to delete ledger:", err);
   }
   
   console.log("Ledger deletion successful!");
+});
+```
+
+### Get an Iterator for All Ledgers
+
+Gets an iterator that will iterate over all ledgers in the system.
+The iterator will return a ledgerId that can be passed to the
+api.get() call to fetch the storage for the associated ledger.
+
+* actor - the actor performing the action.
+* options - a set of options to use when retrieving the list.
+* callback(err, iterator) - the callback to call when finished.
+  * err - An Error if an error occurred, null otherwise
+  * iterator - An iterator that returns ledgerIds
+
+```javascript
+const actor = 'admin';
+const options = {};
+
+bedrockLedger.getLedgerIterator(actor, options, (err, iterator) => {
+  if(err) {
+    throw new Error("Failed to fetch iterator for ledgers:", err);
+  }
+  
+  for(let ledgerId of iterator) { 
+    console.log('Ledger:',  ledgerId); 
+  }
 });
 ```
 
