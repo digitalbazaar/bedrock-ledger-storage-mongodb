@@ -11,19 +11,20 @@ of these objects are shown below:
 This API exposes the following methods:
 
 * Ledger Storage API
-  * api.getAllLedgers(actor, options, callback(err, ledgerIds))
-  * api.getStorage(ledgerId, options, callback(err, storage))
-  * storage.create(actor, record, options, callback(err, ledger))
-  * storage.delete(actor, options, callback(err))
+  * api.create(actor, configBlock, meta, options, callback(err, storage))
+  * api.get(actor, ledgerId, options, callback(err, storage))
+  * api.delete(actor, ledgerId, options, callback(err))
+  * api.getLedgerIterator(actor, options, callback(err, iterator))
 * Block Storage API
-  * storage.blocks.create(actor, record, options, callback(err))
-  * storage.blocks.get(actor, query, options, callback(err, records))
-  * storage.blocks.update(actor, record, options, callback(err, record))
+  * storage.blocks.create(actor, block, meta, options, callback(err, result))
+  * storage.blocks.get(actor, blockId, options, callback(err, result))
+  * storage.blocks.getLatest(actor, options, callback(err, result))
+  * storage.blocks.update(actor, blockId, patch, options, callback(err))
   * storage.blocks.delete(actor, blockId, options, callback(err))
 * Event Storage API
-  * storage.events.create(actor, record, options, callback(err))
-  * storage.events.get(actor, query, options, callback(err, records))
-  * storage.events.update(actor, record, options, callback(err, record))
+  * storage.events.create(actor, event, meta, options, callback(err, result))
+  * storage.events.get(actor, eventId, options, callback(err, result))
+  * storage.events.update(actor, eventId, patch, options, callback(err))
   * storage.events.delete(actor, eventId, options, callback(err))
 * Database Driver API
   * storage.driver
