@@ -371,9 +371,13 @@ event and a set of options.
 
 * actor - the actor performing the action.
 * event - the event to associate with a ledger.
+* meta - the metadata that is associated with the event.
 * options - a set of options used when creating the event.
-* callback(err) - the callback to call when finished.
+* callback(err, result) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
+  * result - the result of the operation.
+    * event - the event that was committed to storage.
+    * meta - the metadata that was committed to storage.
 
 ```javascript
 const actor = 'admin';
@@ -396,19 +400,19 @@ const event = {
       creator: 'https://www.ticketfly.com/keys/789',
       signatureValue: 'JoS27wqa...BFMgXIMw=='
     }
-  },
-  meta: {
-    pending: true
   }
-}
+};
+const meta = {
+  pending: true
+};
 const options = {};
 
-storage.events.create(actor, event, options, (err, record) => {
+storage.events.create(actor, event, meta, options, (err, result) => {
   if(err) {
     throw new Error("Failed to create the event:", err);
   }
   
-  console.log('Event creation successful:', record.event.id, record.meta);
+  console.log('Event creation successful:', result.event.id, result.meta);
 });
 ```
 
@@ -418,39 +422,32 @@ Gets one or more events in the ledger given a
 query and a set of options.
 
 * actor - the actor performing the action.
-* query - a query that matches one or more events
-  * event - the event query
-    * id - the event identifier to search for
-  * meta - the metadata query
+* eventId - the identifier of the event to fetch from storage.
 * options - a set of options used when retrieving the event.
-  * pending - if true, get all pending events
-* callback(err) - the callback to call when finished.
+* callback(err, result) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
+  * result - the result of the retrieval
+    * event - the event.
+    * meta - metadata about the event.
 
 ```javascript
-const query = {
-  event: {
-    id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/76b17d64-abb1-4d19-924f-427a743489f0'
-  },
-  meta: {
-    pending: true
-  }
-};
+const actor = 'admin';
+const eventId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/289347293472';
 const options = {};
 
-storage.events.get(actor, query, options, (err, records) => {
+storage.blocks.get(actor, eventId, options, (err, result) => {
   if(err) {
-    throw new Error("Event query failed:", err);
+    throw new Error("Event retrieval failed:", err);
   }
   
-  console.log("Events matching query:", records);
+  console.log("Event:", result.event, result.meta);
 });
 ```
 
 ### Update an Existing Event
 
 Update an existing event associated with the ledger given
-an event update and a set of options.
+an eventId, an array of patch instructions, and a set of options.
 
 * actor - the actor performing the action.
 * eventId - the ID of the event to update
@@ -461,7 +458,7 @@ an event update and a set of options.
   * result - the value of the updated event.
 
 ```javascript
-const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/76b17d64-abb1-4d19-924f-427a743489f';
+const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/76b17d64-abb1-4d19-924f-427a743489f0';
 const patch = [{
   op: 'delete',
   changes: {
@@ -486,14 +483,15 @@ const patch = [{
 }];
 const options = {};
 
-storage.events.update(actor, eventId, patch, options, (err, record) => {
+storage.events.update(actor, eventId, patch, options, (err) => {
   if(err) {
     throw new Error("Event update failed:", err);
   }
   
-  console.log("Event update success:", record.event, record.meta);
+  console.log("Event update succeeded.");
 });
 ```
+
 ### Delete an Event
 
 Delete an event associated with the ledger given an eventId and a set of options.
