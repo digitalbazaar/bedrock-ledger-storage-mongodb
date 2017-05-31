@@ -432,7 +432,7 @@ query and a set of options.
 
 ```javascript
 const actor = 'admin';
-const eventId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/289347293472';
+const eventId = 'urn:uuid:049f7d7a-6327-41db-b2cf-9ffa29d3433b';
 const options = {};
 
 storage.blocks.get(actor, eventId, options, (err, result) => {
@@ -458,7 +458,7 @@ an eventId, an array of patch instructions, and a set of options.
   * result - the value of the updated event.
 
 ```javascript
-const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/76b17d64-abb1-4d19-924f-427a743489f0';
+const eventId = 'urn:uuid:76b17d64-abb1-4d19-924f-427a743489f0';
 const patch = [{
   op: 'delete',
   changes: {
@@ -504,7 +504,7 @@ Delete an event associated with the ledger given an eventId and a set of options
 
 ```javascript
 const options = {};
-const eventId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/events/76b17d64-abb1-4d19-924f-427a743489f0';
+const eventId = 'urn:uuid:6b17d64-abb1-4d19-924f-427a743489f0';
 
 storage.events.delete(actor, eventId, options, (err) => {
   if(err) {
