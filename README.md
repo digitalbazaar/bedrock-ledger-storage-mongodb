@@ -98,7 +98,7 @@ const options = {};
 
 blsMongodb.create(actor, configBlock, meta, options, (err, storage) => {
   if(err) {
-    throw new Error("Failed to create ledger:", err);
+    throw new Error('Failed to create ledger:', err);
   }
   
   // use the storage API to read and write to the ledger
@@ -150,10 +150,10 @@ const options = {};
 
 blsMongodb.delete(actor, ledgerId, options, err => {
   if(err) {
-    throw new Error("Failed to delete ledger:", err);
+    throw new Error('Failed to delete ledger:', err);
   }
   
-  console.log("Ledger deletion successful!");
+  console.log('Ledger deletion successful!');
 });
 ```
 
@@ -175,7 +175,7 @@ const options = {};
 
 bedrockLedger.getLedgerIterator(actor, options, (err, iterator) => {
   if(err) {
-    throw new Error("Failed to fetch iterator for ledgers:", err);
+    throw new Error('Failed to fetch iterator for ledgers:', err);
   }
   
   for(let ledgerId of iterator) { 
@@ -227,7 +227,7 @@ const options = {};
 
 storage.blocks.create(actor, block, options, (err, result) => {
   if(err) {
-    throw new Error("Failed to create the block:", err);
+    throw new Error('Failed to create the block:', err);
   }
   
   console.log('Block creation successful:', result.block, result.meta);
@@ -255,10 +255,10 @@ const options = {};
 
 storage.blocks.get(actor, blockId, options, (err, result) => {
   if(err) {
-    throw new Error("Block query failed:", err);
+    throw new Error('Block query failed:', err);
   }
   
-  console.log("Block:", result.block, result.meta);
+  console.log('Block:', result.block, result.meta);
 });
 ```
 
@@ -281,11 +281,11 @@ const options = {};
 
 storage.blocks.getLatest(actor, options, (err, result) => {
   if(err) {
-    throw new Error("Failed to get latest blocks:", err);
+    throw new Error('Failed to get latest blocks:', err);
   }
   
-  console.log("Latest config block:", result.configurationBlock);
-  console.log("Latest events block:", result.eventsBlock);
+  console.log('Latest config block:', result.configurationBlock);
+  console.log('Latest events block:', result.eventsBlock);
 });
 ```
 
@@ -329,10 +329,10 @@ const options = {};
 
 storage.blocks.update(actor, blockId, patch, options, (err) => {
   if(err) {
-    throw new Error("Block update failed:", err);
+    throw new Error('Block update failed:', err);
   }
   
-  console.log("Block update succeeded.");
+  console.log('Block update succeeded.');
 });
 ```
 
@@ -352,7 +352,7 @@ const options = {};
 
 storage.blocks.delete(actor, blockId, options, (err) => {
   if(err) {
-    throw new Error("Block delete failed:", err);
+    throw new Error('Block delete failed:', err);
   }
   
   console.log('Successfully deleted block.');
@@ -409,7 +409,7 @@ const options = {};
 
 storage.events.create(actor, event, meta, options, (err, result) => {
   if(err) {
-    throw new Error("Failed to create the event:", err);
+    throw new Error('Failed to create the event:', err);
   }
   
   console.log('Event creation successful:', result.event.id, result.meta);
@@ -437,10 +437,10 @@ const options = {};
 
 storage.blocks.get(actor, eventId, options, (err, result) => {
   if(err) {
-    throw new Error("Event retrieval failed:", err);
+    throw new Error('Event retrieval failed:', err);
   }
   
-  console.log("Event:", result.event, result.meta);
+  console.log('Event:', result.event, result.meta);
 });
 ```
 
@@ -485,10 +485,10 @@ const options = {};
 
 storage.events.update(actor, eventId, patch, options, (err) => {
   if(err) {
-    throw new Error("Event update failed:", err);
+    throw new Error('Event update failed:', err);
   }
   
-  console.log("Event update succeeded.");
+  console.log('Event update succeeded.');
 });
 ```
 
@@ -508,7 +508,7 @@ const eventId = 'urn:uuid:6b17d64-abb1-4d19-924f-427a743489f0';
 
 storage.events.delete(actor, eventId, options, (err) => {
   if(err) {
-    throw new Error("Event delete failed:", err);
+    throw new Error('Event delete failed:', err);
   }
   
   console.log('Successfully deleted event.');
