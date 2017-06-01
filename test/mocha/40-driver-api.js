@@ -27,7 +27,7 @@ describe('Driver API', () => {
   beforeEach(done => {
     helpers.removeCollection('ledger_testLedger', done);
   });
-  describe('regularUser as actor', () => {
+  describe('any actor', () => {
     const mockIdentity = mockData.identities.regularUser;
     let actor;
     before(done => {
@@ -36,7 +36,13 @@ describe('Driver API', () => {
         done(err);
       });
     });
-    it('does X', done => {
+    it.skip('should be able to retrieve the driver', done => {
+      done();
+    });
+    it.skip('should be able to perform a query', done => {
+      done();
+    });
+    it.skip('should be able to perform a write', done => {
       done();
     });
   });
