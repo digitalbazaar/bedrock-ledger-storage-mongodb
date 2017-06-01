@@ -36,7 +36,59 @@ describe('Block Storage API', () => {
         done(err);
       });
     });
-    it('does X', done => {
+    it.skip('should create block', done => {
+      done();
+    });
+    it.skip('should get block', done => {
+      done();
+    });
+    it.skip('should get latest blocks', done => {
+      done();
+    });
+    it.skip('should update block', done => {
+      done();
+    });
+    it.skip('should delete block', done => {
+      done();
+    });
+    it.skip('should not create block in non-owned ledger', done => {
+      done();
+    });
+    it.skip('should not get block from non-owned ledger', done => {
+      done();
+    });
+    it.skip('should not get latest blocks from non-owned ledger', done => {
+      done();
+    });
+    it.skip('should not update block in non-owned ledger', done => {
+      done();
+    });
+    it.skip('should not delete block in non-owned ledger', done => {
+      done();
+    });
+  });
+  describe('admin as actor', () => {
+    const mockIdentity = mockData.identities.regularUser;
+    let actor;
+    before(done => {
+      brIdentity.get(null, mockIdentity.identity.id, (err, result) => {
+        actor = result;
+        done(err);
+      });
+    });
+    it.skip('should create block in any ledger', done => {
+      done();
+    });
+    it.skip('should get block from any ledger', done => {
+      done();
+    });
+    it.skip('should get latest blocks from any ledger', done => {
+      done();
+    });
+    it.skip('should update block in any ledger', done => {
+      done();
+    });
+    it.skip('should delete block in any ledger', done => {
       done();
     });
   });
