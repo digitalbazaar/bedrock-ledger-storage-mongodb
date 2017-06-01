@@ -98,16 +98,16 @@ describe('Ledger API', () => {
         done(err);
       });
     });
-    it.skip('can create a ledger for any actor', done => {
+    it.skip('should create a ledger for any actor', done => {
       done();
     });
-    it.skip('can get any ledger', done => {
+    it.skip('should get any ledger', done => {
       done();
     });
-    it.skip('can iterate over all ledgers', done => {
+    it.skip('should iterate over all ledgers', done => {
       done();
     });
-    it.skip('can delete any ledger', done => {
+    it.skip('should delete any ledger', done => {
       done();
     });
   });
