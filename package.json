@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/digitalbazaar/bedrock-ledger-storage-mongodb/",
   "dependencies": {
-    "async": "^2.4.0"
+    "async": "^2.4.0",
+    "uuid": "^3.0.1"
   },
   "peerDependencies": {
     "bedrock": "^1.2.4",

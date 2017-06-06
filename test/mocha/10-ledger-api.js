@@ -69,7 +69,7 @@ describe('Ledger API', () => {
       const meta = {};
       const options = {};
 
-      blsMongodb.create(actor, configBlock, meta, options, (err, storage) => {
+      blsMongodb.create(configBlock, meta, options, (err, storage) => {
         done();
       });
     });
