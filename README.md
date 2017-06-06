@@ -11,21 +11,21 @@ of these objects are shown below:
 This API exposes the following methods:
 
 * Ledger Storage API
-  * api.create(actor, configBlock, meta, options, callback(err, storage))
-  * api.get(actor, ledgerId, options, callback(err, storage))
-  * api.delete(actor, ledgerId, options, callback(err))
-  * api.getLedgerIterator(actor, options, callback(err, iterator))
+  * api.create(configBlock, meta, options, callback(err, storage))
+  * api.get(ledgerId, options, callback(err, storage))
+  * api.delete(ledgerId, options, callback(err))
+  * api.getLedgerIterator(options, callback(err, iterator))
 * Block Storage API
-  * storage.blocks.create(actor, block, meta, options, callback(err, result))
-  * storage.blocks.get(actor, blockId, options, callback(err, result))
-  * storage.blocks.getLatest(actor, options, callback(err, result))
-  * storage.blocks.update(actor, blockId, patch, options, callback(err))
-  * storage.blocks.delete(actor, blockId, options, callback(err))
+  * storage.blocks.create(block, meta, options, callback(err, result))
+  * storage.blocks.get(blockId, options, callback(err, result))
+  * storage.blocks.getLatest(options, callback(err, result))
+  * storage.blocks.update(blockId, patch, options, callback(err))
+  * storage.blocks.delete(blockId, options, callback(err))
 * Event Storage API
-  * storage.events.create(actor, event, meta, options, callback(err, result))
-  * storage.events.get(actor, eventId, options, callback(err, result))
-  * storage.events.update(actor, eventId, patch, options, callback(err))
-  * storage.events.delete(actor, eventId, options, callback(err))
+  * storage.events.create(event, meta, options, callback(err, result))
+  * storage.events.get(eventId, options, callback(err, result))
+  * storage.events.update(eventId, patch, options, callback(err))
+  * storage.events.delete(eventId, options, callback(err))
 * Database Driver API
   * storage.driver
 
@@ -51,7 +51,6 @@ storage requests to a set of MongoDB collections.
 Create a new ledger given an initial configuration block, 
 block metadata, and a set of options.
 
-* actor - the actor performing the action.
 * configBlock - the initial configuration block for the ledger.
 * meta - the metadata associated with the configuration block.
 * options - a set of options used when creating the ledger.
@@ -96,7 +95,7 @@ const configBlock = {
 const meta = {};
 const options = {};
 
-blsMongodb.create(actor, configBlock, meta, options, (err, storage) => {
+blsMongodb.create(configBlock, meta, options, (err, storage) => {
   if(err) {
     throw new Error('Failed to create ledger:', err);
   }
@@ -111,7 +110,6 @@ blsMongodb.create(actor, configBlock, meta, options, (err, storage) => {
 
 Retrieves a storage API for performing operations on a ledger.
 
-* actor - the actor performing the action.
 * ledgerId - a URI identifying the ledger.
 * options - a set of options used when retrieving the storage API.
 * callback(err, storage) - the callback to call when finished.
@@ -125,7 +123,7 @@ const actor = 'admin';
 const ledgerId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59';
 const options = {};
 
-blsMongodb.get(actor, ledgerId, options, (err, storage) => {
+blsMongodb.get(ledgerId, options, (err, storage) => {
   storage.events.create( /* write new events to the ledger storage */ );
   /* ... perform other operations on ledger storage ... */
 });
@@ -135,7 +133,6 @@ blsMongodb.get(actor, ledgerId, options, (err, storage) => {
 
 Deletes a ledger given a set of options.
 
-* actor - the actor performing the action.
 * ledgerId - the URI of the ledger to delete.
 * options - a set of options used when deleting the ledger.
 * callback(err) - the callback to call when finished.
@@ -148,7 +145,7 @@ const actor = 'admin';
 const ledgerId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59';
 const options = {};
 
-blsMongodb.delete(actor, ledgerId, options, err => {
+blsMongodb.delete(ledgerId, options, err => {
   if(err) {
     throw new Error('Failed to delete ledger:', err);
   }
@@ -163,7 +160,6 @@ Gets an iterator that will iterate over all ledgers in the system.
 The iterator will return a ledgerId that can be passed to the
 api.get() call to fetch the storage for the associated ledger.
 
-* actor - the actor performing the action.
 * options - a set of options to use when retrieving the list.
 * callback(err, iterator) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise
@@ -173,7 +169,7 @@ api.get() call to fetch the storage for the associated ledger.
 const actor = 'admin';
 const options = {};
 
-bedrockLedger.getLedgerIterator(actor, options, (err, iterator) => {
+bedrockLedger.getLedgerIterator(options, (err, iterator) => {
   if(err) {
     throw new Error('Failed to fetch iterator for ledgers:', err);
   }
@@ -194,7 +190,6 @@ particular ledger.
 Creates a block in the ledger given a block, metadata associated
 with the block, and a set of options.
 
-* actor - the actor performing the action.
 * block - the block to create in the ledger.
 * meta - the metadata associated with the block.
 * options - a set of options used when creating the block.
@@ -225,7 +220,7 @@ const meta = {
 };
 const options = {};
 
-storage.blocks.create(actor, block, options, (err, result) => {
+storage.blocks.create(block, options, (err, result) => {
   if(err) {
     throw new Error('Failed to create the block:', err);
   }
@@ -239,7 +234,6 @@ storage.blocks.create(actor, block, options, (err, result) => {
 Gets a block and its associated metadata from a the ledger 
 given a blockId.
 
-* actor - the actor performing the action.
 * blockId - the identifier of the block to fetch from the ledger.
 * options - a set of options used when retrieving the block.
 * callback(err, records) - the callback to call when finished.
@@ -253,7 +247,7 @@ const actor = 'admin';
 const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1';
 const options = {};
 
-storage.blocks.get(actor, blockId, options, (err, result) => {
+storage.blocks.get(blockId, options, (err, result) => {
   if(err) {
     throw new Error('Block query failed:', err);
   }
@@ -267,7 +261,6 @@ storage.blocks.get(actor, blockId, options, (err, result) => {
 Retrieves the latest events block and the latest configuration
 block from the ledger.
 
-* actor - the actor performing the action.
 * options - a set of options used when retrieving the latest blocks.
 * callback(err, result) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
@@ -279,7 +272,7 @@ block from the ledger.
 const actor = 'admin';
 const options = {};
 
-storage.blocks.getLatest(actor, options, (err, result) => {
+storage.blocks.getLatest(options, (err, result) => {
   if(err) {
     throw new Error('Failed to get latest blocks:', err);
   }
@@ -294,7 +287,6 @@ storage.blocks.getLatest(actor, options, (err, result) => {
 Update an existing block in the ledger given a blockId,
 an array of patch instructions, and a set of options.
 
-* actor - the actor performing the action.
 * blockId - the URI of the block to update.
 * patch - the patch instructions to execute on the block.
 * options - a set of options used when updating the block.
@@ -327,7 +319,7 @@ const patch = [{
 }];
 const options = {};
 
-storage.blocks.update(actor, blockId, patch, options, (err) => {
+storage.blocks.update(blockId, patch, options, (err) => {
   if(err) {
     throw new Error('Block update failed:', err);
   }
@@ -340,7 +332,6 @@ storage.blocks.update(actor, blockId, patch, options, (err) => {
 
 Delete a block in the ledger given a blockID and a set of options.
 
-* actor - the actor performing the action.
 * blockId - the block to delete in the ledger.
 * options - a set of options used when deleting the block.
 * callback(err) - the callback to call when finished.
@@ -350,7 +341,7 @@ Delete a block in the ledger given a blockID and a set of options.
 const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1';
 const options = {};
 
-storage.blocks.delete(actor, blockId, options, (err) => {
+storage.blocks.delete(blockId, options, (err) => {
   if(err) {
     throw new Error('Block delete failed:', err);
   }
@@ -369,7 +360,6 @@ particular ledger.
 Creates an event to associate with a ledger given an 
 event and a set of options.
 
-* actor - the actor performing the action.
 * event - the event to associate with a ledger.
 * meta - the metadata that is associated with the event.
 * options - a set of options used when creating the event.
@@ -407,7 +397,7 @@ const meta = {
 };
 const options = {};
 
-storage.events.create(actor, event, meta, options, (err, result) => {
+storage.events.create(event, meta, options, (err, result) => {
   if(err) {
     throw new Error('Failed to create the event:', err);
   }
@@ -421,7 +411,6 @@ storage.events.create(actor, event, meta, options, (err, result) => {
 Gets one or more events in the ledger given a 
 query and a set of options.
 
-* actor - the actor performing the action.
 * eventId - the identifier of the event to fetch from storage.
 * options - a set of options used when retrieving the event.
 * callback(err, result) - the callback to call when finished.
@@ -435,7 +424,7 @@ const actor = 'admin';
 const eventId = 'urn:uuid:049f7d7a-6327-41db-b2cf-9ffa29d3433b';
 const options = {};
 
-storage.blocks.get(actor, eventId, options, (err, result) => {
+storage.blocks.get(eventId, options, (err, result) => {
   if(err) {
     throw new Error('Event retrieval failed:', err);
   }
@@ -449,7 +438,6 @@ storage.blocks.get(actor, eventId, options, (err, result) => {
 Update an existing event associated with the ledger given
 an eventId, an array of patch instructions, and a set of options.
 
-* actor - the actor performing the action.
 * eventId - the ID of the event to update
 * patch - a list of patch commands for the event
 * options - a set of options used when updating the event.
@@ -483,7 +471,7 @@ const patch = [{
 }];
 const options = {};
 
-storage.events.update(actor, eventId, patch, options, (err) => {
+storage.events.update(eventId, patch, options, (err) => {
   if(err) {
     throw new Error('Event update failed:', err);
   }
@@ -496,7 +484,6 @@ storage.events.update(actor, eventId, patch, options, (err) => {
 
 Delete an event associated with the ledger given an eventId and a set of options.
 
-* actor - the actor performing the action.
 * eventId - the event to delete.
 * options - a set of options used when deleting the event.
 * callback(err) - the callback to call when finished.
@@ -506,7 +493,7 @@ Delete an event associated with the ledger given an eventId and a set of options
 const options = {};
 const eventId = 'urn:uuid:6b17d64-abb1-4d19-924f-427a743489f0';
 
-storage.events.delete(actor, eventId, options, (err) => {
+storage.events.delete(eventId, options, (err) => {
   if(err) {
     throw new Error('Event delete failed:', err);
   }
