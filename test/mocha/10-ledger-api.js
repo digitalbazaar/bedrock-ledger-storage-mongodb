@@ -17,6 +17,7 @@ const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
 const baseUri = 'http://example.com';
+const testOwner = 'https://example.com/i/testOwner';
 
 // use local JSON-LD processor for signatures
 jsigs.use('jsonld', bedrock.jsonld);
@@ -49,85 +50,76 @@ const configBlockTemplate = {
   }
 };
 
-
 describe('Ledger API', () => {
-  before(done => {
-    helpers.prepareDatabase(mockData, done);
-  });
-  beforeEach(done => {
-    helpers.removeCollection('ledger_testLedger', done);
-  });
-  describe('regularUser as actor', () => {
-    const mockIdentity = mockData.identities.regularUser;
-    let actor;
-    before(done => {
-      brIdentity.get(null, mockIdentity.identity.id, (err, result) => {
-        actor = result;
-        done(err);
-      });
-    });
-    it('should create a ledger', done => {
-      let configBlock = _.cloneDeep(configBlockTemplate);
-      configBlock.ledger = 'did:v1:' + uuid.v4();
-      configBlock.id = configBlock.ledger + '/blocks/1';
-      const meta = {};
-      const options = {};
+  it('should create a ledger', done => {
+    let configBlock = _.cloneDeep(configBlockTemplate);
+    configBlock.ledger = 'did:v1:' + uuid.v4();
+    configBlock.id = configBlock.ledger + '/blocks/1';
+    const meta = {};
+    const options = {};
 
-      blsMongodb.create(configBlock, meta, options, (err, storage) => {
-        // ensure ledger storage API exists
+    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+      // ensure ledger storage API exists
+      should.not.exist(err);
+      should.exist(storage);
+      should.exist(storage.blocks);
+      should.exist(storage.events);
+
+      // ensure the ledger was created in the database
+      const query = {id: database.hash(configBlock.ledger)};
+      database.collections.ledger.findOne(query, (err, record) => {
         should.not.exist(err);
-        should.exist(storage);
-        should.exist(storage.blocks);
-        should.exist(storage.events);
-
-        // ensure the ledger was created in the database
-        const query = {id: database.hash(configBlock.ledger)};
-        database.collections.ledger.findOne(query, (err, record) => {
-          should.not.exist(err);
-          should.exist(record);
-          should.exist(record.ledger.id);
-          should.exist(record.ledger.eventCollection);
-          should.exist(record.ledger.blockCollection);
-          done();
-        });
+        should.exist(record);
+        should.exist(record.ledger.id);
+        should.exist(record.ledger.eventCollection);
+        should.exist(record.ledger.blockCollection);
+        done();
       });
-    });
-    it.skip('should get their ledger', done => {
-      done();
-    });
-    it.skip('should iterate over their ledgers', done => {
-      done();
-    });
-    it.skip('should delete their ledger', done => {
-      done();
-    });
-    it.skip('should not delete non-owned ledger', done => {
-      done();
-    });
-    it.skip('should not iterate over non-owned ledgers', done => {
-      done();
     });
   });
-  describe('admin as actor', () => {
-    const mockIdentity = mockData.identities.regularUser;
-    let actor;
-    before(done => {
-      brIdentity.get(null, mockIdentity.identity.id, (err, result) => {
-        actor = result;
-        done(err);
+  it('should create a ledger with owner', done => {
+    let configBlock = _.cloneDeep(configBlockTemplate);
+    configBlock.ledger = 'did:v1:' + uuid.v4();
+    configBlock.id = configBlock.ledger + '/blocks/1';
+    const meta = {};
+    const options = {
+      owner: testOwner
+    };
+
+    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+      // ensure ledger storage API exists
+      should.not.exist(err);
+      should.exist(storage);
+      should.exist(storage.blocks);
+      should.exist(storage.events);
+
+      // ensure the ledger was created in the database
+      const query = {id: database.hash(configBlock.ledger)};
+      database.collections.ledger.findOne(query, (err, record) => {
+        should.not.exist(err);
+        should.exist(record);
+        should.exist(record.ledger.id);
+        should.exist(record.ledger.owner);
+        record.ledger.owner.should.equal(testOwner);
+        should.exist(record.ledger.eventCollection);
+        should.exist(record.ledger.blockCollection);
+        done();
       });
     });
-    it.skip('should create a ledger for any actor', done => {
-      done();
-    });
-    it.skip('should get any ledger', done => {
-      done();
-    });
-    it.skip('should iterate over all ledgers', done => {
-      done();
-    });
-    it.skip('should delete any ledger', done => {
-      done();
-    });
+  });
+  it.skip('should get ledger', done => {
+    done();
+  });
+  it.skip('should iterate over ledgers', done => {
+    done();
+  });
+  it.skip('should delete ledger', done => {
+    done();
+  });
+  it.skip('should not delete non-owned ledger', done => {
+    done();
+  });
+  it.skip('should not iterate over non-owned ledgers', done => {
+    done();
   });
 }); // end createLedger
