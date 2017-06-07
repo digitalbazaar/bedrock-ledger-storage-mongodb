@@ -107,8 +107,58 @@ describe('Ledger API', () => {
       });
     });
   });
-  it.skip('should get ledger', done => {
-    done();
+  it('should get ledger', done => {
+    let configBlock = _.cloneDeep(configBlockTemplate);
+    configBlock.ledger = 'did:v1:' + uuid.v4();
+    configBlock.id = configBlock.ledger + '/blocks/1';
+    const meta= {};
+    const options = {};
+
+    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+      // ensure that there is no error
+      should.not.exist(err);
+
+      blsMongodb.get(configBlock.ledger, options, (err, storage) => {
+        should.not.exist(err);
+        should.exist(storage);
+        should.exist(storage.blocks);
+        should.exist(storage.events);
+        done();
+      });
+    });
+  });
+  it('should get ledger with owner', done => {
+    let configBlock = _.cloneDeep(configBlockTemplate);
+    configBlock.ledger = 'did:v1:' + uuid.v4();
+    configBlock.id = configBlock.ledger + '/blocks/1';
+    const meta= {};
+    const options = {
+      owner: testOwner
+    };
+
+    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+      // ensure that there is no error
+      should.not.exist(err);
+
+      blsMongodb.get(configBlock.ledger, options, (err, storage) => {
+        should.not.exist(err);
+        should.exist(storage);
+        should.exist(storage.blocks);
+        should.exist(storage.events);
+        done();
+      });
+    });
+  });
+  it('should not get non-existent ledger', done => {
+    const ledgerId = 'did:v1:' + uuid.v4();
+    const options = {};
+
+    blsMongodb.get(ledgerId, options, (err, storage) => {
+      should.exist(err);
+      should.not.exist(storage);
+      err.name.should.equal('LedgerDoesNotExist');
+      done();
+    });
   });
   it.skip('should iterate over ledgers', done => {
     done();
