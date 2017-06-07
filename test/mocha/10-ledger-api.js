@@ -160,8 +160,44 @@ describe('Ledger API', () => {
       done();
     });
   });
-  it.skip('should iterate over ledgers', done => {
-    done();
+  it('should iterate over ledgers', done => {
+    let ledgerCount = 3;
+    const ledgerIds = Array(3).fill().map((e, i) => {
+      return 'did:v1:' + uuid.v4();
+    });
+    async.every(ledgerIds, (ledgerId, callback) => {
+      const configBlock = _.cloneDeep(configBlockTemplate);
+      configBlock.ledger = ledgerId
+      configBlock.id = ledgerId + '/blocks/1';
+      const meta= {};
+      const options = {
+        owner: testOwner + '-iterator'
+      };
+      blsMongodb.create(configBlock, meta, options, (err, storage) => {
+        callback(err, true);
+      });
+    }, (err, result) => {
+      should.not.exist(err);
+
+      // iterate through all of the ledger IDs
+      const options = {owner: testOwner + '-iterator'};
+      blsMongodb.getLedgerIterator(options, (err, iterator) => {
+        should.not.exist(err);
+        ledgerCount = 0;
+        async.eachSeries(iterator, (promise, callback) => {
+          promise.then(ledgerId => {
+            if(ledgerIds.indexOf(ledgerId) === -1) {
+              throw new Error('Invalid ledgerId found: ' + ledgerId);
+            }
+            ledgerCount++;
+            callback();
+          }, callback);
+        }, err => {
+          ledgerCount.should.equal(3);
+          done(err);
+        });
+      });
+    });
   });
   it.skip('should delete ledger', done => {
     done();
