@@ -4,6 +4,7 @@
 var bedrock = require('bedrock');
 require('bedrock-identity');
 require('bedrock-mongodb');
+require('bedrock-ledger-storage-mongodb');
 
 require('bedrock-test');
 bedrock.start();
