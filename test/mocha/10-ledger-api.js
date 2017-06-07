@@ -50,7 +50,7 @@ const configBlockTemplate = {
   }
 };
 
-describe('Ledger API', () => {
+describe('Ledger Storage API', () => {
   it('should create a ledger', done => {
     let configBlock = _.cloneDeep(configBlockTemplate);
     configBlock.ledger = 'did:v1:' + uuid.v4();
@@ -199,13 +199,44 @@ describe('Ledger API', () => {
       });
     });
   });
-  it.skip('should delete ledger', done => {
-    done();
+  it('should delete ledger', done => {
+    let configBlock = _.cloneDeep(configBlockTemplate);
+    configBlock.ledger = 'did:v1:' + uuid.v4();
+    configBlock.id = configBlock.ledger + '/blocks/1';
+    const meta= {};
+    const options = {
+      owner: testOwner
+    };
+
+    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+      // ensure that there is no error
+      should.not.exist(err);
+
+      blsMongodb.delete(configBlock.ledger, options, err => {
+        should.not.exist(err);
+        done();
+      });
+    });
   });
-  it.skip('should not delete non-owned ledger', done => {
-    done();
+  it('should not delete ledger with owner (if not specified)', done => {
+    let configBlock = _.cloneDeep(configBlockTemplate);
+    configBlock.ledger = 'did:v1:' + uuid.v4();
+    configBlock.id = configBlock.ledger + '/blocks/1';
+    const meta= {};
+    const options = {
+      owner: testOwner
+    };
+
+    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+      // ensure that there is no error
+      should.not.exist(err);
+
+      const wrongOptions = {};
+      blsMongodb.delete(configBlock.ledger, wrongOptions, err => {
+        should.exist(err);
+        err.name.should.equal('LedgerDeleteFailed');
+        done();
+      });
+    });
   });
-  it.skip('should not iterate over non-owned ledgers', done => {
-    done();
-  });
-}); // end createLedger
+});
