@@ -143,13 +143,24 @@ describe('Block Storage API', () => {
     const blockId = exampleLedgerId + '/blocks/2';
     const options = {};
 
-    // create the block
+    // get an existing block
     ledgerStorage.blocks.get(blockId, options, (err, result) => {
       should.not.exist(err);
       should.exist(result);
       should.exist(result.block);
       should.exist(result.meta);
       result.block.id.should.equal(exampleLedgerId + '/blocks/2');
+      done();
+    });
+  });
+  it('should fail to get non-existent block', done => {
+    const blockId = exampleLedgerId + '/blocks/INVALID';
+    const options = {};
+
+    // attempt to get non-existent block
+    ledgerStorage.blocks.get(blockId, options, (err, result) => {
+      should.not.exist(err);
+      should.not.exist(result);
       done();
     });
   });
