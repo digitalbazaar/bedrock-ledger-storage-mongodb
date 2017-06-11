@@ -82,7 +82,7 @@ describe('Block Storage API', () => {
   let ledgerStorage;
 
   before(done => {
-    let configBlock = _.cloneDeep(configBlockTemplate);
+    const configBlock = _.cloneDeep(configBlockTemplate);
     const meta = {};
     const options = {};
 
@@ -96,7 +96,7 @@ describe('Block Storage API', () => {
     done();
   });
   it('should create block', done => {
-    let eventBlock = _.cloneDeep(eventBlockTemplate);
+    const eventBlock = _.cloneDeep(eventBlockTemplate);
     eventBlock.id = exampleLedgerId + '/blocks/2';
     eventBlock.event[0].id = exampleLedgerId + '/events/1';
     const meta = {
@@ -124,7 +124,7 @@ describe('Block Storage API', () => {
     });
   });
   it('should not create duplicate block', done => {
-    let eventBlock = _.cloneDeep(eventBlockTemplate);
+    const eventBlock = _.cloneDeep(eventBlockTemplate);
     eventBlock.id = exampleLedgerId + '/blocks/2';
     eventBlock.event[0].id = exampleLedgerId + '/events/1';
     const meta = {
@@ -159,7 +159,35 @@ describe('Block Storage API', () => {
   it.skip('should update block', done => {
     done();
   });
-  it.skip('should delete block', done => {
-    done();
+  it('should delete block', done => {
+    const eventBlock = _.cloneDeep(eventBlockTemplate);
+    eventBlock.id = exampleLedgerId + '/blocks/3';
+    eventBlock.event[0].id = exampleLedgerId + '/events/2';
+    const meta = {
+      pending: true
+    };
+    const options = {};
+
+    // create the block
+    ledgerStorage.blocks.create(eventBlock, meta, options, (err, result) => {
+      should.not.exist(err);
+
+      // delete the block
+      ledgerStorage.blocks.delete(eventBlock.id, options, (err) => {
+        should.not.exist(err);
+        done();
+      });
+    });
   });
-}); // end createLedger
+  it('should fail to delete non-existent block', done => {
+    const eventBlockId = exampleLedgerId + '/blocks/INVALID';
+    const options = {};
+
+    // delete the block
+    ledgerStorage.blocks.delete(eventBlockId, options, (err) => {
+      should.exist(err);
+      err.name.should.equal('BlockDoesNotExist');
+      done();
+    });
+  });
+});
