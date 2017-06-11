@@ -123,8 +123,19 @@ describe('Block Storage API', () => {
       });
     });
   });
-  it.skip('should get block', done => {
-    done();
+  it('should get block', done => {
+    const blockId = exampleLedgerId + '/blocks/2';
+    const options = {};
+
+    // create the block
+    ledgerStorage.blocks.get(blockId, options, (err, result) => {
+      should.not.exist(err);
+      should.exist(result);
+      should.exist(result.block);
+      should.exist(result.meta);
+      result.block.id.should.equal(exampleLedgerId + '/blocks/2');
+      done();
+    });
   });
   it.skip('should get latest blocks', done => {
     done();
