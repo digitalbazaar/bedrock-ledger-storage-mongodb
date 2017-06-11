@@ -123,6 +123,22 @@ describe('Block Storage API', () => {
       });
     });
   });
+  it('should not create duplicate block', done => {
+    let eventBlock = _.cloneDeep(eventBlockTemplate);
+    eventBlock.id = exampleLedgerId + '/blocks/2';
+    eventBlock.event[0].id = exampleLedgerId + '/events/1';
+    const meta = {
+      pending: true
+    };
+    const options = {};
+
+    // create the block
+    ledgerStorage.blocks.create(eventBlock, meta, options, (err, result) => {
+      should.exist(err);
+      err.name.should.equal('DuplicateBlockId');
+      done();
+    });
+  });
   it('should get block', done => {
     const blockId = exampleLedgerId + '/blocks/2';
     const options = {};
