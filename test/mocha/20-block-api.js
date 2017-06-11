@@ -4,92 +4,135 @@
 /* globals should */
 'use strict';
 
-const async = require('async');
-const bedrock = require('bedrock');
-const brIdentity = require('bedrock-identity');
+const _ = require('lodash');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const database = require('bedrock-mongodb');
-const expect = global.chai.expect;
 const helpers = require('./helpers');
-const jsigs = require('jsonld-signatures');
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
-const baseUri = 'http://example.com';
+const exampleLedgerId = 'did:v1:' + uuid.v4();
+const configBlockTemplate = {
+  id: exampleLedgerId,
+  ledger: exampleLedgerId + '/blocks/1',
+  type: 'WebLedgerConfigurationBlock',
+  consensusMethod: {
+    type: 'Continuity2017'
+  },
+  configurationAuthorizationMethod: {
+    type: 'ProofOfSignature2016',
+    approvedSigner: [
+      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
+    ],
+    minimumSignaturesRequired: 1
+  },
+  writeAuthorizationMethod: {
+    type: 'ProofOfSignature2016',
+    approvedSigner: [
+      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
+    ],
+    minimumSignaturesRequired: 1
+  },
+  signature: {
+    type: 'RsaSignature2017',
+    created: '2017-10-24T05:33:31Z',
+    creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
+    domain: 'example.com',
+    signatureValue: 'eyiOiJJ0eXAK...EjXkgFWFO'
+  }
+};
 
-// use local JSON-LD processor for signatures
-jsigs.use('jsonld', bedrock.jsonld);
+const eventBlockTemplate = {
+  id: '',
+  type: 'WebLedgerEventBlock',
+  event: [{
+    '@context': 'https://w3id.org/webledger/v1',
+    id: '',
+    type: 'WebLedgerEvent',
+    operation: 'Create',
+    input: [{
+      id: 'https://example.com/events/123456',
+      description: 'Example event',
+      signature: {
+        type: 'RsaSignature2017',
+        created: '2017-05-10T19:47:13Z',
+        creator: 'http://example.com/keys/123',
+        signatureValue: 'gXI7wqa...FMMJoS2Bw=='
+      }
+    }],
+    signature: {
+      type: 'RsaSignature2017',
+      created: '2017-05-10T19:47:15Z',
+      creator: 'http://example.com/keys/789',
+      signatureValue: 'JoS27wqa...BFMgXIMw=='
+    }
+  }],
+  previousBlock: '',
+  previousBlockHash: '',
+  signature: {
+    type: 'RsaSignature2017',
+    created: '2017-10-24T05:33:31Z',
+    creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
+    domain: 'example.com',
+    signatureValue: 'eyiOiJJ0eXAK...WFOEjXkgF'
+  }
+};
 
 describe('Block Storage API', () => {
+  let ledgerStorage;
+
   before(done => {
-    helpers.prepareDatabase(mockData, done);
+    let configBlock = _.cloneDeep(configBlockTemplate);
+    const meta = {};
+    const options = {};
+
+    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+      ledgerStorage = storage;
+      done(err);
+    });
   });
   beforeEach(done => {
-    helpers.removeCollection('ledger_testLedger', done);
+    // FIXME: Remove ledger
+    done();
   });
-  describe('regularUser as actor', () => {
-    const mockIdentity = mockData.identities.regularUser;
-    let actor;
-    before(done => {
-      brIdentity.get(null, mockIdentity.identity.id, (err, result) => {
-        actor = result;
-        done(err);
+  it('should create block', done => {
+    let eventBlock = _.cloneDeep(eventBlockTemplate);
+    eventBlock.id = exampleLedgerId + '/blocks/2';
+    eventBlock.event[0].id = exampleLedgerId + '/events/1';
+    const meta = {
+      pending: true
+    };
+    const options = {};
+
+    // create the block
+    ledgerStorage.blocks.create(eventBlock, meta, options, (err, result) => {
+      should.not.exist(err);
+      should.exist(result);
+      should.exist(result.block);
+      should.exist(result.meta);
+
+      // ensure the block was created in the database
+      const query = {id: database.hash(eventBlock.id)};
+      ledgerStorage.blocks.collection.findOne(query, (err, record) => {
+        should.not.exist(err);
+        should.exist(record);
+        should.exist(record.id);
+        should.exist(record.block.id);
+        should.exist(record.meta.pending);
+        done();
       });
     });
-    it.skip('should create block', done => {
-      done();
-    });
-    it.skip('should get block', done => {
-      done();
-    });
-    it.skip('should get latest blocks', done => {
-      done();
-    });
-    it.skip('should update block', done => {
-      done();
-    });
-    it.skip('should delete block', done => {
-      done();
-    });
-    it.skip('should not create block in non-owned ledger', done => {
-      done();
-    });
-    it.skip('should not get block from non-owned ledger', done => {
-      done();
-    });
-    it.skip('should not get latest blocks from non-owned ledger', done => {
-      done();
-    });
-    it.skip('should not update block in non-owned ledger', done => {
-      done();
-    });
-    it.skip('should not delete block in non-owned ledger', done => {
-      done();
-    });
   });
-  describe('admin as actor', () => {
-    const mockIdentity = mockData.identities.regularUser;
-    let actor;
-    before(done => {
-      brIdentity.get(null, mockIdentity.identity.id, (err, result) => {
-        actor = result;
-        done(err);
-      });
-    });
-    it.skip('should create block in any ledger', done => {
-      done();
-    });
-    it.skip('should get block from any ledger', done => {
-      done();
-    });
-    it.skip('should get latest blocks from any ledger', done => {
-      done();
-    });
-    it.skip('should update block in any ledger', done => {
-      done();
-    });
-    it.skip('should delete block in any ledger', done => {
-      done();
-    });
+  it.skip('should get block', done => {
+    done();
+  });
+  it.skip('should get latest blocks', done => {
+    done();
+  });
+  it.skip('should update block', done => {
+    done();
+  });
+  it.skip('should delete block', done => {
+    done();
   });
 }); // end createLedger
