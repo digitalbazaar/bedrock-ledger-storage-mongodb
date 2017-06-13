@@ -5,6 +5,7 @@
 'use strict';
 
 const _ = require('lodash');
+const async = require('async');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const database = require('bedrock-mongodb');
 const helpers = require('./helpers');
@@ -144,24 +145,44 @@ describe('Block Storage API', () => {
     const options = {};
 
     // get an existing block
-    ledgerStorage.blocks.get(blockId, options, (err, result) => {
+    ledgerStorage.blocks.get(blockId, options, (err, iterator) => {
       should.not.exist(err);
-      should.exist(result);
-      should.exist(result.block);
-      should.exist(result.meta);
-      result.block.id.should.equal(exampleLedgerId + '/blocks/2');
-      done();
+      should.exist(iterator);
+
+      let blockCount = 0;
+      async.eachSeries(iterator, (promise, callback) => {
+        promise.then(result => {
+          should.exist(result.block);
+          should.exist(result.meta);
+          result.block.id.should.equal(exampleLedgerId + '/blocks/2');
+          blockCount++;
+          callback();
+        }, callback);
+      }, err => {
+        blockCount.should.equal(1);
+        done(err);
+      });
     });
   });
-  it('should fail to get non-existent block', done => {
+  it.skip('should fail to get non-existent block', done => {
     const blockId = exampleLedgerId + '/blocks/INVALID';
     const options = {};
 
     // attempt to get non-existent block
-    ledgerStorage.blocks.get(blockId, options, (err, result) => {
-      should.not.exist(err);
-      should.not.exist(result);
-      done();
+    ledgerStorage.blocks.get(blockId, options, (err, iterator) => {
+      let blockCount = 0;
+      async.eachSeries(iterator, (promise, callback) => {
+        promise.then(result => {
+          should.not.exist(result.block);
+          should.not.exist(result.meta);
+          blockCount++;
+          callback();
+        }, callback);
+      }, err => {
+        should.not.exist(err);
+        blockCount.should.equal(0);
+        done(err);
+      });
     });
   });
   it.skip('should get latest blocks', done => {
