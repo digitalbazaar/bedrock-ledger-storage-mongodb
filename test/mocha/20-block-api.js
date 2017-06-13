@@ -164,17 +164,16 @@ describe('Block Storage API', () => {
       });
     });
   });
-  it.skip('should fail to get non-existent block', done => {
+  it('should fail to get non-existent block', done => {
     const blockId = exampleLedgerId + '/blocks/INVALID';
     const options = {};
 
     // attempt to get non-existent block
+    let blockCount = 0;
     ledgerStorage.blocks.get(blockId, options, (err, iterator) => {
-      let blockCount = 0;
       async.eachSeries(iterator, (promise, callback) => {
         promise.then(result => {
-          should.not.exist(result.block);
-          should.not.exist(result.meta);
+          should.not.exist(result);
           blockCount++;
           callback();
         }, callback);
