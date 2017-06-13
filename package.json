@@ -22,6 +22,7 @@
   },
   "peerDependencies": {
     "bedrock": "^1.2.4",
+    "bedrock-ledger": "digitalbazaar/bedrock-ledger#cm3",
     "bedrock-mongodb": "^3.0.0",
     "bedrock-permission": "^2.3.2",
     "jsonld": "^0.4.11"
