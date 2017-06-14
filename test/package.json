@@ -27,6 +27,7 @@
     "async": "^2.4.0",
     "bedrock": "^1.2.4",
     "bedrock-identity": "^4.6.0",
+    "bedrock-ledger": "digitalbazaar/bedrock-ledger#cm3",
     "bedrock-mongodb": "^3.0.0",
     "bedrock-permission": "^2.3.2",
     "bedrock-test": "^1.2.0",
