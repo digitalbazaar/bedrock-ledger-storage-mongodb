@@ -6,16 +6,45 @@
 
 const _ = require('lodash');
 const async = require('async');
+const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
+const config = require('bedrock').config;
+const crypto = require('crypto');
 const database = require('bedrock-mongodb');
 const helpers = require('./helpers');
+let jsonld = bedrock.jsonld;
+const jsigs = require('jsonld-signatures')();
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
+let request = require('request');
+
+// ensure that requests always send JSON
+request = request.defaults({json: true});
+
+// FIXME: Do not use an insecure document loader in production
+const nodeDocumentLoader = jsonld.documentLoaders.node({
+  secure: false,
+  strictSSL: false
+});
+jsonld.documentLoader = (url, callback) => {
+  if(url in config.constants.CONTEXTS) {
+    return callback(
+      null, {
+        contextUrl: null,
+        document: config.constants.CONTEXTS[url],
+        documentUrl: url
+      });
+  }
+  nodeDocumentLoader(url, callback);
+};
+
+// use local JSON-LD processor for checking signatures
+jsigs.use('jsonld', jsonld);
 
 const exampleLedgerId = 'did:v1:' + uuid.v4();
 const configBlockTemplate = {
-  id: exampleLedgerId,
-  ledger: exampleLedgerId + '/blocks/1',
+  id: exampleLedgerId + '/blocks/1',
+  ledger: exampleLedgerId,
   type: 'WebLedgerConfigurationBlock',
   consensusMethod: {
     type: 'Continuity2017'
@@ -79,13 +108,32 @@ const eventBlockTemplate = {
   }
 };
 
+// test hashing function
+function testHasher(data, callback) {
+  // ensure a basic context exists
+  if(!data['@context']) {
+    data['@context'] = 'https://w3id.org/webledger/v1';
+  }
+
+  jsonld.normalize(data, {
+    algorithm: 'URDNA2015',
+    format: 'application/nquads'
+  }, function(err, normalized) {
+    const hash = crypto.createHash('sha256').update(normalized).digest();
+    callback(err, hash);
+  });
+}
+
 describe('Block Storage API', () => {
   let ledgerStorage;
 
   before(done => {
     const configBlock = _.cloneDeep(configBlockTemplate);
     const meta = {};
-    const options = {};
+    const options = {
+      eventHasher: testHasher,
+      blockHasher: testHasher
+    };
 
     blsMongodb.create(configBlock, meta, options, (err, storage) => {
       ledgerStorage = storage;
