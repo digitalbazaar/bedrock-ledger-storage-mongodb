@@ -20,8 +20,8 @@ This API exposes the following methods:
   * storage.blocks.get(blockId, options, callback(err, result))
   * storage.blocks.getAll(blockId, options, callback(err, result))
   * storage.blocks.getLatest(options, callback(err, result))
-  * storage.blocks.update(blockId, patch, options, callback(err))
-  * storage.blocks.delete(blockId, options, callback(err))
+  * storage.blocks.update(blockHash, patch, options, callback(err))
+  * storage.blocks.delete(blockHash, options, callback(err))
 * Event Storage API
   * storage.events.create(event, meta, options, callback(err, result))
   * storage.events.get(eventId, options, callback(err, result))
