@@ -18,6 +18,7 @@ This API exposes the following methods:
 * Block Storage API
   * storage.blocks.create(block, meta, options, callback(err, result))
   * storage.blocks.get(blockId, options, callback(err, result))
+  * storage.blocks.getAll(blockId, options, callback(err, result))
   * storage.blocks.getLatest(options, callback(err, result))
   * storage.blocks.update(blockId, patch, options, callback(err))
   * storage.blocks.delete(blockId, options, callback(err))
@@ -54,6 +55,9 @@ block metadata, and a set of options.
 * configBlock - the initial configuration block for the ledger.
 * meta - the metadata associated with the configuration block.
 * options - a set of options used when creating the ledger.
+  *  owner - the owner of the ledger (default: none - public ledger)
+  *  eventHasher (required) - the event hashing function to use
+  *  blockHasher (required) - the block hashing function to use
 * callback(err, storage) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise
   * storage - The storage to use for the purposes of accessing
@@ -93,7 +97,10 @@ const configBlock = {
   }
 };
 const meta = {};
-const options = {};
+const options = {
+  eventHasher: myEventHashingFunction,
+  blockHasher: myBlockHashingFunction
+};
 
 blsMongodb.create(configBlock, meta, options, (err, storage) => {
   if(err) {
@@ -112,6 +119,9 @@ Retrieves a storage API for performing operations on a ledger.
 
 * ledgerId - a URI identifying the ledger.
 * options - a set of options used when retrieving the storage API.
+  *  owner - the owner of the ledger (default: none - public ledger)
+  *  eventHasher (required) - the event hashing function to use
+  *  blockHasher (required) - the block hashing function to use
 * callback(err, storage) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise
   * storage - A ledger storage API.
@@ -119,9 +129,11 @@ Retrieves a storage API for performing operations on a ledger.
 ```javascript
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 
-const actor = 'admin';
 const ledgerId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59';
-const options = {};
+const options = {
+  eventHasher: myEventHashingFunction,
+  blockHasher: myBlockHashingFunction
+};
 
 blsMongodb.get(ledgerId, options, (err, storage) => {
   storage.events.create( /* write new events to the ledger storage */ );
@@ -229,12 +241,12 @@ storage.blocks.create(block, options, (err, result) => {
 });
 ```
 
-### Get a Block 
+### Get a Consensus Block 
 
-Gets a block and its associated metadata from a the ledger 
-given a blockId.
+Gets a block that has achieved consensus and its associated metadata 
+from the ledger given a blockId.
 
-* blockId - the identifier of the block to fetch from the ledger.
+* blockId - the identifier of the consensus block to fetch from the ledger.
 * options - a set of options used when retrieving the block.
 * callback(err, records) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
@@ -243,7 +255,6 @@ given a blockId.
     * meta - metadata about the block.
 
 ```javascript
-const actor = 'admin';
 const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1';
 const options = {};
 
@@ -253,6 +264,32 @@ storage.blocks.get(blockId, options, (err, result) => {
   }
   
   console.log('Block:', result.block, result.meta);
+});
+```
+
+### Get a All Blocks with ID
+
+Gets all blocks matching a given blockId even if they have not 
+achieved consensus.
+
+* blockId - the identifier of the block(s) to fetch from the ledger.
+* options - a set of options used when retrieving the block(s).
+   * callback(err, iterator) - the callback to call when finished.
+   *   err - An Error if an error occurred, null otherwise.
+   *   iterator - an iterator for all of the returned blocks.
+
+```javascript
+const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1';
+const options = {};
+
+// get all blocks with given blockId
+ledgerStorage.blocks.getAll(blockId, options, (err, iterator) => {
+  async.eachSeries(iterator, (promise, callback) => {
+    promise.then(result => {
+      console.log('Got block:', result.meta.blockHash);
+      callback();
+    });
+  });
 });
 ```
 
@@ -330,18 +367,18 @@ storage.blocks.update(blockId, patch, options, (err) => {
 
 ### Delete a Block
 
-Delete a block in the ledger given a blockID and a set of options.
+Delete a block in the ledger given a block hash and a set of options.
 
-* blockId - the block to delete in the ledger.
+* blockHash - the block with the given hash to delete in the ledger.
 * options - a set of options used when deleting the block.
 * callback(err) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
 
 ```javascript
-const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1';
+const blockHash = PREVIOUSLY_CALCULATED_BLOCK_HASH;
 const options = {};
 
-storage.blocks.delete(blockId, options, (err) => {
+storage.blocks.delete(blockHash, options, (err) => {
   if(err) {
     throw new Error('Block delete failed:', err);
   }
