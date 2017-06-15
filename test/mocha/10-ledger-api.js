@@ -22,33 +22,7 @@ const testOwner = 'https://example.com/i/testOwner';
 // use local JSON-LD processor for signatures
 jsigs.use('jsonld', bedrock.jsonld);
 
-const configBlockTemplate = {
-  type: 'WebLedgerConfigurationBlock',
-  consensusMethod: {
-    type: 'Continuity2017'
-  },
-  configurationAuthorizationMethod: {
-    type: 'ProofOfSignature2016',
-    approvedSigner: [
-      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
-    ],
-    minimumSignaturesRequired: 1
-  },
-  writeAuthorizationMethod: {
-    type: 'ProofOfSignature2016',
-    approvedSigner: [
-      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
-    ],
-    minimumSignaturesRequired: 1
-  },
-  signature: {
-    type: 'RsaSignature2017',
-    created: '2017-10-24T05:33:31Z',
-    creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
-    domain: 'example.com',
-    signatureValue: 'eyiOiJJ0eXAK...EjXkgFWFO'
-  }
-};
+const configBlockTemplate = mockData.configBlocks.alpha;
 
 describe('Ledger Storage API', () => {
   it('should create a ledger', done => {
@@ -61,7 +35,7 @@ describe('Ledger Storage API', () => {
       blockHasher: helpers.testHasher
     };
 
-    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+    blsMongodb.add(configBlock, meta, options, (err, storage) => {
       // ensure ledger storage API exists
       should.not.exist(err);
       should.exist(storage);
@@ -74,38 +48,6 @@ describe('Ledger Storage API', () => {
         should.not.exist(err);
         should.exist(record);
         should.exist(record.ledger.id);
-        should.exist(record.ledger.eventCollection);
-        should.exist(record.ledger.blockCollection);
-        done();
-      });
-    });
-  });
-  it('should create a ledger with owner', done => {
-    let configBlock = _.cloneDeep(configBlockTemplate);
-    configBlock.ledger = 'did:v1:' + uuid.v4();
-    configBlock.id = configBlock.ledger + '/blocks/1';
-    const meta = {};
-    const options = {
-      owner: testOwner,
-      eventHasher: helpers.testHasher,
-      blockHasher: helpers.testHasher
-    };
-
-    blsMongodb.create(configBlock, meta, options, (err, storage) => {
-      // ensure ledger storage API exists
-      should.not.exist(err);
-      should.exist(storage);
-      should.exist(storage.blocks);
-      should.exist(storage.events);
-
-      // ensure the ledger was created in the database
-      const query = {id: database.hash(configBlock.ledger)};
-      database.collections.ledger.findOne(query, (err, record) => {
-        should.not.exist(err);
-        should.exist(record);
-        should.exist(record.ledger.id);
-        should.exist(record.ledger.owner);
-        record.ledger.owner.should.equal(testOwner);
         should.exist(record.ledger.eventCollection);
         should.exist(record.ledger.blockCollection);
         done();
@@ -116,13 +58,13 @@ describe('Ledger Storage API', () => {
     let configBlock = _.cloneDeep(configBlockTemplate);
     configBlock.ledger = 'did:v1:' + uuid.v4();
     configBlock.id = configBlock.ledger + '/blocks/1';
-    const meta= {};
+    const meta = {};
     const options = {
       eventHasher: helpers.testHasher,
       blockHasher: helpers.testHasher
     };
 
-    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+    blsMongodb.add(configBlock, meta, options, (err, storage) => {
       // ensure that there is no error
       should.not.exist(err);
 
@@ -139,14 +81,14 @@ describe('Ledger Storage API', () => {
     let configBlock = _.cloneDeep(configBlockTemplate);
     configBlock.ledger = 'did:v1:' + uuid.v4();
     configBlock.id = configBlock.ledger + '/blocks/1';
-    const meta= {};
+    const meta = {};
     const options = {
       owner: testOwner,
       eventHasher: helpers.testHasher,
       blockHasher: helpers.testHasher
     };
 
-    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+    blsMongodb.add(configBlock, meta, options, (err, storage) => {
       // ensure that there is no error
       should.not.exist(err);
 
@@ -173,22 +115,22 @@ describe('Ledger Storage API', () => {
       done();
     });
   });
-  it('should iterate over ledgers', done => {
+  it.skip('should iterate over ledgers', done => {
     let ledgerCount = 3;
     const ledgerIds = Array(3).fill().map((e, i) => {
       return 'did:v1:' + uuid.v4();
     });
     async.every(ledgerIds, (ledgerId, callback) => {
       const configBlock = _.cloneDeep(configBlockTemplate);
-      configBlock.ledger = ledgerId
+      configBlock.ledger = ledgerId;
       configBlock.id = ledgerId + '/blocks/1';
-      const meta= {};
+      const meta = {};
       const options = {
         owner: testOwner + '-iterator',
         eventHasher: helpers.testHasher,
         blockHasher: helpers.testHasher
       };
-      blsMongodb.create(configBlock, meta, options, (err, storage) => {
+      blsMongodb.add(configBlock, meta, options, (err, storage) => {
         callback(err, true);
       });
     }, (err, result) => {
@@ -214,18 +156,18 @@ describe('Ledger Storage API', () => {
       });
     });
   });
-  it('should delete ledger', done => {
+  it.skip('should delete ledger', done => {
     let configBlock = _.cloneDeep(configBlockTemplate);
     configBlock.ledger = 'did:v1:' + uuid.v4();
     configBlock.id = configBlock.ledger + '/blocks/1';
-    const meta= {};
+    const meta = {};
     const options = {
       owner: testOwner,
       eventHasher: helpers.testHasher,
       blockHasher: helpers.testHasher
     };
 
-    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+    blsMongodb.add(configBlock, meta, options, (err, storage) => {
       // ensure that there is no error
       should.not.exist(err);
 
@@ -235,18 +177,18 @@ describe('Ledger Storage API', () => {
       });
     });
   });
-  it('should not delete ledger with owner (if not specified)', done => {
+  it.skip('should not delete ledger with owner (if not specified)', done => {
     let configBlock = _.cloneDeep(configBlockTemplate);
     configBlock.ledger = 'did:v1:' + uuid.v4();
     configBlock.id = configBlock.ledger + '/blocks/1';
-    const meta= {};
+    const meta = {};
     const options = {
       owner: testOwner,
       eventHasher: helpers.testHasher,
       blockHasher: helpers.testHasher
     };
 
-    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+    blsMongodb.add(configBlock, meta, options, (err, storage) => {
       // ensure that there is no error
       should.not.exist(err);
 

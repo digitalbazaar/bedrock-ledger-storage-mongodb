@@ -25,6 +25,36 @@ identities[userName].identity = helpers.createIdentity(userName);
 // identities[userName] = {};
 // identities[userName].identity = helpers.createIdentity(userName);
 
+const configBlocks = mock.configBlocks = {};
+
+configBlocks.alpha = {
+  type: 'WebLedgerConfigurationBlock',
+  consensusMethod: {
+    type: 'Continuity2017'
+  },
+  configurationAuthorizationMethod: {
+    type: 'ProofOfSignature2016',
+    approvedSigner: [
+      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
+    ],
+    minimumSignaturesRequired: 1
+  },
+  writeAuthorizationMethod: {
+    type: 'ProofOfSignature2016',
+    approvedSigner: [
+      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
+    ],
+    minimumSignaturesRequired: 1
+  },
+  signature: {
+    type: 'RsaSignature2017',
+    created: '2017-10-24T05:33:31Z',
+    creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
+    domain: 'example.com',
+    signatureValue: 'eyiOiJJ0eXAK...EjXkgFWFO'
+  }
+};
+
 const ledgers = mock.ledgers = {};
 
 // constants

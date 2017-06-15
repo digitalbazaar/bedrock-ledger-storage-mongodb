@@ -90,7 +90,7 @@ describe('Block Storage API', () => {
       blockHasher: helpers.testHasher
     };
 
-    blsMongodb.create(configBlock, meta, options, (err, storage) => {
+    blsMongodb.add(configBlock, meta, options, (err, storage) => {
       ledgerStorage = storage;
       done(err);
     });
@@ -109,7 +109,7 @@ describe('Block Storage API', () => {
     const options = {};
 
     // create the block
-    ledgerStorage.blocks.create(eventBlock, meta, options, (err, result) => {
+    ledgerStorage.blocks.add(eventBlock, meta, options, (err, result) => {
       should.not.exist(err);
       should.exist(result);
       should.exist(result.block);
@@ -137,7 +137,7 @@ describe('Block Storage API', () => {
     const options = {};
 
     // create the block
-    ledgerStorage.blocks.create(eventBlock, meta, options, (err, result) => {
+    ledgerStorage.blocks.add(eventBlock, meta, options, (err, result) => {
       should.exist(err);
       err.name.should.equal('DuplicateBlock');
       done();
@@ -215,7 +215,7 @@ describe('Block Storage API', () => {
     async.auto({
       hash: callback => helpers.testHasher(eventBlock, callback),
       create: ['hash', (results, callback) =>
-        ledgerStorage.blocks.create(eventBlock, meta, options, callback)
+        ledgerStorage.blocks.add(eventBlock, meta, options, callback)
       ],
       update: ['create', (results, callback) => {
         const patch = [{
@@ -308,10 +308,10 @@ describe('Block Storage API', () => {
     async.auto({
       hash: callback => helpers.testHasher(eventBlock, callback),
       create: ['hash', (results, callback) =>
-        ledgerStorage.blocks.create(eventBlock, meta, options, callback)
+        ledgerStorage.blocks.add(eventBlock, meta, options, callback)
       ],
       delete: ['create', (results, callback) => {
-        ledgerStorage.blocks.delete(results.hash, options, callback);
+        ledgerStorage.blocks.remove(results.hash, options, callback);
       }]
     }, (err, results) => {
       should.not.exist(err);
@@ -323,7 +323,7 @@ describe('Block Storage API', () => {
     const options = {};
 
     // delete the block
-    ledgerStorage.blocks.delete(eventBlockHash, options, (err) => {
+    ledgerStorage.blocks.remove(eventBlockHash, options, (err) => {
       should.exist(err);
       err.name.should.equal('NotFound');
       done();
