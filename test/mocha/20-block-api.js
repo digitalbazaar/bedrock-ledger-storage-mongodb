@@ -99,7 +99,7 @@ describe('Block Storage API', () => {
     // FIXME: Remove ledger
     done();
   });
-  it('should create block', done => {
+  it('should add block', done => {
     const eventBlock = _.cloneDeep(eventBlockTemplate);
     eventBlock.id = exampleLedgerId + '/blocks/2';
     eventBlock.event[0].id = exampleLedgerId + '/events/1';
@@ -127,7 +127,7 @@ describe('Block Storage API', () => {
       });
     });
   });
-  it('should not create duplicate block', done => {
+  it('should not add duplicate block', done => {
     const eventBlock = _.cloneDeep(eventBlockTemplate);
     eventBlock.id = exampleLedgerId + '/blocks/2';
     eventBlock.event[0].id = exampleLedgerId + '/events/1';
@@ -295,7 +295,7 @@ describe('Block Storage API', () => {
       done();
     });
   });
-  it('should delete block', done => {
+  it('should remove block', done => {
     const eventBlock = _.cloneDeep(eventBlockTemplate);
     eventBlock.id = exampleLedgerId + '/blocks/5';
     eventBlock.event[0].id = exampleLedgerId + '/events/4';
@@ -318,7 +318,7 @@ describe('Block Storage API', () => {
       done();
     });
   });
-  it('should fail to delete non-existent block', done => {
+  it('should fail to remove non-existent block', done => {
     const eventBlockHash = 'INVALID HASH';
     const options = {};
 
