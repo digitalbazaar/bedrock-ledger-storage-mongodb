@@ -248,13 +248,72 @@ describe('Block Storage API', () => {
   it.skip('should get latest blocks', done => {
     done();
   });
-  it.skip('should update block', done => {
-    done();
+  it('should update block', done => {
+    const eventBlock = _.cloneDeep(eventBlockTemplate);
+    eventBlock.id = exampleLedgerId + '/blocks/4';
+    eventBlock.event[0].id = exampleLedgerId + '/events/3';
+    const meta = {
+      testArrayOne: ['a', 'b'],
+      testArrayTwo: ['a', 'b', 'c', 'z'],
+      pending: true
+    };
+    const options = {};
+
+    // create the block
+    async.auto({
+      hash: callback => testHasher(eventBlock, callback),
+      create: ['hash', (results, callback) =>
+        ledgerStorage.blocks.create(eventBlock, meta, options, callback)
+      ],
+      update: ['create', (results, callback) => {
+        const patch = [{
+          op: 'unset',
+          changes: {
+            meta: {
+              pending: 1
+            }
+          }
+        }, {
+          op: 'set',
+          changes: {
+            meta: {
+              consensus: Date.now()
+            }
+          }
+        }, {
+          op: 'add',
+          changes: {
+            meta: {
+              testArrayOne: 'c'
+            }
+          }
+        }, {
+          op: 'remove',
+          changes: {
+            meta: {
+              testArrayTwo: 'z'
+            }
+          }
+        }];
+
+        ledgerStorage.blocks.update(results.hash, patch, options, callback);
+      }],
+      get: ['update', (results, callback) => {
+        ledgerStorage.blocks.get(eventBlock.id,options, callback);
+      }]
+    }, (err, results) => {
+      should.not.exist(err);
+      should.exist(results.get.meta.consensus);
+      should.not.exist(results.get.meta.pending);
+      results.get.meta.testArrayOne.should.eql(['a', 'b', 'c']);
+      results.get.meta.testArrayTwo.should.eql(['a', 'b', 'c']);
+      done();
+    });
   });
   it('should delete block', done => {
     const eventBlock = _.cloneDeep(eventBlockTemplate);
-    eventBlock.id = exampleLedgerId + '/blocks/3';
-    eventBlock.event[0].id = exampleLedgerId + '/events/2';
+    eventBlock.id = exampleLedgerId + '/blocks/5';
+    eventBlock.event[0].id = exampleLedgerId + '/events/4';
     const meta = {
       pending: true
     };
