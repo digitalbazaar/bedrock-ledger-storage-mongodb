@@ -200,9 +200,6 @@ describe('Block Storage API', () => {
       });
     });
   });
-  it.skip('should get latest blocks', done => {
-    done();
-  });
   it('should update block', done => {
     const eventBlock = _.cloneDeep(eventBlockTemplate);
     eventBlock.id = exampleLedgerId + '/blocks/4';
@@ -329,6 +326,16 @@ describe('Block Storage API', () => {
     ledgerStorage.blocks.delete(eventBlockHash, options, (err) => {
       should.exist(err);
       err.name.should.equal('NotFound');
+      done();
+    });
+  });
+  it('should get latest blocks', done => {
+    // get latest config and event blocks
+    const options = {};
+    ledgerStorage.blocks.getLatest(options, (err, result) => {
+      should.not.exist(err);
+      should.exist(result.configurationBlock);
+      should.exist(result.eventBlock);
       done();
     });
   });
