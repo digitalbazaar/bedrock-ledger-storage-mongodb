@@ -6,40 +6,11 @@
 
 const _ = require('lodash');
 const async = require('async');
-const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
-const config = require('bedrock').config;
-const crypto = require('crypto');
 const database = require('bedrock-mongodb');
 const helpers = require('./helpers');
-let jsonld = bedrock.jsonld;
-const jsigs = require('jsonld-signatures')();
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
-let request = require('request');
-
-// ensure that requests always send JSON
-request = request.defaults({json: true});
-
-// FIXME: Do not use an insecure document loader in production
-const nodeDocumentLoader = jsonld.documentLoaders.node({
-  secure: false,
-  strictSSL: false
-});
-jsonld.documentLoader = (url, callback) => {
-  if(url in config.constants.CONTEXTS) {
-    return callback(
-      null, {
-        contextUrl: null,
-        document: config.constants.CONTEXTS[url],
-        documentUrl: url
-      });
-  }
-  nodeDocumentLoader(url, callback);
-};
-
-// use local JSON-LD processor for checking signatures
-jsigs.use('jsonld', jsonld);
 
 const exampleLedgerId = 'did:v1:' + uuid.v4();
 const configBlockTemplate = {
@@ -108,22 +79,6 @@ const eventBlockTemplate = {
   }
 };
 
-// test hashing function
-function testHasher(data, callback) {
-  // ensure a basic context exists
-  if(!data['@context']) {
-    data['@context'] = 'https://w3id.org/webledger/v1';
-  }
-
-  jsonld.normalize(data, {
-    algorithm: 'URDNA2015',
-    format: 'application/nquads'
-  }, function(err, normalized) {
-    const hash = crypto.createHash('sha256').update(normalized).digest();
-    callback(err, hash);
-  });
-}
-
 describe('Block Storage API', () => {
   let ledgerStorage;
 
@@ -131,8 +86,8 @@ describe('Block Storage API', () => {
     const configBlock = _.cloneDeep(configBlockTemplate);
     const meta = {};
     const options = {
-      eventHasher: testHasher,
-      blockHasher: testHasher
+      eventHasher: helpers.testHasher,
+      blockHasher: helpers.testHasher
     };
 
     blsMongodb.create(configBlock, meta, options, (err, storage) => {
@@ -261,7 +216,7 @@ describe('Block Storage API', () => {
 
     // create the block
     async.auto({
-      hash: callback => testHasher(eventBlock, callback),
+      hash: callback => helpers.testHasher(eventBlock, callback),
       create: ['hash', (results, callback) =>
         ledgerStorage.blocks.create(eventBlock, meta, options, callback)
       ],
@@ -321,7 +276,7 @@ describe('Block Storage API', () => {
 
     // create the block
     async.auto({
-      hash: callback => testHasher(eventBlock, callback),
+      hash: callback => helpers.testHasher(eventBlock, callback),
       update: ['hash', (results, callback) => {
         const patch = [{
           op: 'unset',
@@ -354,7 +309,7 @@ describe('Block Storage API', () => {
 
     // create the block
     async.auto({
-      hash: callback => testHasher(eventBlock, callback),
+      hash: callback => helpers.testHasher(eventBlock, callback),
       create: ['hash', (results, callback) =>
         ledgerStorage.blocks.create(eventBlock, meta, options, callback)
       ],

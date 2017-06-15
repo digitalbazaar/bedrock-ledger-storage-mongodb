@@ -56,7 +56,10 @@ describe('Ledger Storage API', () => {
     configBlock.ledger = 'did:v1:' + uuid.v4();
     configBlock.id = configBlock.ledger + '/blocks/1';
     const meta = {};
-    const options = {};
+    const options = {
+      eventHasher: helpers.testHasher,
+      blockHasher: helpers.testHasher
+    };
 
     blsMongodb.create(configBlock, meta, options, (err, storage) => {
       // ensure ledger storage API exists
@@ -83,7 +86,9 @@ describe('Ledger Storage API', () => {
     configBlock.id = configBlock.ledger + '/blocks/1';
     const meta = {};
     const options = {
-      owner: testOwner
+      owner: testOwner,
+      eventHasher: helpers.testHasher,
+      blockHasher: helpers.testHasher
     };
 
     blsMongodb.create(configBlock, meta, options, (err, storage) => {
@@ -112,7 +117,10 @@ describe('Ledger Storage API', () => {
     configBlock.ledger = 'did:v1:' + uuid.v4();
     configBlock.id = configBlock.ledger + '/blocks/1';
     const meta= {};
-    const options = {};
+    const options = {
+      eventHasher: helpers.testHasher,
+      blockHasher: helpers.testHasher
+    };
 
     blsMongodb.create(configBlock, meta, options, (err, storage) => {
       // ensure that there is no error
@@ -133,7 +141,9 @@ describe('Ledger Storage API', () => {
     configBlock.id = configBlock.ledger + '/blocks/1';
     const meta= {};
     const options = {
-      owner: testOwner
+      owner: testOwner,
+      eventHasher: helpers.testHasher,
+      blockHasher: helpers.testHasher
     };
 
     blsMongodb.create(configBlock, meta, options, (err, storage) => {
@@ -151,7 +161,10 @@ describe('Ledger Storage API', () => {
   });
   it('should not get non-existent ledger', done => {
     const ledgerId = 'did:v1:' + uuid.v4();
-    const options = {};
+    const options = {
+      eventHasher: helpers.testHasher,
+      blockHasher: helpers.testHasher
+    };
 
     blsMongodb.get(ledgerId, options, (err, storage) => {
       should.exist(err);
@@ -171,7 +184,9 @@ describe('Ledger Storage API', () => {
       configBlock.id = ledgerId + '/blocks/1';
       const meta= {};
       const options = {
-        owner: testOwner + '-iterator'
+        owner: testOwner + '-iterator',
+        eventHasher: helpers.testHasher,
+        blockHasher: helpers.testHasher
       };
       blsMongodb.create(configBlock, meta, options, (err, storage) => {
         callback(err, true);
@@ -205,7 +220,9 @@ describe('Ledger Storage API', () => {
     configBlock.id = configBlock.ledger + '/blocks/1';
     const meta= {};
     const options = {
-      owner: testOwner
+      owner: testOwner,
+      eventHasher: helpers.testHasher,
+      blockHasher: helpers.testHasher
     };
 
     blsMongodb.create(configBlock, meta, options, (err, storage) => {
@@ -224,7 +241,9 @@ describe('Ledger Storage API', () => {
     configBlock.id = configBlock.ledger + '/blocks/1';
     const meta= {};
     const options = {
-      owner: testOwner
+      owner: testOwner,
+      eventHasher: helpers.testHasher,
+      blockHasher: helpers.testHasher
     };
 
     blsMongodb.create(configBlock, meta, options, (err, storage) => {
