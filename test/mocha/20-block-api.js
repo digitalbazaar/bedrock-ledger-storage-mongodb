@@ -310,6 +310,39 @@ describe('Block Storage API', () => {
       done();
     });
   });
+  it('should fail to update invalid block', done => {
+    const eventBlock = _.cloneDeep(eventBlockTemplate);
+    eventBlock.id = exampleLedgerId + '/blocks/INVALID';
+    eventBlock.event[0].id = exampleLedgerId + '/events/INVALID';
+    const meta = {
+      pending: true
+    };
+    const options = {};
+
+    // create the block
+    async.auto({
+      hash: callback => testHasher(eventBlock, callback),
+      update: ['hash', (results, callback) => {
+        const patch = [{
+          op: 'unset',
+          changes: {
+            meta: {
+              pending: 1
+            }
+          }
+        }];
+
+        ledgerStorage.blocks.update(results.hash, patch, options, callback);
+      }],
+      get: ['update', (results, callback) => {
+        ledgerStorage.blocks.get(eventBlock.id,options, callback);
+      }]
+    }, (err, results) => {
+      should.exist(err);
+      err.name.should.equal('NotFound');
+      done();
+    });
+  });
   it('should delete block', done => {
     const eventBlock = _.cloneDeep(eventBlockTemplate);
     eventBlock.id = exampleLedgerId + '/blocks/5';
