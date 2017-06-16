@@ -12,8 +12,8 @@ This API exposes the following methods:
 
 * Ledger Storage API
   * api.add(configBlock, meta, options, callback(err, storage))
-  * api.get(ledgerId, options, callback(err, storage))
-  * api.remove(ledgerId, options, callback(err))
+  * api.get(storageId, options, callback(err, storage))
+  * api.remove(storageId, options, callback(err))
   * api.getLedgerIterator(options, callback(err, iterator))
 * Block Storage API
   * storage.blocks.add(block, meta, options, callback(err, result))
