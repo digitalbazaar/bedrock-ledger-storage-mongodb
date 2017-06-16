@@ -49,14 +49,15 @@ describe('Ledger Storage Driver API', () => {
   before(done => {
     const configBlock = _.cloneDeep(configBlockTemplate);
     const meta = {};
-    const options = {
-      eventHasher: helpers.testHasher,
-      blockHasher: helpers.testHasher
-    };
+    const options = {};
 
-    blsMongodb.add(configBlock, meta, options, (err, storage) => {
-      ledgerStorage = storage;
-      done(err);
+    helpers.testHasher(configBlock, (err, hash) => {
+      should.not.exist(err);
+      meta.blockHash = hash;
+      blsMongodb.add(configBlock, meta, options, (err, storage) => {
+        ledgerStorage = storage;
+        done(err);
+      });
     });
   });
   beforeEach(done => {

@@ -51,7 +51,9 @@ api.testHasher = function (data, callback) {
     algorithm: 'URDNA2015',
     format: 'application/nquads'
   }, function(err, normalized) {
-    const hash = crypto.createHash('sha256').update(normalized).digest();
+    const hash = crypto.createHash('sha256').update(normalized).digest()
+      .toString('base64')
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     callback(err, hash);
   });
 }

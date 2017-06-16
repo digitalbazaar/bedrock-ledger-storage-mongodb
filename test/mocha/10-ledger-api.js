@@ -30,59 +30,62 @@ describe('Ledger Storage API', () => {
     configBlock.ledger = 'did:v1:' + uuid.v4();
     configBlock.id = configBlock.ledger + '/blocks/1';
     const meta = {};
-    const options = {
-      eventHasher: helpers.testHasher,
-      blockHasher: helpers.testHasher
-    };
+    const options = {};
 
-    blsMongodb.add(configBlock, meta, options, (err, storage) => {
-      // ensure ledger storage API exists
-      should.not.exist(err);
-      should.exist(storage);
-      should.exist(storage.blocks);
-      should.exist(storage.events);
+    async.auto({
+      hash: callback => helpers.testHasher(configBlock, callback),
+      add: ['hash', (results, callback) => {
+        meta.blockHash = results.hash;
+        blsMongodb.add(configBlock, meta, options, callback);
+      }],
+      ensureStorage: ['add', (results, callback) => {
+        const storage = results.add;
+        // ensure ledger storage API exists
+        should.exist(storage);
+        should.exist(storage.blocks);
+        should.exist(storage.events);
 
-      // ensure the ledger was created in the database
-      const query = {id: storage.id};
-      database.collections.ledger.findOne(query, (err, record) => {
-        should.not.exist(err);
+        // ensure the ledger was created in the database
+        const query = {id: storage.id};
+        database.collections.ledger.findOne(query, callback);
+      }],
+      ensureLedger: ['ensureStorage', (results, callback) => {
+        const record = results.ensureStorage;
         should.exist(record);
         should.exist(record.ledger.id);
         should.exist(record.ledger.eventCollection);
         should.exist(record.ledger.blockCollection);
         done();
-      });
-    });
+    }]}, err => done(err));
   });
   it('should get ledger', done => {
     let configBlock = _.cloneDeep(configBlockTemplate);
     configBlock.ledger = 'did:v1:' + uuid.v4();
     configBlock.id = configBlock.ledger + '/blocks/1';
     const meta = {};
-    const options = {
-      eventHasher: helpers.testHasher,
-      blockHasher: helpers.testHasher
-    };
+    const options = {};
 
-    blsMongodb.add(configBlock, meta, options, (err, storage) => {
-      // ensure that there is no error
-      should.not.exist(err);
-
-      blsMongodb.get(storage.id, options, (err, storage) => {
-        should.not.exist(err);
+    async.auto({
+      hash: callback => helpers.testHasher(configBlock, callback),
+      add: ['hash', (results, callback) => {
+        meta.blockHash = results.hash;
+        blsMongodb.add(configBlock, meta, options, callback);
+      }],
+      get: ['add', (results, callback) => {
+        const storage = results.add;
+        blsMongodb.get(storage.id, options, callback);
+      }],
+      ensureGet: ['get', (results, callback) => {
+        const storage = results.get;
         should.exist(storage);
         should.exist(storage.blocks);
         should.exist(storage.events);
-        done();
-      });
-    });
+        callback();
+    }]}, err => done(err));
   });
   it('should fail to get non-existent ledger', done => {
     const storageId = 'urn:uuid:INVALID';
-    const options = {
-      eventHasher: helpers.testHasher,
-      blockHasher: helpers.testHasher
-    };
+    const options = {};
 
     blsMongodb.get(storageId, options, (err, storage) => {
       should.exist(err);
@@ -102,14 +105,15 @@ describe('Ledger Storage API', () => {
       configBlock.ledger = ledgerId;
       configBlock.id = ledgerId + '/blocks/1';
       const meta = {};
-      const options = {
-        owner: testOwner + '-iterator',
-        eventHasher: helpers.testHasher,
-        blockHasher: helpers.testHasher
-      };
-      blsMongodb.add(configBlock, meta, options, (err, storage) => {
-        storageIds.push(storage.id);
-        callback(err, true);
+      const options = {};
+      helpers.testHasher(configBlock, (err, hash) => {
+        should.not.exist(err);
+        meta.blockHash = hash;
+        blsMongodb.add(configBlock, meta, options, (err, storage) => {
+          should.not.exist(err);
+          storageIds.push(storage.id);
+          callback(err, true);
+        });
       });
     }, (err, result) => {
       should.not.exist(err);
@@ -144,14 +148,18 @@ describe('Ledger Storage API', () => {
       blockHasher: helpers.testHasher
     };
 
-    blsMongodb.add(configBlock, meta, options, (err, storage) => {
-      // ensure that there is no error
+    helpers.testHasher(configBlock, (err, hash) => {
       should.not.exist(err);
+      meta.blockHash = hash;
 
-      blsMongodb.remove(storage.id, options, err => {
+      blsMongodb.add(configBlock, meta, options, (err, storage) => {
         should.not.exist(err);
-        done();
+
+        blsMongodb.remove(storage.id, options, err => {
+          should.not.exist(err);
+          done();
+        });
       });
-    });
+    })
   });
 });

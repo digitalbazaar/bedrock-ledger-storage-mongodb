@@ -85,14 +85,15 @@ describe('Block Storage API', () => {
   before(done => {
     const configBlock = _.cloneDeep(configBlockTemplate);
     const meta = {};
-    const options = {
-      eventHasher: helpers.testHasher,
-      blockHasher: helpers.testHasher
-    };
+    const options = {};
 
-    blsMongodb.add(configBlock, meta, options, (err, storage) => {
-      ledgerStorage = storage;
-      done(err);
+    helpers.testHasher(configBlock, (err, hash) => {
+      should.not.exist(err);
+      meta.blockHash = hash;
+      blsMongodb.add(configBlock, meta, options, (err, storage) => {
+        ledgerStorage = storage;
+        done(err);
+      });
     });
   });
   beforeEach(done => {
@@ -108,24 +109,30 @@ describe('Block Storage API', () => {
     };
     const options = {};
 
-    // create the block
-    ledgerStorage.blocks.add(eventBlock, meta, options, (err, result) => {
-      should.not.exist(err);
-      should.exist(result);
-      should.exist(result.block);
-      should.exist(result.meta);
+    async.auto({
+      hash: callback => helpers.testHasher(eventBlock, callback),
+      add: ['hash', (results, callback) => {
+        meta.blockHash = results.hash;
+        ledgerStorage.blocks.add(eventBlock, meta, options, callback);
+      }],
+      ensureAdd: ['add', (results, callback) => {
+        const result = results.add;
+        should.exist(result);
+        should.exist(result.block);
+        should.exist(result.meta);
 
-      // ensure the block was created in the database
-      const query = {id: database.hash(eventBlock.id)};
-      ledgerStorage.blocks.collection.findOne(query, (err, record) => {
-        should.not.exist(err);
+        // ensure the block was created in the database
+        const query = {id: database.hash(eventBlock.id)};
+        ledgerStorage.blocks.collection.findOne(query, callback);
+      }],
+      ensureBlock: ['ensureAdd', (results, callback) => {
+        const record = results.ensureAdd;
         should.exist(record);
         should.exist(record.id);
         should.exist(record.block.id);
         should.exist(record.meta.consensus);
-        done();
-      });
-    });
+        callback(0);
+    }]}, err => done(err));
   });
   it('should not add duplicate block', done => {
     const eventBlock = _.cloneDeep(eventBlockTemplate);
@@ -136,11 +143,15 @@ describe('Block Storage API', () => {
     };
     const options = {};
 
-    // create the block
-    ledgerStorage.blocks.add(eventBlock, meta, options, (err, result) => {
-      should.exist(err);
-      err.name.should.equal('DuplicateBlock');
-      done();
+    async.auto({
+      hash: callback => helpers.testHasher(eventBlock, callback),
+      add: ['hash', (results, callback) => {
+        meta.blockHash = results.hash;
+        ledgerStorage.blocks.add(eventBlock, meta, options, callback);
+      }]}, (err) => {
+        should.exist(err);
+        err.name.should.equal('DuplicateBlock');
+        done();
     });
   });
   it('should get consensus block with given ID', done => {
@@ -214,9 +225,10 @@ describe('Block Storage API', () => {
     // create the block
     async.auto({
       hash: callback => helpers.testHasher(eventBlock, callback),
-      create: ['hash', (results, callback) =>
-        ledgerStorage.blocks.add(eventBlock, meta, options, callback)
-      ],
+      create: ['hash', (results, callback) => {
+        meta.blockHash = results.hash;
+        ledgerStorage.blocks.add(eventBlock, meta, options, callback);
+      }],
       update: ['create', (results, callback) => {
         const patch = [{
           op: 'unset',
@@ -251,7 +263,7 @@ describe('Block Storage API', () => {
         ledgerStorage.blocks.update(results.hash, patch, options, callback);
       }],
       get: ['update', (results, callback) => {
-        ledgerStorage.blocks.get(eventBlock.id,options, callback);
+        ledgerStorage.blocks.get(eventBlock.id, options, callback);
       }]
     }, (err, results) => {
       should.not.exist(err);
@@ -287,7 +299,7 @@ describe('Block Storage API', () => {
         ledgerStorage.blocks.update(results.hash, patch, options, callback);
       }],
       get: ['update', (results, callback) => {
-        ledgerStorage.blocks.get(eventBlock.id,options, callback);
+        ledgerStorage.blocks.get(eventBlock.id, options, callback);
       }]
     }, (err, results) => {
       should.exist(err);
@@ -307,9 +319,10 @@ describe('Block Storage API', () => {
     // create the block
     async.auto({
       hash: callback => helpers.testHasher(eventBlock, callback),
-      create: ['hash', (results, callback) =>
-        ledgerStorage.blocks.add(eventBlock, meta, options, callback)
-      ],
+      create: ['hash', (results, callback) => {
+        meta.blockHash = results.hash;
+        ledgerStorage.blocks.add(eventBlock, meta, options, callback);
+      }],
       delete: ['create', (results, callback) => {
         ledgerStorage.blocks.remove(results.hash, options, callback);
       }]
@@ -319,11 +332,11 @@ describe('Block Storage API', () => {
     });
   });
   it('should fail to remove non-existent block', done => {
-    const eventBlockHash = 'INVALID HASH';
+    const blockHash = 'INVALID HASH';
     const options = {};
 
     // delete the block
-    ledgerStorage.blocks.remove(eventBlockHash, options, (err) => {
+    ledgerStorage.blocks.remove(blockHash, options, (err) => {
       should.exist(err);
       err.name.should.equal('NotFound');
       done();
