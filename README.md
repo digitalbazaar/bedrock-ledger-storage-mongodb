@@ -5,34 +5,34 @@ storage and retrieval of ledgers, blocks, and events. The relationship
 of these objects are shown below:
 
 <img alt="Ledgers contain blocks, blocks contain events"
-  src="https://w3c.github.io/web-ledger/diagrams/blocks.svg" 
+  src="https://w3c.github.io/web-ledger/diagrams/blocks.svg"
   width=450px;/>
 
 This API exposes the following methods:
 
 * Ledger Storage API
-  * api.create(configBlock, meta, options, callback(err, storage))
+  * api.add(configBlock, meta, options, callback(err, storage))
   * api.get(ledgerId, options, callback(err, storage))
-  * api.delete(ledgerId, options, callback(err))
+  * api.remove(ledgerId, options, callback(err))
   * api.getLedgerIterator(options, callback(err, iterator))
 * Block Storage API
-  * storage.blocks.create(block, meta, options, callback(err, result))
+  * storage.blocks.add(block, meta, options, callback(err, result))
   * storage.blocks.get(blockId, options, callback(err, result))
   * storage.blocks.getAll(blockId, options, callback(err, result))
   * storage.blocks.getLatest(options, callback(err, result))
   * storage.blocks.update(blockHash, patch, options, callback(err))
-  * storage.blocks.delete(blockHash, options, callback(err))
+  * storage.blocks.remove(blockHash, options, callback(err))
 * Event Storage API
-  * storage.events.create(event, meta, options, callback(err, result))
-  * storage.events.get(eventId, options, callback(err, result))
-  * storage.events.update(eventId, patch, options, callback(err))
-  * storage.events.delete(eventId, options, callback(err))
+  * storage.events.add(event, meta, options, callback(err, result))
+  * storage.events.get(eventHash, options, callback(err, result))
+  * storage.events.update(eventHash, patch, options, callback(err))
+  * storage.events.remove(eventHash, options, callback(err))
 * Database Driver API
   * storage.driver
 
 ##  Configuration
 
-Configuration options and their defaults are documented 
+Configuration options and their defaults are documented
 in [lib/config.js](lib/config.js).
 
 ## Using the API
@@ -44,12 +44,12 @@ creating a new ledger node API.
 
 ## Ledger API
 
-The MongoDB ledger storage API is capable of mapping ledger node 
-storage requests to a set of MongoDB collections. 
+The MongoDB ledger storage API is capable of mapping ledger node
+storage requests to a set of MongoDB collections.
 
 ### Creating a Ledger
 
-Create a new ledger given an initial configuration block, 
+Add a new ledger given an initial configuration block,
 block metadata, and a set of options.
 
 * configBlock - the initial configuration block for the ledger.
@@ -102,14 +102,14 @@ const options = {
   blockHasher: myBlockHashingFunction
 };
 
-blsMongodb.create(configBlock, meta, options, (err, storage) => {
+blsMongodb.add(configBlock, meta, options, (err, storage) => {
   if(err) {
     throw new Error('Failed to create ledger:', err);
   }
-  
+
   // use the storage API to read and write to the ledger
-  storage.events.create( /* create new events */ );
-  storage.blocks.create( /* create new blocks */ );
+  storage.events.add( /* create new events */ );
+  storage.blocks.add( /* create new blocks */ );
 });
 ```
 
@@ -136,14 +136,14 @@ const options = {
 };
 
 blsMongodb.get(ledgerId, options, (err, storage) => {
-  storage.events.create( /* write new events to the ledger storage */ );
+  storage.events.add( /* write new events to the ledger storage */ );
   /* ... perform other operations on ledger storage ... */
 });
 ```
 
-### Delete a Ledger
+### Remove a Ledger
 
-Deletes a ledger given a set of options.
+Removes a ledger given a set of options.
 
 * ledgerId - the URI of the ledger to delete.
 * options - a set of options used when deleting the ledger.
@@ -157,11 +157,11 @@ const actor = 'admin';
 const ledgerId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59';
 const options = {};
 
-blsMongodb.delete(ledgerId, options, err => {
+blsMongodb.remove(ledgerId, options, err => {
   if(err) {
     throw new Error('Failed to delete ledger:', err);
   }
-  
+
   console.log('Ledger deletion successful!');
 });
 ```
@@ -185,9 +185,9 @@ bedrockLedger.getLedgerIterator(options, (err, iterator) => {
   if(err) {
     throw new Error('Failed to fetch iterator for ledgers:', err);
   }
-  
-  for(let ledgerId of iterator) { 
-    console.log('Ledger:',  ledgerId); 
+
+  for(let ledgerId of iterator) {
+    console.log('Ledger:',  ledgerId);
   }
 });
 ```
@@ -197,9 +197,9 @@ bedrockLedger.getLedgerIterator(options, (err, iterator) => {
 The blocks API is used to perform operations on blocks associated with a
 particular ledger.
 
-### Create a Block 
+### Add a Block
 
-Creates a block in the ledger given a block, metadata associated
+Adds a block in the ledger given a block, metadata associated
 with the block, and a set of options.
 
 * block - the block to create in the ledger.
@@ -232,18 +232,18 @@ const meta = {
 };
 const options = {};
 
-storage.blocks.create(block, options, (err, result) => {
+storage.blocks.add(block, options, (err, result) => {
   if(err) {
     throw new Error('Failed to create the block:', err);
   }
-  
+
   console.log('Block creation successful:', result.block, result.meta);
 });
 ```
 
-### Get a Consensus Block 
+### Get a Consensus Block
 
-Gets a block that has achieved consensus and its associated metadata 
+Gets a block that has achieved consensus and its associated metadata
 from the ledger given a blockId.
 
 * blockId - the identifier of the consensus block to fetch from the ledger.
@@ -262,14 +262,14 @@ storage.blocks.get(blockId, options, (err, result) => {
   if(err) {
     throw new Error('Block query failed:', err);
   }
-  
+
   console.log('Block:', result.block, result.meta);
 });
 ```
 
 ### Get a All Blocks with ID
 
-Gets all blocks matching a given blockId even if they have not 
+Gets all blocks matching a given blockId even if they have not
 achieved consensus.
 
 * blockId - the identifier of the block(s) to fetch from the ledger.
@@ -313,13 +313,13 @@ storage.blocks.getLatest(options, (err, result) => {
   if(err) {
     throw new Error('Failed to get latest blocks:', err);
   }
-  
+
   console.log('Latest config block:', result.configurationBlock);
   console.log('Latest events block:', result.eventsBlock);
 });
 ```
 
-### Update an Existing Block 
+### Update an Existing Block
 
 Update an existing block in the ledger given a blockId,
 an array of patch instructions, and a set of options.
@@ -360,14 +360,14 @@ storage.blocks.update(blockId, patch, options, (err) => {
   if(err) {
     throw new Error('Block update failed:', err);
   }
-  
+
   console.log('Block update succeeded.');
 });
 ```
 
-### Delete a Block
+### Remove a Block
 
-Delete a block in the ledger given a block hash and a set of options.
+Remove a block in the ledger given a block hash and a set of options.
 
 * blockHash - the block with the given hash to delete in the ledger.
 * options - a set of options used when deleting the block.
@@ -378,11 +378,11 @@ Delete a block in the ledger given a block hash and a set of options.
 const blockHash = PREVIOUSLY_CALCULATED_BLOCK_HASH;
 const options = {};
 
-storage.blocks.delete(blockHash, options, (err) => {
+storage.blocks.remove(blockHash, options, (err) => {
   if(err) {
     throw new Error('Block delete failed:', err);
   }
-  
+
   console.log('Successfully deleted block.');
 });
 ```
@@ -392,9 +392,9 @@ storage.blocks.delete(blockHash, options, (err) => {
 The events API is used to perform operations on events associated with a
 particular ledger.
 
-### Create an Event 
+### Add an Event
 
-Creates an event to associate with a ledger given an 
+Adds an event to associate with a ledger given an
 event and a set of options.
 
 * event - the event to associate with a ledger.
@@ -407,7 +407,6 @@ event and a set of options.
     * meta - the metadata that was committed to storage.
 
 ```javascript
-const actor = 'admin';
 const event = {
   event: {
     '@context': 'https://schema.org/',
@@ -434,21 +433,21 @@ const meta = {
 };
 const options = {};
 
-storage.events.create(event, meta, options, (err, result) => {
+storage.events.add(event, meta, options, (err, result) => {
   if(err) {
     throw new Error('Failed to create the event:', err);
   }
-  
-  console.log('Event creation successful:', result.event.id, result.meta);
+
+  console.log('Event creation successful:', result.event, result.meta);
 });
 ```
 
 ### Get an Event
 
-Gets one or more events in the ledger given a 
+Gets one or more events in the ledger given a
 query and a set of options.
 
-* eventId - the identifier of the event to fetch from storage.
+* eventHash - the identifier of the event to fetch from storage.
 * options - a set of options used when retrieving the event.
 * callback(err, result) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
@@ -457,15 +456,14 @@ query and a set of options.
     * meta - metadata about the event.
 
 ```javascript
-const actor = 'admin';
-const eventId = 'urn:uuid:049f7d7a-6327-41db-b2cf-9ffa29d3433b';
+const eventHash = 'ni:///sha-256;xarRb0L7R7a_a9pHQs10Pk-hwqFsTlXpOLkbji1zfTo';
 const options = {};
 
-storage.blocks.get(eventId, options, (err, result) => {
+storage.blocks.get(eventHash, options, (err, result) => {
   if(err) {
     throw new Error('Event retrieval failed:', err);
   }
-  
+
   console.log('Event:', result.event, result.meta);
 });
 ```
@@ -473,9 +471,9 @@ storage.blocks.get(eventId, options, (err, result) => {
 ### Update an Existing Event
 
 Update an existing event associated with the ledger given
-an eventId, an array of patch instructions, and a set of options.
+an eventHash, an array of patch instructions, and a set of options.
 
-* eventId - the ID of the event to update
+* eventHash - the ID of the event to update
 * patch - a list of patch commands for the event
 * options - a set of options used when updating the event.
 * callback(err, result) - the callback to call when finished.
@@ -483,7 +481,7 @@ an eventId, an array of patch instructions, and a set of options.
   * result - the value of the updated event.
 
 ```javascript
-const eventId = 'urn:uuid:76b17d64-abb1-4d19-924f-427a743489f0';
+const eventHash = 'ni:///sha-256;xarRb0L7R7a_a9pHQs10Pk-hwqFsTlXpOLkbji1zfTo';
 const patch = [{
   op: 'delete',
   changes: {
@@ -508,41 +506,42 @@ const patch = [{
 }];
 const options = {};
 
-storage.events.update(eventId, patch, options, (err) => {
+storage.events.update(eventHash, patch, options, (err) => {
   if(err) {
     throw new Error('Event update failed:', err);
   }
-  
+
   console.log('Event update succeeded.');
 });
 ```
 
-### Delete an Event
+### Remove an Event
 
-Delete an event associated with the ledger given an eventId and a set of options.
+Remove an event associated with the ledger given an event hash and a set
+of options.
 
-* eventId - the event to delete.
+* eventHash - the hash of the event to delete.
 * options - a set of options used when deleting the event.
 * callback(err) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
 
 ```javascript
 const options = {};
-const eventId = 'urn:uuid:6b17d64-abb1-4d19-924f-427a743489f0';
+const eventHash = 'ni:///sha-256;xarRb0L7R7a_a9pHQs10Pk-hwqFsTlXpOLkbji1zfTo';
 
-storage.events.delete(eventId, options, (err) => {
+storage.events.remove(eventHash, options, (err) => {
   if(err) {
     throw new Error('Event delete failed:', err);
   }
-  
+
   console.log('Successfully deleted event.');
 });
 ```
 
 ## Raw Driver API
 
-The raw driver API enables access to the low level database driver. 
-Usage of the raw driver to enact database changes is strongly 
+The raw driver API enables access to the low level database driver.
+Usage of the raw driver to enact database changes is strongly
 discouraged as it breaks the storage layer abstraction.
 
 ```javascript
