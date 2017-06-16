@@ -231,14 +231,6 @@ describe('Event Storage API', () => {
   it('should fail to remove non-existent event', done => {
     const eventHash = 'ni:///sha-256;INVALID';
     const options = {};
-    const patch = [{
-      op: 'unset',
-      changes: {
-        meta: {
-          pending: 1
-        }
-      }
-    }];
     ledgerStorage.events.remove(eventHash, options, (err, result) => {
       should.exist(err);
       err.name.should.equal('NotFound');
