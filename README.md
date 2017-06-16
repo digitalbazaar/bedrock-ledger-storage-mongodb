@@ -54,10 +54,9 @@ block metadata, and a set of options.
 
 * configBlock - the initial configuration block for the ledger.
 * meta - the metadata associated with the configuration block.
+  * blockHash (required) - a unique identifier for the block that
+      the storage subsystem will use to index the block.
 * options - a set of options used when creating the ledger.
-  *  owner - the owner of the ledger (default: none - public ledger)
-  *  eventHasher (required) - the event hashing function to use
-  *  blockHasher (required) - the block hashing function to use
 * callback(err, storage) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise
   * storage - The storage to use for the purposes of accessing
@@ -96,11 +95,10 @@ const configBlock = {
     }
   }
 };
-const meta = {};
-const options = {
-  eventHasher: myEventHashingFunction,
-  blockHasher: myBlockHashingFunction
+const meta = {
+  blockHash: myBlockHasher(configBlock),
 };
+const options = {};
 
 blsMongodb.add(configBlock, meta, options, (err, storage) => {
   if(err) {
@@ -117,11 +115,8 @@ blsMongodb.add(configBlock, meta, options, (err, storage) => {
 
 Retrieves a storage API for performing operations on a ledger.
 
-* ledgerId - a URI identifying the ledger.
+* storageId - a URI identifying the ledger storage.
 * options - a set of options used when retrieving the storage API.
-  *  owner - the owner of the ledger (default: none - public ledger)
-  *  eventHasher (required) - the event hashing function to use
-  *  blockHasher (required) - the block hashing function to use
 * callback(err, storage) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise
   * storage - A ledger storage API.
@@ -129,13 +124,10 @@ Retrieves a storage API for performing operations on a ledger.
 ```javascript
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 
-const ledgerId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59';
-const options = {
-  eventHasher: myEventHashingFunction,
-  blockHasher: myBlockHashingFunction
-};
+const storageId = 'urn:uuid:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59';
+const options = {};
 
-blsMongodb.get(ledgerId, options, (err, storage) => {
+blsMongodb.get(storageId, options, (err, storage) => {
   storage.events.add( /* write new events to the ledger storage */ );
   /* ... perform other operations on ledger storage ... */
 });
@@ -145,7 +137,7 @@ blsMongodb.get(ledgerId, options, (err, storage) => {
 
 Removes a ledger given a set of options.
 
-* ledgerId - the URI of the ledger to delete.
+* storageId - a URI identifying the ledger storage.
 * options - a set of options used when deleting the ledger.
 * callback(err) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
@@ -153,11 +145,10 @@ Removes a ledger given a set of options.
 ```javascript
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 
-const actor = 'admin';
-const ledgerId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59';
+const storageId = 'urn:uuid:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59';
 const options = {};
 
-blsMongodb.remove(ledgerId, options, err => {
+blsMongodb.remove(storageId, options, err => {
   if(err) {
     throw new Error('Failed to delete ledger:', err);
   }
@@ -168,17 +159,17 @@ blsMongodb.remove(ledgerId, options, err => {
 
 ### Get an Iterator for All Ledgers
 
-Gets an iterator that will iterate over all ledgers in the system.
-The iterator will return a ledgerId that can be passed to the
-api.get() call to fetch the storage for the associated ledger.
+Gets an iterator that will iterate over all ledger storage
+APIs in the system. The iterator will return a
+ledger storage API that can then be used to operate directly on
+the ledger storage.
 
 * options - a set of options to use when retrieving the list.
 * callback(err, iterator) - the callback to call when finished.
-  * err - An Error if an error occurred, null otherwise
-  * iterator - An iterator that returns ledgerIds
+  * err - An Error if an error occurred, null otherwise.
+  * iterator - An iterator that returns ledger storage APIs.
 
 ```javascript
-const actor = 'admin';
 const options = {};
 
 bedrockLedger.getLedgerIterator(options, (err, iterator) => {
@@ -186,8 +177,8 @@ bedrockLedger.getLedgerIterator(options, (err, iterator) => {
     throw new Error('Failed to fetch iterator for ledgers:', err);
   }
 
-  for(let ledgerId of iterator) {
-    console.log('Ledger:',  ledgerId);
+  for(let storage of iterator) {
+    console.log('Ledger Storage ID:',  storage.id);
   }
 });
 ```
@@ -204,6 +195,8 @@ with the block, and a set of options.
 
 * block - the block to create in the ledger.
 * meta - the metadata associated with the block.
+  * blockHash (required) - a unique identifier for the block that
+      the storage subsystem will use to index the block.
 * options - a set of options used when creating the block.
 * callback(err) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
@@ -212,7 +205,6 @@ with the block, and a set of options.
     * meta - the metadata that was committed to storage.
 
 ```javascript
-const actor = 'admin';
 const block = {
   '@context': 'https://w3id.org/webledger/v1',
   id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/2',
@@ -228,6 +220,7 @@ const block = {
   }
 };
 const meta = {
+  blockHash: myBlockHasher(block),
   pending: true
 };
 const options = {};
@@ -306,7 +299,6 @@ block from the ledger.
     * eventsBlock - the latest events block.
 
 ```javascript
-const actor = 'admin';
 const options = {};
 
 storage.blocks.getLatest(options, (err, result) => {
@@ -321,42 +313,50 @@ storage.blocks.getLatest(options, (err, result) => {
 
 ### Update an Existing Block
 
-Update an existing block in the ledger given a blockId,
+Update an existing block in the ledger given a blockHash,
 an array of patch instructions, and a set of options.
 
-* blockId - the URI of the block to update.
+* blockHash - the hash of the block to update.
 * patch - the patch instructions to execute on the block.
 * options - a set of options used when updating the block.
 * callback(err) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
 
 ```javascript
-const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1';
+const blockHash = 'ni:///sha-256;TlXpOLkbji1zfToxarRb0L7R7a_a9pHQs10Pk-hwqFs';
 const patch = [{
-  op: 'delete',
+  op: 'unset',
   changes: {
     meta: {
-      pending: true
+      pending: 1
     }
   }
 }, {
   op: 'set',
   changes: {
-    block: {
-      proof: { /* proof goes here */ }
+    meta: {
+      consensus: Date.now()
     }
   }
 }, {
   op: 'add',
   changes: {
-    block: {
-      signature: { /* signature goes here */ }
+    meta: {
+      someArray: 'c'
+    }
+  }
+}, {
+  op: 'remove',
+  changes: {
+    meta: {
+      someOtherArray: 'z'
     }
   }
 }];
+
 const options = {};
 
-storage.blocks.update(blockId, patch, options, (err) => {
+storage.blocks.update(blockHash, patch, options, (err) => {
   if(err) {
     throw new Error('Block update failed:', err);
   }
@@ -375,7 +375,7 @@ Remove a block in the ledger given a block hash and a set of options.
   * err - An Error if an error occurred, null otherwise.
 
 ```javascript
-const blockHash = PREVIOUSLY_CALCULATED_BLOCK_HASH;
+const blockHash = 'ni:///sha-256;TlXpOLkbji1zfToxarRb0L7R7a_a9pHQs10Pk-hwqFs';
 const options = {};
 
 storage.blocks.remove(blockHash, options, (err) => {
@@ -399,6 +399,8 @@ event and a set of options.
 
 * event - the event to associate with a ledger.
 * meta - the metadata that is associated with the event.
+  * eventHash (required) - a unique identifier for the event that
+      the storage subsystem will use to index the event.
 * options - a set of options used when creating the event.
 * callback(err, result) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
@@ -428,7 +430,9 @@ const event = {
     }
   }
 };
+
 const meta = {
+  eventHash: myEventHasher(event),
   pending: true
 };
 const options = {};
@@ -481,7 +485,7 @@ an eventHash, an array of patch instructions, and a set of options.
   * result - the value of the updated event.
 
 ```javascript
-const eventHash = 'ni:///sha-256;xarRb0L7R7a_a9pHQs10Pk-hwqFsTlXpOLkbji1zfTo';
+const eventHash = 'ni:///sha-256;ji1zfToxarRb0L7R7a_a9pHQs10Pk-hwqFsTlXpOLkb';
 const patch = [{
   op: 'delete',
   changes: {
@@ -526,8 +530,8 @@ of options.
   * err - An Error if an error occurred, null otherwise.
 
 ```javascript
-const options = {};
 const eventHash = 'ni:///sha-256;xarRb0L7R7a_a9pHQs10Pk-hwqFsTlXpOLkbji1zfTo';
+const options = {};
 
 storage.events.remove(eventHash, options, (err) => {
   if(err) {
