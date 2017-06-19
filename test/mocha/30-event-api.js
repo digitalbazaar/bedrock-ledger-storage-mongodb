@@ -104,7 +104,7 @@ describe('Event Storage API', () => {
         should.exist(record.meta);
         should.exist(record.meta.eventHash);
         callback();
-    }]}, err => done(err));
+      }]}, err => done(err));
   });
   it('should not add duplicate event', done => {
     const event = _.cloneDeep(eventTemplate);
@@ -116,7 +116,8 @@ describe('Event Storage API', () => {
       add: ['hash', (results, callback) => {
         meta.eventHash = results.hash;
         ledgerStorage.events.add(event, meta, options, callback);
-    }]}, err => {
+      }]
+    }, err => {
       should.exist(err);
       err.name.should.equal('DuplicateEvent');
       done();
@@ -137,12 +138,13 @@ describe('Event Storage API', () => {
       get: ['add', (results, callback) => {
         const eventHash = results.add.meta.eventHash;
         ledgerStorage.events.get(eventHash, options, callback);
-      }]}, (err, results) => {
-        should.not.exist(err);
-        // get the event by hash
-        should.not.exist(err);
-        results.get.meta.eventHash.should.equal(meta.eventHash);
-        done();
+      }]
+    }, (err, results) => {
+      should.not.exist(err);
+      // get the event by hash
+      should.not.exist(err);
+      results.get.meta.eventHash.should.equal(meta.eventHash);
+      done();
     });
   });
   it('should update event', done => {
@@ -222,6 +224,7 @@ describe('Event Storage API', () => {
     }];
     ledgerStorage.events.update(eventHash, patch, options, (err, result) => {
       should.exist(err);
+      should.not.exist(result);
       err.name.should.equal('NotFound');
       done();
     });
@@ -243,7 +246,7 @@ describe('Event Storage API', () => {
         const eventHash = results.create.meta.eventHash;
         ledgerStorage.events.remove(eventHash, options, callback);
       }]
-    }, (err, results) => {
+    }, err => {
       should.not.exist(err);
       done();
     });
@@ -253,6 +256,7 @@ describe('Event Storage API', () => {
     const options = {};
     ledgerStorage.events.remove(eventHash, options, (err, result) => {
       should.exist(err);
+      should.not.exist(result);
       err.name.should.equal('NotFound');
       done();
     });

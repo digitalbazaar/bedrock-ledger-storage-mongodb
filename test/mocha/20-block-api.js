@@ -132,7 +132,7 @@ describe('Block Storage API', () => {
         should.exist(record.block.id);
         should.exist(record.meta.consensus);
         callback(0);
-    }]}, err => done(err));
+      }]}, err => done(err));
   });
   it('should not add duplicate block', done => {
     const eventBlock = _.cloneDeep(eventBlockTemplate);
@@ -148,10 +148,11 @@ describe('Block Storage API', () => {
       add: ['hash', (results, callback) => {
         meta.blockHash = results.hash;
         ledgerStorage.blocks.add(eventBlock, meta, options, callback);
-      }]}, (err) => {
-        should.exist(err);
-        err.name.should.equal('DuplicateBlock');
-        done();
+      }]
+    }, (err) => {
+      should.exist(err);
+      err.name.should.equal('DuplicateBlock');
+      done();
     });
   });
   it('should get consensus block with given ID', done => {
@@ -301,7 +302,7 @@ describe('Block Storage API', () => {
       get: ['update', (results, callback) => {
         ledgerStorage.blocks.get(eventBlock.id, options, callback);
       }]
-    }, (err, results) => {
+    }, err => {
       should.exist(err);
       err.name.should.equal('NotFound');
       done();
@@ -326,7 +327,7 @@ describe('Block Storage API', () => {
       delete: ['create', (results, callback) => {
         ledgerStorage.blocks.remove(results.hash, options, callback);
       }]
-    }, (err, results) => {
+    }, err => {
       should.not.exist(err);
       done();
     });

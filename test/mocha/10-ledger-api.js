@@ -7,7 +7,6 @@
 const _ = require('lodash');
 const async = require('async');
 const bedrock = require('bedrock');
-const brIdentity = require('bedrock-identity');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const database = require('bedrock-mongodb');
 const expect = global.chai.expect;
@@ -55,8 +54,8 @@ describe('Ledger Storage API', () => {
         should.exist(record.ledger.id);
         should.exist(record.ledger.eventCollection);
         should.exist(record.ledger.blockCollection);
-        done();
-    }]}, err => done(err));
+        callback();
+      }]}, err => done(err));
   });
   it('should get ledger', done => {
     let configBlock = _.cloneDeep(configBlockTemplate);
@@ -81,7 +80,7 @@ describe('Ledger Storage API', () => {
         should.exist(storage.blocks);
         should.exist(storage.events);
         callback();
-    }]}, err => done(err));
+      }]}, err => done(err));
   });
   it('should fail to get non-existent ledger', done => {
     const storageId = 'urn:uuid:INVALID';
@@ -96,7 +95,7 @@ describe('Ledger Storage API', () => {
   });
   it('should iterate over ledgers', done => {
     let ledgerCount = 3;
-    const ledgerIds = Array(3).fill().map((e, i) => {
+    const ledgerIds = Array(3).fill().map(() => {
       return 'did:v1:' + uuid.v4();
     });
     const storageIds = [];
@@ -115,7 +114,7 @@ describe('Ledger Storage API', () => {
           callback(err, true);
         });
       });
-    }, (err, result) => {
+    }, err => {
       should.not.exist(err);
 
       // iterate through all of the ledger IDs
@@ -160,6 +159,6 @@ describe('Ledger Storage API', () => {
           done();
         });
       });
-    })
+    });
   });
 });
