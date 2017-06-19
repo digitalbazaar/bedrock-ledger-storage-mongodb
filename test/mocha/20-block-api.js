@@ -87,14 +87,22 @@ describe('Block Storage API', () => {
     const meta = {};
     const options = {};
 
-    helpers.testHasher(configBlock, (err, hash) => {
-      should.not.exist(err);
-      meta.blockHash = hash;
-      blsMongodb.add(configBlock, meta, options, (err, storage) => {
-        ledgerStorage = storage;
-        done(err);
-      });
-    });
+    async.auto({
+      initStorage: callback => blsMongodb.add(
+        configBlock, meta, options, (err, storage) => {
+          ledgerStorage = storage;
+          callback(err, storage);
+        }),
+      hashConfig: callback => helpers.testHasher(configBlock, (err, result) => {
+        // blockHash and consensus are normally created by consensus plugin
+        meta.blockHash = result;
+        meta.consensus = Date.now();
+        callback(err, result);
+      }),
+      addConfigBlock: ['initStorage', 'hashConfig', (results, callback) =>
+        ledgerStorage.blocks.add(configBlock, meta, {}, callback)
+      ]
+    }, done);
   });
   beforeEach(done => {
     // FIXME: Remove ledger
