@@ -5,43 +5,15 @@
 'use strict';
 
 const _ = require('lodash');
-const async = require('async');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
-const database = require('bedrock-mongodb');
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
 const exampleLedgerId = 'did:v1:' + uuid.v4();
-const configBlockTemplate = {
-  id: exampleLedgerId + '/blocks/1',
-  ledger: exampleLedgerId,
-  type: 'WebLedgerConfigurationBlock',
-  consensusMethod: {
-    type: 'Continuity2017'
-  },
-  configurationAuthorizationMethod: {
-    type: 'ProofOfSignature2016',
-    approvedSigner: [
-      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
-    ],
-    minimumSignaturesRequired: 1
-  },
-  writeAuthorizationMethod: {
-    type: 'ProofOfSignature2016',
-    approvedSigner: [
-      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
-    ],
-    minimumSignaturesRequired: 1
-  },
-  signature: {
-    type: 'RsaSignature2017',
-    created: '2017-10-24T05:33:31Z',
-    creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
-    domain: 'example.com',
-    signatureValue: 'eyiOiJJ0eXAK...EjXkgFWFO'
-  }
-};
+const configBlockTemplate = mockData.configBlocks.alpha;
+configBlockTemplate.id = exampleLedgerId + '/blocks/1';
+configBlockTemplate.ledger = exampleLedgerId;
 
 describe('Ledger Storage Driver API', () => {
   let ledgerStorage;

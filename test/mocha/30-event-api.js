@@ -13,46 +13,11 @@ const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
 const exampleLedgerId = 'did:v1:' + uuid.v4();
-const configBlockTemplate = {
-  id: exampleLedgerId + '/blocks/1',
-  ledger: exampleLedgerId,
-  type: 'WebLedgerConfigurationBlock',
-  consensusMethod: {
-    type: 'Continuity2017'
-  },
-  configurationAuthorizationMethod: {
-    type: 'ProofOfSignature2016',
-    approvedSigner: [
-      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
-    ],
-    minimumSignaturesRequired: 1
-  },
-  writeAuthorizationMethod: {
-    type: 'ProofOfSignature2016',
-    approvedSigner: [
-      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
-    ],
-    minimumSignaturesRequired: 1
-  },
-  signature: {
-    type: 'RsaSignature2017',
-    created: '2017-10-24T05:33:31Z',
-    creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
-    domain: 'example.com',
-    signatureValue: 'eyiOiJJ0eXAK...EjXkgFWFO'
-  }
-};
+const configBlockTemplate = mockData.configBlocks.alpha;
+configBlockTemplate.id = exampleLedgerId + '/blocks/1';
+configBlockTemplate.ledger = exampleLedgerId;
 
-const eventTemplate = {
-  id: 'https://example.com/events/123456',
-  description: 'Example event',
-  signature: {
-    type: 'RsaSignature2017',
-    created: '2017-05-10T19:47:13Z',
-    creator: 'http://example.com/keys/123',
-    signatureValue: 'gXI7wqa...FMMJoS2Bw=='
-  }
-};
+const eventTemplate = mockData.events.alpha;
 
 describe('Event Storage API', () => {
   let ledgerStorage;

@@ -13,71 +13,11 @@ const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
 const exampleLedgerId = 'did:v1:' + uuid.v4();
-const configBlockTemplate = {
-  id: exampleLedgerId + '/blocks/1',
-  ledger: exampleLedgerId,
-  type: 'WebLedgerConfigurationBlock',
-  consensusMethod: {
-    type: 'Continuity2017'
-  },
-  configurationAuthorizationMethod: {
-    type: 'ProofOfSignature2016',
-    approvedSigner: [
-      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
-    ],
-    minimumSignaturesRequired: 1
-  },
-  writeAuthorizationMethod: {
-    type: 'ProofOfSignature2016',
-    approvedSigner: [
-      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
-    ],
-    minimumSignaturesRequired: 1
-  },
-  signature: {
-    type: 'RsaSignature2017',
-    created: '2017-10-24T05:33:31Z',
-    creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
-    domain: 'example.com',
-    signatureValue: 'eyiOiJJ0eXAK...EjXkgFWFO'
-  }
-};
+const configBlockTemplate = mockData.configBlocks.alpha;
+configBlockTemplate.id = exampleLedgerId + '/blocks/1';
+configBlockTemplate.ledger = exampleLedgerId;
 
-const eventBlockTemplate = {
-  id: '',
-  type: 'WebLedgerEventBlock',
-  event: [{
-    '@context': 'https://w3id.org/webledger/v1',
-    id: '',
-    type: 'WebLedgerEvent',
-    operation: 'Create',
-    input: [{
-      id: 'https://example.com/events/123456',
-      description: 'Example event',
-      signature: {
-        type: 'RsaSignature2017',
-        created: '2017-05-10T19:47:13Z',
-        creator: 'http://example.com/keys/123',
-        signatureValue: 'gXI7wqa...FMMJoS2Bw=='
-      }
-    }],
-    signature: {
-      type: 'RsaSignature2017',
-      created: '2017-05-10T19:47:15Z',
-      creator: 'http://example.com/keys/789',
-      signatureValue: 'JoS27wqa...BFMgXIMw=='
-    }
-  }],
-  previousBlock: '',
-  previousBlockHash: '',
-  signature: {
-    type: 'RsaSignature2017',
-    created: '2017-10-24T05:33:31Z',
-    creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
-    domain: 'example.com',
-    signatureValue: 'eyiOiJJ0eXAK...WFOEjXkgF'
-  }
-};
+const eventBlockTemplate = mockData.eventBlocks.alpha;
 
 describe('Block Storage API', () => {
   let ledgerStorage;
@@ -287,9 +227,6 @@ describe('Block Storage API', () => {
     const eventBlock = _.cloneDeep(eventBlockTemplate);
     eventBlock.id = exampleLedgerId + '/blocks/INVALID';
     eventBlock.event[0].id = exampleLedgerId + '/events/INVALID';
-    const meta = {
-      pending: true
-    };
     const options = {};
 
     // create the block
