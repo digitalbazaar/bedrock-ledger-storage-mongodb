@@ -288,12 +288,11 @@ describe('Block Storage API', () => {
       done();
     });
   });
-  it('should get latest blocks', done => {
+  it('should get latest block', done => {
     // get latest config and event blocks
     const options = {};
     ledgerStorage.blocks.getLatest(options, (err, result) => {
       should.not.exist(err);
-      should.exist(result.configurationBlock);
       should.exist(result.eventBlock);
       done();
     });

@@ -11,7 +11,7 @@ of these objects are shown below:
 This API exposes the following methods:
 
 * Ledger Storage API
-  * api.add(configBlock, meta, options, callback(err, storage))
+  * api.add(configEvent, meta, options, callback(err, storage))
   * api.get(storageId, options, callback(err, storage))
   * api.remove(storageId, options, callback(err))
   * api.getLedgerIterator(options, callback(err, iterator))
@@ -49,13 +49,11 @@ storage requests to a set of MongoDB collections.
 
 ### Creating a Ledger
 
-Add a new ledger given an initial configuration block,
-block metadata, and a set of options.
+Add a new ledger given an initial configuration event,
+configuration event metadata, and a set of options.
 
-* configBlock - the initial configuration block for the ledger.
-* meta - the metadata associated with the configuration block.
-  * blockHash (required) - a unique identifier for the block that
-      the storage subsystem will use to index the block.
+* configEvent - the initial configuration event for the ledger.
+* meta - the metadata associated with the configuration event.
 * options - a set of options used when creating the ledger.
 * callback(err, storage) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise
@@ -65,42 +63,46 @@ block metadata, and a set of options.
 ```javascript
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 
-const configBlock = {
-    id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1',
-    type: 'WebLedgerConfigurationBlock',
+const configEvent = {
+  '@context': 'https://w3id.org/webledger/v1',
+  type: 'WebLedgerConfigurationEvent',
+  operation: 'Config',
+  input: [{
+    type: 'WebLedgerConfiguration',
     ledger: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59',
     consensusMethod: {
-      type: 'Continuity2017'
+      type: 'UnilateralConsensus2017'
     },
-    configurationAuthorizationMethod: {
-      type: 'ProofOfSignature2016',
+    eventGuard: [{
+      type: 'ProofOfSignature2017',
+      supportedEventType: 'WebLedgerEvent',
       approvedSigner: [
         'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
       ],
       minimumSignaturesRequired: 1
-    },
-    writeAuthorizationMethod: {
-      type: 'ProofOfSignature2016',
+    }, {
+      type: 'ProofOfSignature2017',
+      supportedEventType: 'WebLedgerConfigurationEvent',
       approvedSigner: [
         'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
       ],
       minimumSignaturesRequired: 1
-    },
-    signature: {
-      type: 'RsaSignature2017',
-      created: '2017-10-24T05:33:31Z',
-      creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
-      domain: 'example.com',
-      signatureValue: 'eyiOiJJ0eXAK...EjXkgFWFO'
-    }
+    }]
+  }],
+  signature: {
+    type: 'RsaSignature2017',
+    created: '2017-10-24T05:33:31Z',
+    creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
+    domain: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59',
+    signatureValue: 'eyiOiJJ0eXAK...EjXkgFWFO'
   }
 };
 const meta = {
-  blockHash: myBlockHasher(configBlock),
+  eventHash: myBlockHasher(configBlock),
 };
 const options = {};
 
-blsMongodb.add(configBlock, meta, options, (err, storage) => {
+blsMongodb.add(configEvent, meta, options, (err, storage) => {
   if(err) {
     throw new Error('Failed to create ledger:', err);
   }

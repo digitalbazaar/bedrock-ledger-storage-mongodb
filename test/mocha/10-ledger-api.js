@@ -21,21 +21,21 @@ const testOwner = 'https://example.com/i/testOwner';
 // use local JSON-LD processor for signatures
 jsigs.use('jsonld', bedrock.jsonld);
 
-const configBlockTemplate = mockData.configBlocks.alpha;
+const configEventTemplate = mockData.events.config;
 
 describe('Ledger Storage API', () => {
   it('should add a ledger', done => {
-    let configBlock = _.cloneDeep(configBlockTemplate);
-    configBlock.ledger = 'did:v1:' + uuid.v4();
-    configBlock.id = configBlock.ledger + '/blocks/1';
+    let configEvent = _.cloneDeep(configEventTemplate);
+    configEvent.ledger = 'did:v1:' + uuid.v4();
+    configEvent.id = configEvent.ledger + '/blocks/1';
     const meta = {};
     const options = {};
 
     async.auto({
-      hash: callback => helpers.testHasher(configBlock, callback),
+      hash: callback => helpers.testHasher(configEvent, callback),
       add: ['hash', (results, callback) => {
         meta.blockHash = results.hash;
-        blsMongodb.add(configBlock, meta, options, callback);
+        blsMongodb.add(configEvent, meta, options, callback);
       }],
       ensureStorage: ['add', (results, callback) => {
         const storage = results.add;
@@ -58,17 +58,17 @@ describe('Ledger Storage API', () => {
       }]}, err => done(err));
   });
   it('should get ledger', done => {
-    let configBlock = _.cloneDeep(configBlockTemplate);
-    configBlock.ledger = 'did:v1:' + uuid.v4();
-    configBlock.id = configBlock.ledger + '/blocks/1';
+    let configEvent = _.cloneDeep(configEventTemplate);
+    configEvent.ledger = 'did:v1:' + uuid.v4();
+    configEvent.id = configEvent.ledger + '/blocks/1';
     const meta = {};
     const options = {};
 
     async.auto({
-      hash: callback => helpers.testHasher(configBlock, callback),
+      hash: callback => helpers.testHasher(configEvent, callback),
       add: ['hash', (results, callback) => {
         meta.blockHash = results.hash;
-        blsMongodb.add(configBlock, meta, options, callback);
+        blsMongodb.add(configEvent, meta, options, callback);
       }],
       get: ['add', (results, callback) => {
         const storage = results.add;
@@ -100,15 +100,15 @@ describe('Ledger Storage API', () => {
     });
     const storageIds = [];
     async.every(ledgerIds, (ledgerId, callback) => {
-      const configBlock = _.cloneDeep(configBlockTemplate);
-      configBlock.ledger = ledgerId;
-      configBlock.id = ledgerId + '/blocks/1';
+      const configEvent = _.cloneDeep(configEventTemplate);
+      configEvent.ledger = ledgerId;
+      configEvent.id = ledgerId + '/blocks/1';
       const meta = {};
       const options = {};
-      helpers.testHasher(configBlock, (err, hash) => {
+      helpers.testHasher(configEvent, (err, hash) => {
         should.not.exist(err);
         meta.blockHash = hash;
-        blsMongodb.add(configBlock, meta, options, (err, storage) => {
+        blsMongodb.add(configEvent, meta, options, (err, storage) => {
           should.not.exist(err);
           storageIds.push(storage.id);
           callback(err, true);
@@ -137,9 +137,9 @@ describe('Ledger Storage API', () => {
     });
   });
   it('should remove a ledger', done => {
-    let configBlock = _.cloneDeep(configBlockTemplate);
-    configBlock.ledger = 'did:v1:' + uuid.v4();
-    configBlock.id = configBlock.ledger + '/blocks/1';
+    let configEvent = _.cloneDeep(configEventTemplate);
+    configEvent.ledger = 'did:v1:' + uuid.v4();
+    configEvent.id = configEvent.ledger + '/blocks/1';
     const meta = {};
     const options = {
       owner: testOwner,
@@ -147,11 +147,11 @@ describe('Ledger Storage API', () => {
       blockHasher: helpers.testHasher
     };
 
-    helpers.testHasher(configBlock, (err, hash) => {
+    helpers.testHasher(configEvent, (err, hash) => {
       should.not.exist(err);
       meta.blockHash = hash;
 
-      blsMongodb.add(configBlock, meta, options, (err, storage) => {
+      blsMongodb.add(configEvent, meta, options, (err, storage) => {
         should.not.exist(err);
 
         blsMongodb.remove(storage.id, options, err => {

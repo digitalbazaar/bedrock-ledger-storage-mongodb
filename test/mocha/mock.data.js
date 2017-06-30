@@ -24,28 +24,44 @@ identities[userName].identity = helpers.createIdentity(userName);
 // userName = 'noPermission';
 // identities[userName] = {};
 // identities[userName].identity = helpers.createIdentity(userName);
+const events = mock.events = {};
+events.alpha = {
+  id: 'https://example.com/events/123456',
+  description: 'Example event',
+  signature: {
+    type: 'RsaSignature2017',
+    created: '2017-05-10T19:47:13Z',
+    creator: 'http://example.com/keys/123',
+    signatureValue: 'gXI7wqa...FMMJoS2Bw=='
+  }
+};
 
-const configBlocks = mock.configBlocks = {};
-
-configBlocks.alpha = {
-  type: 'WebLedgerConfigurationBlock',
-  consensusMethod: {
-    type: 'Continuity2017'
-  },
-  configurationAuthorizationMethod: {
-    type: 'ProofOfSignature2016',
-    approvedSigner: [
-      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
-    ],
-    minimumSignaturesRequired: 1
-  },
-  writeAuthorizationMethod: {
-    type: 'ProofOfSignature2016',
-    approvedSigner: [
-      'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
-    ],
-    minimumSignaturesRequired: 1
-  },
+events.config = {
+  '@context': 'https://w3id.org/webledger/v1',
+  type: 'WebLedgerConfigurationEvent',
+  operation: 'Config',
+  input: [{
+    type: 'WebLedgerConfiguration',
+    ledger: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59',
+    consensusMethod: {
+      type: 'UnilateralConsensus2017'
+    },
+    eventGuard: [{
+      type: 'ProofOfSignature2017',
+      supportedEventType: 'WebLedgerEvent',
+      approvedSigner: [
+        'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
+      ],
+      minimumSignaturesRequired: 1
+    }, {
+      type: 'ProofOfSignature2017',
+      supportedEventType: 'WebLedgerConfigurationEvent',
+      approvedSigner: [
+        'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
+      ],
+      minimumSignaturesRequired: 1
+    }]
+  }],
   signature: {
     type: 'RsaSignature2017',
     created: '2017-10-24T05:33:31Z',
@@ -53,6 +69,14 @@ configBlocks.alpha = {
     domain: 'example.com',
     signatureValue: 'eyiOiJJ0eXAK...EjXkgFWFO'
   }
+};
+
+const configBlocks = mock.configBlocks = {};
+configBlocks.alpha = {
+  '@context': 'https://w3id.org/webledger/v1',
+  id: '',
+  type: 'WebLedgerEventBlock',
+  event: [events.config]
 };
 
 const eventBlocks = mock.eventBlocks = {};
@@ -89,18 +113,6 @@ eventBlocks.alpha = {
     creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
     domain: 'example.com',
     signatureValue: 'eyiOiJJ0eXAK...WFOEjXkgF'
-  }
-};
-
-const events = mock.events = {};
-events.alpha = {
-  id: 'https://example.com/events/123456',
-  description: 'Example event',
-  signature: {
-    type: 'RsaSignature2017',
-    created: '2017-05-10T19:47:13Z',
-    creator: 'http://example.com/keys/123',
-    signatureValue: 'gXI7wqa...FMMJoS2Bw=='
   }
 };
 
