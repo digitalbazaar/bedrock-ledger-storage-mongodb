@@ -25,6 +25,7 @@ This API exposes the following methods:
 * Event Storage API
   * storage.events.add(event, meta, options, callback(err, result))
   * storage.events.get(eventHash, options, callback(err, result))
+  * storage.events.getLatestConfig(options, callback(err, result))
   * storage.events.update(eventHash, patch, options, callback(err))
   * storage.events.remove(eventHash, options, callback(err))
 * Database Driver API
@@ -412,9 +413,13 @@ event and a set of options.
 
 ```javascript
 const event = {
-  event: {
+  '@context': 'https://w3id.org/webledger/v1',
+  type: 'WebLedgerEvent',
+  operation: 'Create',
+  input: [{
     '@context': 'https://schema.org/',
-    type: 'Event',
+    id: 'https://example.com/events/123456',
+    type: 'Concert',
     name: 'Big Band Concert in New York City',
     startDate: '2017-07-14T21:30',
     location: 'https://example.org/the-venue',
@@ -423,13 +428,13 @@ const event = {
       price: '13.00',
       priceCurrency: 'USD',
       url: 'https://www.ticketfly.com/purchase/309433'
-    },
-    signature: {
-      type: 'RsaSignature2017',
-      created: '2017-05-10T19:47:15Z',
-      creator: 'https://www.ticketfly.com/keys/789',
-      signatureValue: 'JoS27wqa...BFMgXIMw=='
     }
+  }],
+  signature: {
+    type: 'RsaSignature2017',
+    created: '2017-05-10T19:47:15Z',
+    creator: 'https://www.ticketfly.com/keys/789',
+    signatureValue: 'JoS27wqa...BFMgXIMw=='
   }
 };
 
@@ -465,12 +470,35 @@ query and a set of options.
 const eventHash = 'ni:///sha-256;xarRb0L7R7a_a9pHQs10Pk-hwqFsTlXpOLkbji1zfTo';
 const options = {};
 
-storage.blocks.get(eventHash, options, (err, result) => {
+storage.events.get(eventHash, options, (err, result) => {
   if(err) {
     throw new Error('Event retrieval failed:', err);
   }
 
   console.log('Event:', result.event, result.meta);
+});
+```
+
+### Get the Latest Config Event
+
+Gets the latest configuration event that has consensus.
+
+* options - a set of options used when retrieving the event.
+* callback(err, result) - the callback to call when finished.
+  * err - An Error if an error occurred, null otherwise.
+  * result - the result of the retrieval
+    * event - the event.
+    * meta - metadata about the event.
+
+```javascript
+const options = {};
+
+storage.events.getLatestConfig(options, (err, result) => {
+  if(err) {
+    throw new Error('Config event retrieval failed:' + err);
+  }
+
+  console.log('Latest config event:', result.event, result.meta);
 });
 ```
 
