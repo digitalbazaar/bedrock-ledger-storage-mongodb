@@ -54,7 +54,7 @@ api.testHasher = function (data, callback) {
     const hash = crypto.createHash('sha256').update(normalized).digest()
       .toString('base64')
       .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-    callback(err, hash);
+    callback(err, 'ni://sha-256;' + hash);
   });
 }
 
