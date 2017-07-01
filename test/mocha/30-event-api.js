@@ -13,36 +13,43 @@ const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
 const exampleLedgerId = 'did:v1:' + uuid.v4();
+const configEventTemplate = mockData.events.config;
 const configBlockTemplate = mockData.configBlocks.alpha;
-configBlockTemplate.id = exampleLedgerId + '/blocks/1';
-configBlockTemplate.ledger = exampleLedgerId;
 
-const eventTemplate = mockData.events.alpha;
+configBlockTemplate.id = exampleLedgerId + '/blocks/1';
+configEventTemplate.ledger = exampleLedgerId;
 
 describe('Event Storage API', () => {
   let ledgerStorage;
   let counter = 0;
 
   before(done => {
+    const configEvent = _.cloneDeep(configEventTemplate);
     const configBlock = _.cloneDeep(configBlockTemplate);
     const meta = {};
     const options = {};
 
-    helpers.testHasher(configBlock, (err, hash) => {
-      should.not.exist(err);
-      meta.blockHash = hash;
-      blsMongodb.add(configBlock, meta, options, (err, storage) => {
-        ledgerStorage = storage;
-        done(err);
-      });
-    });
+    async.auto({
+      initStorage: callback => blsMongodb.add(
+        configEvent, meta, options, (err, storage) => {
+          ledgerStorage = storage;
+          callback(err, storage);
+        }),
+      hashConfig: callback => helpers.testHasher(configBlock, callback),
+      addConfigBlock: ['initStorage', 'hashConfig', (results, callback) => {
+        // blockHash and consensus are normally created by consensus plugin
+        meta.blockHash = results.hashConfig;
+        meta.consensus = Date.now();
+        ledgerStorage.blocks.add(configBlock, meta, {}, callback);
+      }]
+    }, done);
   });
   beforeEach(done => {
     // FIXME: Remove ledger
     done();
   });
   it('should add event', done => {
-    const event = _.cloneDeep(eventTemplate);
+    const event = _.cloneDeep(configEventTemplate);
     const meta = {};
     const options = {};
 
@@ -72,7 +79,7 @@ describe('Event Storage API', () => {
       }]}, err => done(err));
   });
   it('should not add duplicate event', done => {
-    const event = _.cloneDeep(eventTemplate);
+    const event = _.cloneDeep(configEventTemplate);
     const meta = {};
     const options = {};
 
@@ -89,7 +96,7 @@ describe('Event Storage API', () => {
     });
   });
   it('should get event with given hash', done => {
-    const event = _.cloneDeep(eventTemplate);
+    const event = _.cloneDeep(configEventTemplate);
     event.description = counter++;
     const meta = {};
     const options = {};
@@ -113,7 +120,7 @@ describe('Event Storage API', () => {
     });
   });
   it('should update event', done => {
-    const event = _.cloneDeep(eventTemplate);
+    const event = _.cloneDeep(configEventTemplate);
     event.description = counter++;
     const meta = {
       testArrayOne: ['a', 'b'],
@@ -195,7 +202,7 @@ describe('Event Storage API', () => {
     });
   });
   it('should remove event', done => {
-    const event = _.cloneDeep(eventTemplate);
+    const event = _.cloneDeep(configEventTemplate);
     event.description = counter++;
     const meta = {};
     const options = {};

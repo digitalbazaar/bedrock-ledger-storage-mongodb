@@ -15,10 +15,10 @@ const uuid = require('uuid/v4');
 const exampleLedgerId = 'did:v1:' + uuid.v4();
 const configEventTemplate = mockData.events.config;
 const configBlockTemplate = mockData.configBlocks.alpha;
+const eventBlockTemplate = mockData.eventBlocks.alpha;
+
 configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 configEventTemplate.ledger = exampleLedgerId;
-
-const eventBlockTemplate = mockData.eventBlocks.alpha;
 
 describe('Block Storage API', () => {
   let ledgerStorage;
