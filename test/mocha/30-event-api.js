@@ -119,6 +119,29 @@ describe('Event Storage API', () => {
       done();
     });
   });
+  it('should get latest config event', done => {
+    const event = _.cloneDeep(configEventTemplate);
+    event.label = 'latest config event test';
+    const meta = {};
+    const options = {};
+
+    async.auto({
+      hash: callback => helpers.testHasher(event, callback),
+      add: ['hash', (results, callback) => {
+        meta.eventHash = results.hash;
+        meta.consensus = Date.now();
+        ledgerStorage.events.add(event, meta, options, callback);
+      }],
+      get: ['add', (results, callback) => {
+        ledgerStorage.events.getLatestConfig(options, callback);
+      }],
+      ensureGet: ['get', (results, callback) => {
+        const configEvent = results.get;
+        configEvent.event.label.should.equal('latest config event test');
+        callback();
+      }]
+    }, err => done(err));
+  });
   it('should update event', done => {
     const event = _.cloneDeep(configEventTemplate);
     event.description = counter++;
