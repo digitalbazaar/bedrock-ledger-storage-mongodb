@@ -129,7 +129,8 @@ describe('Event Storage API', () => {
       hash: callback => helpers.testHasher(event, callback),
       add: ['hash', (results, callback) => {
         meta.eventHash = results.hash;
-        meta.consensus = Date.now();
+        meta.consensus = true;
+        meta.consensusDate = Date.now();
         ledgerStorage.events.add(event, meta, options, callback);
       }],
       get: ['add', (results, callback) => {
