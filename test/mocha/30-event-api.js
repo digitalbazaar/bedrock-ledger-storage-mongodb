@@ -66,7 +66,7 @@ describe('Event Storage API', () => {
         should.exist(result.meta);
 
         // ensure the event was created in the database
-        const query = {eventHash: database.hash(result.meta.eventHash)};
+        const query = {eventHash: result.meta.eventHash};
         ledgerStorage.events.collection.findOne(query, callback);
       }],
       ensureEvent: ['ensureAdd', (results, callback) => {
