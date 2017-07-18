@@ -1,5 +1,7 @@
 # bedrock-ledger-storage-mongodb
 
+[![Build Status](https://ci.digitalbazaar.com/buildStatus/icon?job=bedrock-ledger-storage-mongodb)](https://ci.digitalbazaar.com/job/bedrock-ledger-storage-mongodb)
+
 A MongoDB ledger storage subsystem for bedrock-ledger that enables the
 storage and retrieval of ledgers, blocks, and events. The relationship
 of these objects are shown below:
