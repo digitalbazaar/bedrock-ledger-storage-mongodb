@@ -300,7 +300,7 @@ Retrieves the genesis block from the ledger.
 * callback(err, result) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
   * result - the genesis block.
-    * genesisBlock - the genesis block.
+    * genesisBlock - the genesis block and meta.
 
 ```javascript
 const options = {};
@@ -323,8 +323,8 @@ block from the ledger.
 * callback(err, result) - the callback to call when finished.
   * err - An Error if an error occurred, null otherwise.
   * result - the latest events and configuration blocks.
-    * configurationBlock - the latest configuration block.
-    * eventsBlock - the latest events block.
+    * configurationBlock - the latest configuration block and meta.
+    * eventBlock - the latest event block and meta.
 
 ```javascript
 const options = {};

@@ -295,8 +295,10 @@ describe('Block Storage API', () => {
     ledgerStorage.blocks.getGenesis(options, (err, result) => {
       should.not.exist(err);
       should.exist(result.genesisBlock);
-      should.not.exist(result.genesisBlock.previousBlock);
-      should.not.exist(result.genesisBlock.previousBlockHash);
+      should.exist(result.genesisBlock.block);
+      should.exist(result.genesisBlock.meta);
+      should.not.exist(result.genesisBlock.block.previousBlock);
+      should.not.exist(result.genesisBlock.block.previousBlockHash);
       done();
     });
   });
@@ -306,6 +308,8 @@ describe('Block Storage API', () => {
     ledgerStorage.blocks.getLatest(options, (err, result) => {
       should.not.exist(err);
       should.exist(result.eventBlock);
+      should.exist(result.eventBlock.block);
+      should.exist(result.eventBlock.meta);
       // TODO: needs more assertions that this is the latest block and/or
       // run on a chain with more blocks
       // TODO: add test that runs after another block that is not the latest
