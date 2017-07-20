@@ -21,6 +21,7 @@ This API exposes the following methods:
   * storage.blocks.add(block, meta, options, callback(err, result))
   * storage.blocks.get(blockId, options, callback(err, result))
   * storage.blocks.getAll(blockId, options, callback(err, result))
+  * storage.blocks.getGenesis(options, callback(err, result))
   * storage.blocks.getLatest(options, callback(err, result))
   * storage.blocks.update(blockHash, patch, options, callback(err))
   * storage.blocks.remove(blockHash, options, callback(err))
@@ -288,6 +289,28 @@ ledgerStorage.blocks.getAll(blockId, options, (err, iterator) => {
       callback();
     });
   });
+});
+```
+
+### Get Genesis Block
+
+Retrieves the genesis block from the ledger.
+
+* options - a set of options used when retrieving the genesis block.
+* callback(err, result) - the callback to call when finished.
+  * err - An Error if an error occurred, null otherwise.
+  * result - the genesis block.
+    * genesisBlock - the genesis block.
+
+```javascript
+const options = {};
+
+storage.blocks.getGenesis(options, (err, result) => {
+  if(err) {
+    throw new Error('Failed to get genesis block:', err);
+  }
+
+  console.log('Genesis block:', result.genesisBlock);
 });
 ```
 

@@ -290,12 +290,26 @@ describe('Block Storage API', () => {
       done();
     });
   });
+  it('should get genesis block', done => {
+    const options = {};
+    ledgerStorage.blocks.getGenesis(options, (err, result) => {
+      should.not.exist(err);
+      should.exist(result.genesisBlock);
+      should.not.exist(result.genesisBlock.previousBlock);
+      should.not.exist(result.genesisBlock.previousBlockHash);
+      done();
+    });
+  });
   it('should get latest block', done => {
     // get latest config and event blocks
     const options = {};
     ledgerStorage.blocks.getLatest(options, (err, result) => {
       should.not.exist(err);
       should.exist(result.eventBlock);
+      // TODO: needs more assertions that this is the latest block and/or
+      // run on a chain with more blocks
+      // TODO: add test that runs after another block that is not the latest
+      // has had its meta updated
       done();
     });
   });
