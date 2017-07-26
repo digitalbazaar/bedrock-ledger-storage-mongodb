@@ -28,7 +28,7 @@
     "bedrock": "digitalbazaar/bedrock#updateTestDeps",
     "bedrock-identity": "^4.6.0",
     "bedrock-jobs": "^2.0.3",
-    "bedrock-ledger": "digitalbazaar/bedrock-ledger#cm3",
+    "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#cm4",
     "bedrock-mongodb": "^3.0.0",
     "bedrock-permission": "^2.3.2",
     "bedrock-test": "^1.2.0",
