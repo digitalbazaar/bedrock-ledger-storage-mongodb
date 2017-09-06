@@ -7,7 +7,6 @@
 const _ = require('lodash');
 const async = require('async');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
-const database = require('bedrock-mongodb');
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
@@ -99,7 +98,5 @@ describe('State Machine Storage API', () => {
         callback(0);
       }]}, err => done(err));
   });
-  it.skip('should get updated state machine object', done => {
-
-  });
+  it.skip('should get updated state machine object');
 });

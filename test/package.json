@@ -28,6 +28,7 @@
     "bedrock": "^1.6.0",
     "bedrock-identity": "^4.6.0",
     "bedrock-jobs": "^2.0.3",
+    "bedrock-ledger-context": "digitalbazaar/bedrock-ledger-context",
     "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#cm4",
     "bedrock-mongodb": "^3.0.0",
     "bedrock-permission": "^2.3.2",

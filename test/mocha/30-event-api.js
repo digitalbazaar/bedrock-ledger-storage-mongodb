@@ -7,7 +7,6 @@
 const _ = require('lodash');
 const async = require('async');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
-const database = require('bedrock-mongodb');
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');

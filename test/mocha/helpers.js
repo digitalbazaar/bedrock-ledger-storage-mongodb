@@ -4,22 +4,18 @@
 /* jshint node: true */
 'use strict';
 
-var async = require('async');
+const async = require('async');
 const bedrock = require('bedrock');
-var brIdentity = require('bedrock-identity');
+const brIdentity = require('bedrock-identity');
 const config = require('bedrock').config;
 const crypto = require('crypto');
-var database = require('bedrock-mongodb');
-let jsonld = bedrock.jsonld;
+const database = require('bedrock-mongodb');
+const jsonld = bedrock.jsonld;
 const jsigs = require('jsonld-signatures')();
-let request = require('request');
-var uuid = require('uuid').v4;
+const uuid = require('uuid').v4;
 
-var api = {};
+const api = {};
 module.exports = api;
-
-// ensure that requests always send JSON
-request = request.defaults({json: true});
 
 // FIXME: Do not use an insecure document loader in production
 const nodeDocumentLoader = jsonld.documentLoaders.node({
@@ -41,7 +37,7 @@ jsonld.documentLoader = (url, callback) => {
 // use local JSON-LD processor for checking signatures
 jsigs.use('jsonld', jsonld);
 // test hashing function
-api.testHasher = function (data, callback) {
+api.testHasher = (data, callback) => {
   // ensure a basic context exists
   if(!data['@context']) {
     data['@context'] = 'https://w3id.org/webledger/v1';
@@ -56,10 +52,10 @@ api.testHasher = function (data, callback) {
       .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     callback(err, 'ni://sha-256;' + hash);
   });
-}
+};
 
 api.createIdentity = function(userName) {
-  var newIdentity = {
+  const newIdentity = {
     id: 'did:' + uuid(),
     type: 'Identity',
     sysSlug: userName,
@@ -76,7 +72,7 @@ api.createIdentity = function(userName) {
 };
 
 api.removeCollection = function(collection, callback) {
-  var collectionNames = [collection];
+  const collectionNames = [collection];
   database.openCollections(collectionNames, () => {
     async.each(collectionNames, function(collectionName, callback) {
       database.collections[collectionName].remove({}, callback);
@@ -87,7 +83,7 @@ api.removeCollection = function(collection, callback) {
 };
 
 api.removeCollections = function(callback) {
-  var collectionNames = ['identity', 'eventLog'];
+  const collectionNames = ['identity', 'eventLog'];
   database.openCollections(collectionNames, () => {
     async.each(collectionNames, (collectionName, callback) => {
       database.collections[collectionName].remove({}, callback);

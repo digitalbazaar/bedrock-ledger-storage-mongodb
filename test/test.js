@@ -1,10 +1,11 @@
 /*
  * Copyright (c) 2017 Digital Bazaar, Inc. All rights reserved.
  */
-var bedrock = require('bedrock');
+const bedrock = require('bedrock');
 require('bedrock-identity');
 require('bedrock-mongodb');
 require('bedrock-ledger-storage-mongodb');
+require('bedrock-ledger-context');
 
 require('bedrock-test');
 bedrock.start();
