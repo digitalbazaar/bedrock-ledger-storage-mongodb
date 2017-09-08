@@ -4,39 +4,27 @@
 /* globals should */
 'use strict';
 
-const _ = require('lodash');
 const async = require('async');
 const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const database = require('bedrock-mongodb');
-const expect = global.chai.expect;
-const helpers = require('./helpers');
 const jsigs = require('jsonld-signatures');
-const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
-const baseUri = 'http://example.com';
 const testOwner = 'https://example.com/i/testOwner';
 
 // use local JSON-LD processor for signatures
 jsigs.use('jsonld', bedrock.jsonld);
 
-const configEventTemplate = mockData.events.config;
-
 describe('Ledger Storage API', () => {
   it('should add a ledger', done => {
-    let configEvent = _.cloneDeep(configEventTemplate);
-    configEvent.ledger = 'did:v1:' + uuid.v4();
-    configEvent.id = configEvent.ledger + '/blocks/1';
     const meta = {};
-    const options = {};
+    const options = {
+      ledgerId: 'did:v1:' + uuid.v4()
+    };
 
     async.auto({
-      hash: callback => helpers.testHasher(configEvent, callback),
-      add: ['hash', (results, callback) => {
-        meta.blockHash = results.hash;
-        blsMongodb.add(configEvent, meta, options, callback);
-      }],
+      add: callback => blsMongodb.add(meta, options, callback),
       ensureStorage: ['add', (results, callback) => {
         const storage = results.add;
         // ensure ledger storage API exists
@@ -58,18 +46,13 @@ describe('Ledger Storage API', () => {
       }]}, err => done(err));
   });
   it('should get ledger', done => {
-    let configEvent = _.cloneDeep(configEventTemplate);
-    configEvent.ledger = 'did:v1:' + uuid.v4();
-    configEvent.id = configEvent.ledger + '/blocks/1';
     const meta = {};
-    const options = {};
+    const options = {
+      ledgerId: 'did:v1:' + uuid.v4()
+    };
 
     async.auto({
-      hash: callback => helpers.testHasher(configEvent, callback),
-      add: ['hash', (results, callback) => {
-        meta.blockHash = results.hash;
-        blsMongodb.add(configEvent, meta, options, callback);
-      }],
+      add: callback => blsMongodb.add(meta, options, callback),
       get: ['add', (results, callback) => {
         const storage = results.add;
         blsMongodb.get(storage.id, options, callback);
@@ -100,19 +83,12 @@ describe('Ledger Storage API', () => {
     });
     const storageIds = [];
     async.every(ledgerIds, (ledgerId, callback) => {
-      const configEvent = _.cloneDeep(configEventTemplate);
-      configEvent.ledger = ledgerId;
-      configEvent.id = ledgerId + '/blocks/1';
       const meta = {};
-      const options = {};
-      helpers.testHasher(configEvent, (err, hash) => {
+      const options = {ledgerId};
+      blsMongodb.add(meta, options, (err, storage) => {
         should.not.exist(err);
-        meta.blockHash = hash;
-        blsMongodb.add(configEvent, meta, options, (err, storage) => {
-          should.not.exist(err);
-          storageIds.push(storage.id);
-          callback(err, true);
-        });
+        storageIds.push(storage.id);
+        callback(err, true);
       });
     }, err => {
       should.not.exist(err);
@@ -137,28 +113,40 @@ describe('Ledger Storage API', () => {
     });
   });
   it('should remove a ledger', done => {
-    let configEvent = _.cloneDeep(configEventTemplate);
-    configEvent.ledger = 'did:v1:' + uuid.v4();
-    configEvent.id = configEvent.ledger + '/blocks/1';
     const meta = {};
     const options = {
-      owner: testOwner,
-      eventHasher: helpers.testHasher,
-      blockHasher: helpers.testHasher
+      ledgerId: 'did:v1:' + uuid.v4(),
+      owner: testOwner
     };
 
-    helpers.testHasher(configEvent, (err, hash) => {
-      should.not.exist(err);
-      meta.blockHash = hash;
-
-      blsMongodb.add(configEvent, meta, options, (err, storage) => {
-        should.not.exist(err);
-
+    async.auto({
+      add: callback => blsMongodb.add(meta, options, callback),
+      get: ['add', (results, callback) => {
+        const storage = results.add;
+        blsMongodb.get(storage.id, options, callback);
+      }],
+      ensureGet: ['get', (results, callback) => {
+        const storage = results.get;
+        should.exist(storage);
+        should.exist(storage.blocks);
+        should.exist(storage.events);
+        callback();
+      }],
+      remove: ['ensureGet', (results, callback) => {
+        const storage = results.get;
         blsMongodb.remove(storage.id, options, err => {
           should.not.exist(err);
-          done();
+          callback();
         });
-      });
-    });
+      }],
+      ensureGone: ['remove', (results, callback) => {
+        const storage = results.get;
+        blsMongodb.get(storage.id, options, (err, storage) => {
+          should.exist(err);
+          should.not.exist(storage);
+          err.name.should.equal('NotFound');
+          callback();
+        });
+      }]}, err => done(err));
   });
 });
