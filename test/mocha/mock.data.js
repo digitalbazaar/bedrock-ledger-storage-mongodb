@@ -39,7 +39,7 @@ events.alpha = {
 events.config = {
   '@context': 'https://w3id.org/webledger/v1',
   type: 'WebLedgerConfigurationEvent',
-  ledgerConfiguration: [{
+  ledgerConfiguration: {
     type: 'WebLedgerConfiguration',
     ledger: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59',
     consensusMethod: {
@@ -60,7 +60,7 @@ events.config = {
       ],
       minimumSignaturesRequired: 1
     }]
-  }],
+  },
   signature: {
     type: 'RsaSignature2017',
     created: '2017-10-24T05:33:31Z',
