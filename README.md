@@ -29,6 +29,7 @@ This API exposes the following methods:
   * storage.events.add(event, meta, options, callback(err, result))
   * storage.events.get(eventHash, options, callback(err, result))
   * storage.events.getLatestConfig(options, callback(err, result))
+  * storage.events.exists(eventHash, callback(err, result))
   * storage.events.update(eventHash, patch, options, callback(err))
   * storage.events.remove(eventHash, options, callback(err))
 * Database Driver API
@@ -479,8 +480,7 @@ storage.events.add(event, meta, options, (err, result) => {
 
 ### Get an Event
 
-Gets one or more events in the ledger given a
-query and a set of options.
+Gets one or more events in the ledger given a query and a set of options.
 
 * eventHash - the identifier of the event to fetch from storage.
 * options - a set of options used when retrieving the event.
@@ -500,6 +500,31 @@ storage.events.get(eventHash, options, (err, result) => {
   }
 
   console.log('Event:', result.event, result.meta);
+});
+```
+
+### Determine If an Event Exists
+
+Determine if one or more events exist given the event hash(es);
+
+* eventHash - a string or array of event hashes.
+* callback(err, result) - the callback to call when finished.
+  * err - An Error if an error occurred, null otherwise.
+  * result - the result of the check: true if all the events exist, false if
+      *any* of the events do not exist.
+
+```javascript
+const eventHash = 'ni:///sha-256;xarRb0L7R7a_a9pHQs10Pk-hwqFsTlXpOLkbji1zfTo';
+
+storage.events.exists(eventHash, (err, result) => {
+  if(err) {
+    throw new Error('Event retrieval failed:', err);
+  }
+  if(result) {
+    console.log('The event exists.');
+  } else {
+    console.log('The event does not exist.');
+  }
 });
 ```
 
