@@ -12,26 +12,26 @@ const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
 const exampleLedgerId = 'did:v1:' + uuid.v4();
-const configEventTemplate = mockData.events.config;
-const configBlockTemplate = mockData.configBlocks.alpha;
-const eventBlockTemplate = mockData.eventBlocks.alpha;
-
-configBlockTemplate.id = exampleLedgerId + '/blocks/1';
+const configEventTemplate = _.cloneDeep(mockData.events.config);
 configEventTemplate.ledger = exampleLedgerId;
+
+const configBlockTemplate = _.cloneDeep(mockData.configBlocks.alpha);
+configBlockTemplate.event = [configEventTemplate];
+configBlockTemplate.id = exampleLedgerId + '/blocks/1';
+
+const eventBlockTemplate = _.cloneDeep(mockData.eventBlocks.alpha);
 
 describe('State Machine Storage API', () => {
   let ledgerStorage;
-  let counter = 0;
 
   before(done => {
-    const configEvent = _.cloneDeep(configEventTemplate);
     const configBlock = _.cloneDeep(configBlockTemplate);
     const meta = {};
-    const options = {};
+    const options = {ledgerId: exampleLedgerId};
 
     async.auto({
       initStorage: callback => blsMongodb.add(
-        configEvent, meta, options, (err, storage) => {
+        meta, options, (err, storage) => {
           ledgerStorage = storage;
           callback(err, storage);
         }),

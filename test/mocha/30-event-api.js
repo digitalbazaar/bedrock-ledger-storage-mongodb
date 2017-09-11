@@ -12,28 +12,27 @@ const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
 const exampleLedgerId = 'did:v1:' + uuid.v4();
-const configEventTemplate = mockData.events.config;
-const configBlockTemplate = mockData.configBlocks.alpha;
-
-configBlockTemplate.id = exampleLedgerId + '/blocks/1';
+const configEventTemplate = _.cloneDeep(mockData.events.config);
 configEventTemplate.ledger = exampleLedgerId;
+
+const configBlockTemplate = _.cloneDeep(mockData.configBlocks.alpha);
+configBlockTemplate.event = [configEventTemplate];
+configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 
 describe('Event Storage API', () => {
   let ledgerStorage;
   let counter = 0;
 
   before(done => {
-    const configEvent = _.cloneDeep(configEventTemplate);
     const configBlock = _.cloneDeep(configBlockTemplate);
     const meta = {};
-    const options = {};
+    const options = {ledgerId: exampleLedgerId};
 
     async.auto({
-      initStorage: callback => blsMongodb.add(
-        configEvent, meta, options, (err, storage) => {
-          ledgerStorage = storage;
-          callback(err, storage);
-        }),
+      initStorage: callback => blsMongodb.add(meta, options, (err, storage) => {
+        ledgerStorage = storage;
+        callback(err, storage);
+      }),
       hashConfig: callback => helpers.testHasher(configBlock, callback),
       addConfigBlock: ['initStorage', 'hashConfig', (results, callback) => {
         // blockHash and consensus are normally created by consensus plugin
