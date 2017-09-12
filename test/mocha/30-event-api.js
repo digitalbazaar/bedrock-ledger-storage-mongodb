@@ -272,7 +272,7 @@ describe('Event Storage API', () => {
       ledgerStorage.events.update(eventHash, patch, options, (err, result) => {
         should.exist(err);
         should.not.exist(result);
-        err.name.should.equal('NotFound');
+        err.name.should.equal('NotFoundError');
         done();
       });
     });
@@ -306,7 +306,7 @@ describe('Event Storage API', () => {
       ledgerStorage.events.remove(eventHash, options, (err, result) => {
         should.exist(err);
         should.not.exist(result);
-        err.name.should.equal('NotFound');
+        err.name.should.equal('NotFoundError');
         done();
       });
     });

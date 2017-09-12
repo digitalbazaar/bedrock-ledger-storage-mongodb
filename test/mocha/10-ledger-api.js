@@ -72,7 +72,7 @@ describe('Ledger Storage API', () => {
     blsMongodb.get(storageId, options, (err, storage) => {
       should.exist(err);
       should.not.exist(storage);
-      err.name.should.equal('NotFound');
+      err.name.should.equal('NotFoundError');
       done();
     });
   });
@@ -144,7 +144,7 @@ describe('Ledger Storage API', () => {
         blsMongodb.get(storage.id, options, (err, storage) => {
           should.exist(err);
           should.not.exist(storage);
-          err.name.should.equal('NotFound');
+          err.name.should.equal('NotFoundError');
           callback();
         });
       }]}, err => done(err));

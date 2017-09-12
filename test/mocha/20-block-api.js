@@ -248,7 +248,7 @@ describe('Block Storage API', () => {
       }]
     }, err => {
       should.exist(err);
-      err.name.should.equal('NotFound');
+      err.name.should.equal('NotFoundError');
       done();
     });
   });
@@ -282,7 +282,7 @@ describe('Block Storage API', () => {
     // delete the block
     ledgerStorage.blocks.remove(blockHash, options, (err) => {
       should.exist(err);
-      err.name.should.equal('NotFound');
+      err.name.should.equal('NotFoundError');
       done();
     });
   });
