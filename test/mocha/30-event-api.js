@@ -93,7 +93,65 @@ describe('Event Storage API', () => {
         done();
       });
     });
-  });
+  }); // end add API
+
+  describe('difference API', () => {
+    it('returns eventHashes for events that are not in storage', done => {
+      const events = [];
+      for(let i = 0; i < 5; ++i) {
+        const event = _.cloneDeep(mockData.events.alpha);
+        event.id = 'urn:uuid:' + uuid();
+        events.push(event);
+      }
+      async.auto({
+        // hash all the events
+        hash: callback => async.map(events, helpers.testHasher, callback),
+        // only store the first two
+        add: ['hash', (results, callback) => async.times(2, (i, callback) => {
+          const meta = {eventHash: results.hash[i]};
+          ledgerStorage.events.add(events[i], meta, callback);
+        }, callback)],
+        difference: ['add', (results, callback) =>
+          ledgerStorage.events.difference(results.hash, (err, result) => {
+            assertNoError(err);
+            should.exist(result);
+            result.should.be.an('array');
+            result.should.have.length(3);
+            const expectedHashes = results.hash;
+            expectedHashes.splice(0, 2);
+            result.should.have.same.members(expectedHashes);
+            callback();
+          })]
+      }, done);
+    });
+    it('returns empty array if all the events are in storage', done => {
+      const events = [];
+      for(let i = 0; i < 5; ++i) {
+        const event = _.cloneDeep(mockData.events.alpha);
+        event.id = 'urn:uuid:' + uuid();
+        events.push(event);
+      }
+      async.auto({
+        // hash all the events
+        hash: callback => async.map(events, helpers.testHasher, callback),
+        // store all the events
+        add: ['hash', (results, callback) =>
+          async.eachOf(events, (e, i, callback) => {
+            const meta = {eventHash: results.hash[i]};
+            ledgerStorage.events.add(e, meta, callback);
+          }, callback)],
+        difference: ['add', (results, callback) =>
+          ledgerStorage.events.difference(results.hash, (err, result) => {
+            assertNoError(err);
+            should.exist(result);
+            result.should.be.an('array');
+            result.should.have.length(0);
+            callback();
+          })]
+      }, done);
+    });
+  }); // end difference API
+
   describe('exists API', () => {
     it('returns true if an event exists', done => {
       const event = _.cloneDeep(configEventTemplate);
