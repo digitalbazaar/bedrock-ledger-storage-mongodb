@@ -21,7 +21,7 @@
     "uuid": "^3.0.1"
   },
   "peerDependencies": {
-    "bedrock": "^1.6.0",
+    "bedrock": "digitalbazaar/bedrock#jsonld-1.1",
     "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#cm4",
     "bedrock-mongodb": "^3.0.0"
   },
