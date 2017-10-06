@@ -89,7 +89,7 @@ describe('Event Storage API', () => {
         }]
       }, err => {
         should.exist(err);
-        err.name.should.equal('DuplicateEvent');
+        err.name.should.equal('DuplicateError');
         done();
       });
     });

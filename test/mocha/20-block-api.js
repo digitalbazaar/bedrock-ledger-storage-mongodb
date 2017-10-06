@@ -99,7 +99,7 @@ describe('Block Storage API', () => {
       }]
     }, (err) => {
       should.exist(err);
-      err.name.should.equal('DuplicateBlock');
+      err.name.should.equal('DuplicateError');
       done();
     });
   });
