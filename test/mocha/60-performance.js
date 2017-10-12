@@ -10,7 +10,7 @@ const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
 let storage;
-describe.only('Performance tests', () => {
+describe('Performance tests', () => {
 
   before(done => {
     blsMongodb.add({}, {ledgerId: 'did:v1:' + uuid.v4()}, (err, result) => {
@@ -27,6 +27,7 @@ describe.only('Performance tests', () => {
     const opNum = 2500;
     const opNumLow = 250;
     const passNum = 10;
+    const outstandingEventNum = 250;
     let blocksAndEvents;
     it(`generating ${blockNum} blocks`, function(done) {
       this.timeout(120000);
@@ -63,12 +64,12 @@ describe.only('Performance tests', () => {
         done();
       });
     });
-    it(`event.add 250 events without consensus`, function(done) {
+    it(`add ${outstandingEventNum} events without consensus`, function(done) {
       this.timeout(120000);
       async.auto({
         create: callback => helpers.createEvent({
           eventTemplate: mockData.events.alpha,
-          eventNum: 250,
+          eventNum: outstandingEventNum,
           consensus: false
         }, callback),
         add: ['create', (results, callback) =>

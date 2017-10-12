@@ -35,15 +35,25 @@ describe('Block Storage API', () => {
         ledgerStorage = storage;
         callback(err, storage);
       }),
-      hashConfig: callback => helpers.testHasher(configBlock, (err, result) => {
-        callback(err, result);
-      }),
-      addConfigBlock: ['initStorage', 'hashConfig', (results, callback) => {
-        // blockHash and consensus are normally created by consensus plugin
-        meta.blockHash = results.hashConfig;
-        meta.consensus = Date.now();
-        ledgerStorage.blocks.add(configBlock, meta, {}, callback);
-      }]
+      eventHash: callback => helpers.testHasher(configEventTemplate, callback),
+      blockHash: callback => helpers.testHasher(configBlock, callback),
+      addEvent: ['initStorage', 'eventHash', (results, callback) => {
+        const meta = {
+          consensus: true,
+          consensusDate: Date.now(),
+          eventHash: results.eventHash
+        };
+        ledgerStorage.events.add(configEventTemplate, meta, callback);
+      }],
+      addConfigBlock: [
+        'initStorage', 'blockHash', 'eventHash', (results, callback) => {
+          // blockHash and consensus are normally created by consensus plugin
+          meta.blockHash = results.blockHash;
+          meta.consensus = true;
+          meta.consensusDate = Date.now();
+          configBlock.event = [results.hashEvent];
+          ledgerStorage.blocks.add(configBlock, meta, {}, callback);
+        }]
     }, done);
   });
   beforeEach(done => {
@@ -316,7 +326,7 @@ describe('Block Storage API', () => {
           const meta = results.create.events[0].meta;
           ledgerStorage.events.add(event, meta, callback);
         }],
-        delete: ['create', (results, callback) => {
+        delete: ['block', (results, callback) => {
           const blockHash = results.create.blocks[0].meta.blockHash;
           ledgerStorage.blocks.remove(blockHash, callback);
         }]

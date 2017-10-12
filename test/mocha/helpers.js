@@ -79,7 +79,6 @@ api.createEvent = ({eventTemplate, eventNum, consensus = true}, callback) => {
   async.timesLimit(eventNum, 100, (i, callback) => {
     const event = bedrock.util.clone(eventTemplate);
     event.id = `https://example.com/events/${uuid()}`;
-    // events.push(event);
     api.testHasher(event, (err, result) => {
       const meta = {eventHash: result};
       if(consensus) {
