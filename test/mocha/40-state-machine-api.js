@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2017 Digital Bazaar, Inc. All rights reserved.
  */
-/* globals should */
 'use strict';
 
 const _ = require('lodash');
@@ -41,7 +40,7 @@ describe('State Machine Storage API', () => {
         configBlock.blockHeight = 0;
         meta.blockHash = results.hashConfig;
         meta.consensus = true;
-        meta.consensusDate = new Date();
+        meta.consensusDate = Date.now();
         ledgerStorage.blocks.add(configBlock, meta, {}, callback);
       }]
     }, done);
@@ -51,52 +50,50 @@ describe('State Machine Storage API', () => {
     done();
   });
   it('should get state machine object by id', done => {
-    const eventBlock = _.cloneDeep(eventBlockTemplate);
-    eventBlock.id = exampleLedgerId + '/blocks/2';
-    eventBlock.event[0].id = exampleLedgerId + '/events/1';
-    eventBlock.blockHeight = 1;
-    const event = eventBlock.event[0];
-    const meta = {
-      consensus: true,
-      consensusDate: Date.now()
-    };
-    const options = {};
-
+    const blockTemplate = eventBlockTemplate;
+    const eventTemplate = mockData.events.alpha;
+    let event1;
+    let event2;
     async.auto({
-      hashEvent: callback => helpers.testHasher(event, callback),
-      hashBlock: callback => helpers.testHasher(eventBlock, callback),
-      addEvent: ['hashEvent', (results, callback) => {
-        meta.eventHash = results.hashEvent;
-        meta.consensus = true;
-        meta.consensusDate = new Date();
-        ledgerStorage.events.add(event, meta, options, callback);
+      create: callback => helpers.createBlocks(
+        {blockTemplate, eventTemplate, blockNum: 2}, (err, result) => {
+          event1 = result.events[0].event.input[0];
+          event2 = result.events[1].event.input[0];
+          callback(err, result);
+        }),
+      block: ['create', (results, callback) => {
+        async.each(results.create.blocks, (b, callback) =>
+          ledgerStorage.blocks.add(b.block, b.meta, callback), callback);
       }],
-      addBlock: ['hashBlock', (results, callback) => {
-        meta.blockHash = results.hashBlock;
-        meta.consensus = true;
-        meta.consensusDate = new Date();
-        ledgerStorage.blocks.add(eventBlock, meta, options, callback);
+      event: ['create', (results, callback) => {
+        async.each(results.create.events, (e, callback) =>
+          ledgerStorage.events.add(e.event, e.meta, callback), callback);
       }],
-      get: ['addEvent', 'addBlock', (results, callback) => {
-        const objId = eventBlock.event[0].input[0].id;
-        ledgerStorage.stateMachine.get(objId, callback);
+      get: ['event', (results, callback) => {
+        ledgerStorage.stateMachine.get(event1.id, callback);
       }],
-      getTwo: ['get', (results, callback) => {
-        const objId = eventBlock.event[0].input[0].id;
-        ledgerStorage.stateMachine.get(objId, callback);
+      getTwo: ['event', (results, callback) => {
+        ledgerStorage.stateMachine.get(event2.id, callback);
       }],
-      ensureObject: ['getTwo', (results, callback) => {
-        const objId = eventBlock.event[0].input[0].id;
-        const record = results.get;
-        should.exist(record);
-        should.exist(record.object);
-        should.exist(record.object.id);
-        should.exist(record.meta);
-        should.exist(record.meta.blockHeight);
-        record.object.id.should.equal(objId);
-        results.getTwo.object.id.should.equal(objId);
-        callback(0);
-      }]}, err => done(err));
+      ensureObject: ['get', 'getTwo', (results, callback) => {
+        const recordOne = results.get;
+        should.exist(recordOne);
+        should.exist(recordOne.object);
+        should.exist(recordOne.object.id);
+        should.exist(recordOne.meta);
+        should.exist(recordOne.meta.blockHeight);
+        // FIXME: should blockHeight equal the block that contains the event?
+        // recordOne.meta.blockHeight.should.equal(1);
+        recordOne.object.should.deep.equal(event1);
+        const recordTwo = results.getTwo;
+        recordTwo.object.should.deep.equal(event2);
+        recordOne.meta.blockHeight.should.equal(2);
+        callback();
+      }]
+    }, err => {
+      assertNoError(err);
+      done(err);
+    });
   });
   it.skip('should get updated state machine object');
 });

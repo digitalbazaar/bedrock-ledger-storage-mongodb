@@ -217,9 +217,9 @@ describe('Event Storage API', () => {
           ledgerStorage.events.get(eventHash, options, callback);
         }]
       }, (err, results) => {
-        should.not.exist(err);
+        assertNoError(err);
         // get the event by hash
-        should.not.exist(err);
+        assertNoError(err);
         results.get.meta.eventHash.should.equal(meta.eventHash);
         done();
       });
@@ -308,7 +308,7 @@ describe('Event Storage API', () => {
           ledgerStorage.events.get(eventHash, options, callback);
         }]
       }, (err, results) => {
-        should.not.exist(err);
+        assertNoError(err);
         should.exist(results.get.meta.consensus);
         should.not.exist(results.get.meta.pending);
         results.get.meta.testArrayOne.should.eql(['a', 'b', 'c']);
@@ -354,7 +354,7 @@ describe('Event Storage API', () => {
           ledgerStorage.events.remove(eventHash, options, callback);
         }]
       }, err => {
-        should.not.exist(err);
+        assertNoError(err);
         done();
       });
     });

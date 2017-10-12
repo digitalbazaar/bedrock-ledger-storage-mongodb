@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2017 Digital Bazaar, Inc. All rights reserved.
  */
-/* globals should */
 'use strict';
 
 const _ = require('lodash');
@@ -55,7 +54,7 @@ describe('Ledger Storage Driver API', () => {
       'ledger.id': ledgerStorage.id
     };
     ledgerStorage.driver.collections.ledger.findOne(query, (err, result) => {
-      should.not.exist(err);
+      assertNoError(err);
       result.ledger.id.should.equal(ledgerStorage.id);
       done();
     });
@@ -73,7 +72,7 @@ describe('Ledger Storage Driver API', () => {
     };
     const lc = ledgerStorage.driver.collections.ledger;
     lc.updateOne(filter, update, (err, result) => {
-      should.not.exist(err);
+      assertNoError(err);
       result.matchedCount.should.equal(1);
       done();
     });

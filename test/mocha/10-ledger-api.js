@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2017 Digital Bazaar, Inc. All rights reserved.
  */
-/* globals should */
 'use strict';
 
 const async = require('async');
@@ -86,17 +85,17 @@ describe('Ledger Storage API', () => {
       const meta = {};
       const options = {ledgerId};
       blsMongodb.add(meta, options, (err, storage) => {
-        should.not.exist(err);
+        assertNoError(err);
         storageIds.push(storage.id);
         callback(err, true);
       });
     }, err => {
-      should.not.exist(err);
+      assertNoError(err);
 
       // iterate through all of the ledger IDs
       const options = {owner: testOwner + '-iterator'};
       blsMongodb.getLedgerIterator(options, (err, iterator) => {
-        should.not.exist(err);
+        assertNoError(err);
         ledgerCount = 0;
         async.eachSeries(iterator, (promise, callback) => {
           promise.then(storage => {
@@ -135,7 +134,7 @@ describe('Ledger Storage API', () => {
       remove: ['ensureGet', (results, callback) => {
         const storage = results.get;
         blsMongodb.remove(storage.id, options, err => {
-          should.not.exist(err);
+          assertNoError(err);
           callback();
         });
       }],
