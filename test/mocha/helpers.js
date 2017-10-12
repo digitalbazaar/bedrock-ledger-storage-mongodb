@@ -74,21 +74,19 @@ api.createBlocks = (
   });
 };
 
-api.createEvent = ({eventTemplate, eventNum}, callback) => {
+api.createEvent = ({eventTemplate, eventNum, consensus = true}, callback) => {
   const events = [];
   async.timesLimit(eventNum, 100, (i, callback) => {
     const event = bedrock.util.clone(eventTemplate);
     event.id = `https://example.com/events/${uuid()}`;
     // events.push(event);
     api.testHasher(event, (err, result) => {
-      events.push({
-        event,
-        meta: {
-          consensusDate: Date.now(),
-          consensus: true,
-          eventHash: result
-        }
-      });
+      const meta = {eventHash: result};
+      if(consensus) {
+        meta.consensus = true;
+        meta.consensusDate = Date.now();
+      }
+      events.push({event, meta});
       callback();
     });
   }, err => callback(err, events));
