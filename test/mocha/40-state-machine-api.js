@@ -80,10 +80,10 @@ describe('State Machine Storage API', () => {
         async.each(results.create.events, (e, callback) =>
           ledgerStorage.events.add(e.event, e.meta, callback), callback);
       }],
-      get: ['event', (results, callback) => {
+      get: ['block', 'event', (results, callback) => {
         ledgerStorage.stateMachine.get(event1.id, callback);
       }],
-      getTwo: ['event', (results, callback) => {
+      getTwo: ['get', (results, callback) => {
         ledgerStorage.stateMachine.get(event2.id, callback);
       }],
       ensureObject: ['get', 'getTwo', (results, callback) => {

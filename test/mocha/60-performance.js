@@ -30,7 +30,7 @@ describe('Performance tests', () => {
     const outstandingEventNum = 250;
     let blocksAndEvents;
     it(`generating ${blockNum} blocks`, function(done) {
-      this.timeout(120000);
+      this.timeout(320000);
       helpers.createBlocks({
         blockNum,
         blockTemplate: mockData.eventBlocks.alpha,
@@ -43,7 +43,7 @@ describe('Performance tests', () => {
       });
     });
     it(`blocks.add ${blockNum} blocks`, function(done) {
-      this.timeout(120000);
+      this.timeout(320000);
       async.eachLimit(blocksAndEvents.blocks, 100, (b, callback) => {
         storage.blocks.add(b.block, b.meta, err => {
           assertNoError(err);
@@ -52,7 +52,7 @@ describe('Performance tests', () => {
       }, done);
     });
     it(`events.add events`, function(done) {
-      this.timeout(120000);
+      this.timeout(320000);
       console.log(`Adding ${blocksAndEvents.events.length} events.`);
       async.eachLimit(blocksAndEvents.events, 100, (e, callback) => {
         storage.events.add(e.event, e.meta, err => {
@@ -65,7 +65,7 @@ describe('Performance tests', () => {
       });
     });
     it(`add ${outstandingEventNum} events without consensus`, function(done) {
-      this.timeout(120000);
+      this.timeout(320000);
       async.auto({
         create: callback => helpers.createEvent({
           eventTemplate: mockData.events.alpha,
@@ -81,19 +81,19 @@ describe('Performance tests', () => {
       }, done);
     });
     it(`blocks.getLatestSummary ${opNum} times`, function(done) {
-      this.timeout(120000);
+      this.timeout(320000);
       runPasses({
         func: storage.blocks.getLatestSummary, api: 'blocks', passNum, opNum
       }, done);
     });
     it(`blocks.getLatest ${opNum} times`, function(done) {
-      this.timeout(120000);
+      this.timeout(320000);
       runPasses({
         func: storage.blocks.getLatest, api: 'blocks', passNum, opNum
       }, done);
     });
     it(`events.getLatestConfig ${opNum} times`, function(done) {
-      this.timeout(120000);
+      this.timeout(320000);
       runPasses({
         func: storage.events.getLatestConfig, api: 'events', passNum, opNum
       }, done);
