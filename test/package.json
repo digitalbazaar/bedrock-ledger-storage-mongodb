@@ -29,12 +29,12 @@
     "bedrock-identity": "^4.6.0",
     "bedrock-jobs": "^2.0.3",
     "bedrock-ledger-context": "digitalbazaar/bedrock-ledger-context",
-    "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#cm4",
+    "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#master",
     "bedrock-mongodb": "^4.0.0",
     "bedrock-permission": "^2.3.2",
     "bedrock-test": "^1.2.0",
     "grunt": "^1.0.1",
-    "jsonld-signatures": "digitalbazaar/jsonld-signatures#multiSignature",
+    "jsonld-signatures": "digitalbazaar/jsonld-signatures#master",
     "uuid": "^3.1.0"
   }
 }
