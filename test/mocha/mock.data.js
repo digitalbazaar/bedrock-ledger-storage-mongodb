@@ -31,27 +31,30 @@ const events = mock.events = {};
 events.alpha = {
   '@context': config.constants.WEB_LEDGER_CONTEXT_V1_URL,
   type: 'WebLedgerEvent',
-  operation: 'Create',
-  input: [{
-    '@context': config.constants.TEST_CONTEXT_V1_URL,
-    id: `https://example.com/events/a05bebf8-c966-427f-92f2-ff9060f4bd23`,
-    type: 'Concert',
-    name: 'Primary Event',
-    startDate: '2017-07-14T21:30',
-    location: 'https://example.org/the-venue-new-york',
-    offers: {
-      type: 'Offer',
-      price: '13.00',
-      priceCurrency: 'USD',
-      url: `https://example.org/purchase/a05bebf8-c966-427f-92f2-ff9060f4bd23`,
+  operation: [{
+    '@context': config.constants.WEB_LEDGER_CONTEXT_V1_URL,
+    type: 'CreateWebLedgerRecord',
+    record: {
+      '@context': config.constants.TEST_CONTEXT_V1_URL,
+      id: `https://example.com/events/a05bebf8-c966-427f-92f2-ff9060f4bd23`,
+      type: 'Concert',
+      name: 'Primary Event',
+      startDate: '2017-07-14T21:30',
+      location: 'https://example.org/the-venue-new-york',
+      offers: {
+        type: 'Offer',
+        price: '13.00',
+        priceCurrency: 'USD',
+        url: `https://example.org/purchase/a05bebf8-c966-427f-92f2-ff9060f4bd23`,
+      }
+    },
+    signature: {
+      type: 'RsaSignature2017',
+      created: '2017-05-10T19:47:13Z',
+      creator: "https://bedrock.local:18443/consensus/continuity2017/voters/57565658-0d8a-4668-b734-e801aeaa6472#key",
+      signatureValue: "nlx8c9uFI8Ur/h57F5AeHHrKPSKiiGJmN6APRnYesQPK4LXftnm2lzqpWzsvKGDPzH6QfoOIktQu2Ax0pj/Bi6Oa4/Na75HuoRGppaHCqlyrgbr5EUPRCiYSjlsYKBhEN6ITdmR/O8iGz9WZi4PQjSW9XrrP8bQLeu9Kzsu5hdkzmgS4f3PCXpImwpKFttyF7xARvSQxrgRxZrqWPIGtD9sghRY2/Zn3T2npTaOTXMhgW9Lc7uEpjThnCEsrKflshbLGevZglc/njBp5SoEgon8CuzQIkMBFjCTEdJYBtTuk0AF5BcVyoxPDfH9bdUYOIMFaDhZBQKM5tQEU2GqE/g=="
     }
-  }],
-  signature: {
-    type: 'RsaSignature2017',
-    created: '2017-05-10T19:47:13Z',
-    creator: "https://bedrock.local:18443/consensus/continuity2017/voters/57565658-0d8a-4668-b734-e801aeaa6472#key",
-    signatureValue: "nlx8c9uFI8Ur/h57F5AeHHrKPSKiiGJmN6APRnYesQPK4LXftnm2lzqpWzsvKGDPzH6QfoOIktQu2Ax0pj/Bi6Oa4/Na75HuoRGppaHCqlyrgbr5EUPRCiYSjlsYKBhEN6ITdmR/O8iGz9WZi4PQjSW9XrrP8bQLeu9Kzsu5hdkzmgS4f3PCXpImwpKFttyF7xARvSQxrgRxZrqWPIGtD9sghRY2/Zn3T2npTaOTXMhgW9Lc7uEpjThnCEsrKflshbLGevZglc/njBp5SoEgon8CuzQIkMBFjCTEdJYBtTuk0AF5BcVyoxPDfH9bdUYOIMFaDhZBQKM5tQEU2GqE/g=="
-  }
+  }]
 };
 
 events.config = {
