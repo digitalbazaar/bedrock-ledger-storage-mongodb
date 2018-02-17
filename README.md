@@ -79,7 +79,7 @@ const configEvent = {
     },
     eventGuard: [{
       type: 'ProofOfSignature2017',
-      supportedEventType: 'WebLedgerEvent',
+      supportedEventType: 'WebLedgerOperationEvent',
       approvedSigner: [
         'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
       ],
@@ -439,7 +439,7 @@ event and a set of options.
 ```javascript
 const event = {
   '@context': 'https://w3id.org/webledger/v1',
-  type: 'WebLedgerEvent',
+  type: 'WebLedgerOperationEvent',
   operation: 'Create',
   input: [{
     '@context': 'https://schema.org/',
