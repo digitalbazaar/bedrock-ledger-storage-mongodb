@@ -181,7 +181,7 @@ describe('Event Storage API', () => {
         add: ['hash', (results, callback) =>
           async.eachOf(events, (e, i, callback) =>
             ledgerStorage.events.add(e, {eventHash: results.hash[i]}, callback),
-            callback)
+          callback)
         ],
         test: ['add', (results, callback) => {
           ledgerStorage.events.exists(results.hash, (err, result) => {

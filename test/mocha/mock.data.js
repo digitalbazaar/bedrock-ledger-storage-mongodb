@@ -10,10 +10,9 @@ const mock = {};
 module.exports = mock;
 
 const identities = mock.identities = {};
-let userName;
 
 // identity with permission to access its own agreements
-userName = 'regularUser';
+const userName = 'regularUser';
 identities[userName] = {};
 identities[userName].identity = helpers.createIdentity(userName);
 // identities[userName].identity.sysResourceRole.push({
@@ -45,7 +44,8 @@ events.alpha = {
         type: 'Offer',
         price: '13.00',
         priceCurrency: 'USD',
-        url: `https://example.org/purchase/a05bebf8-c966-427f-92f2-ff9060f4bd23`,
+        url:
+          `https://example.org/purchase/a05bebf8-c966-427f-92f2-ff9060f4bd23`,
       }
     },
     proof: {
@@ -84,7 +84,7 @@ events.config = {
       minimumSignaturesRequired: 1
     }],
     proof: {
-    type: 'RsaSignature2018',
+      type: 'RsaSignature2018',
       created: '2017-10-24T05:33:31Z',
       creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
       domain: 'example.com',
