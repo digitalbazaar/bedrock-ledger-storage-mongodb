@@ -136,7 +136,7 @@ describe('Block Storage API', () => {
           ledgerStorage.events.add({event, meta}, callback);
         }],
         get: ['block', 'event', (results, callback) =>
-          ledgerStorage.blocks.get(block.id, (err, result) => {
+          ledgerStorage.blocks.get({blockId: block.id}, (err, result) => {
             assertNoError(err);
             should.exist(result.block);
             should.exist(result.meta);
@@ -158,7 +158,7 @@ describe('Block Storage API', () => {
           callback();
         }],
         get: ['block', (results, callback) => ledgerStorage.blocks.get(
-          block.id, (err, iterator) => {
+          {blockId: block.id}, (err, iterator) => {
             async.eachSeries(iterator, (promise, callback) => {
               promise.then(result => {
                 should.not.exist(result);
@@ -271,12 +271,11 @@ describe('Block Storage API', () => {
               }
             }
           }];
-
-          ledgerStorage.blocks.update(
-            results.create.blocks[0].meta.blockHash, patch, callback);
+          const {blockHash} = results.create.blocks[0].meta;
+          ledgerStorage.blocks.update({blockHash, patch}, callback);
         }],
         get: ['update', (results, callback) => {
-          ledgerStorage.blocks.get(block.id, callback);
+          ledgerStorage.blocks.get({blockId: block.id}, callback);
         }]
       }, (err, results) => {
         assertNoError(err);
@@ -299,7 +298,7 @@ describe('Block Storage API', () => {
             }
           }];
           ledgerStorage.blocks.update(
-            'bogusHash', patch, callback);
+            {blockHash: 'bogusHash', patch}, callback);
         }
       }, err => {
         should.exist(err);
