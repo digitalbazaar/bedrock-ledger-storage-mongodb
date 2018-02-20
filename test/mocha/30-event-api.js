@@ -6,6 +6,7 @@
 const _ = require('lodash');
 const async = require('async');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
+const database = require('bedrock-mongodb');
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
@@ -64,7 +65,7 @@ describe('Event Storage API', () => {
           should.exist(result.meta);
 
           // ensure the event was created in the database
-          const query = {eventHash: result.meta.eventHash};
+          const query = {eventHash: database.hash(result.meta.eventHash)};
           ledgerStorage.events.collection.findOne(query, callback);
         }],
         ensureEvent: ['ensureAdd', (results, callback) => {
