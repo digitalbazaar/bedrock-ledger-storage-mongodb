@@ -51,6 +51,7 @@ describe('Block Storage API', () => {
           meta.blockHash = results.blockHash;
           meta.consensus = true;
           meta.consensusDate = Date.now();
+          block.blockHeight = 0;
           block.event = [results.eventHash];
           ledgerStorage.blocks.add({block, meta}, callback);
         }]
@@ -106,6 +107,7 @@ describe('Block Storage API', () => {
         addAgain: ['add', (results, callback) => {
           const {block} = results.create.blocks[0];
           const {meta} = results.create.blocks[0];
+          console.log('BBBBBBBB', block);
           ledgerStorage.blocks.add({block, meta}, callback);
         }]
       }, (err) => {

@@ -47,6 +47,7 @@ describe('Event Storage API', () => {
           // blockHash and consensus are normally created by consensus plugin
           meta.blockHash = results.blockHash;
           meta.consensus = Date.now();
+          block.blockHeight = 0;
           block.event = [results.eventHash];
           ledgerStorage.blocks.add({block, meta}, callback);
         }]
@@ -239,7 +240,8 @@ describe('Event Storage API', () => {
   describe('getLatestConfig API', () => {
     it('should get latest config event', done => {
       const event = _.cloneDeep(configEventTemplate);
-      event.label = 'latest config event test';
+      // FIXME: how is uniqueness of ledgerConfigurations guaranteed?
+      event.ledgerConfiguration.consensusMethod = 'Continuity2017';
       const meta = {};
       const options = {};
 
@@ -247,6 +249,7 @@ describe('Event Storage API', () => {
         hash: callback => helpers.testHasher(event, callback),
         add: ['hash', (results, callback) => {
           meta.eventHash = results.hash;
+          meta.blockHeight = 10000000;
           meta.consensus = true;
           meta.consensusDate = Date.now();
           ledgerStorage.events.add(event, meta, callback);
@@ -256,7 +259,7 @@ describe('Event Storage API', () => {
         }],
         ensureGet: ['get', (results, callback) => {
           const configEvent = results.get;
-          configEvent.event.label.should.equal('latest config event test');
+          configEvent.event.should.deep.equal(event);
           callback();
         }]
       }, err => done(err));

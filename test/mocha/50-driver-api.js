@@ -47,6 +47,7 @@ describe('Ledger Storage Driver API', () => {
         // blockHash and consensus are normally created by consensus plugin
           meta.blockHash = results.blockHash;
           meta.consensus = Date.now();
+          block.blockHeight = 0;
           block.event = [results.eventHash];
           ledgerStorage.blocks.add({block, meta}, callback);
         }]
