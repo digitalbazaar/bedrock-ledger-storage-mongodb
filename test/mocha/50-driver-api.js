@@ -40,7 +40,7 @@ describe('Ledger Storage Driver API', () => {
           consensusDate: Date.now(),
           eventHash: results.eventHash
         };
-        ledgerStorage.events.add(configEventTemplate, meta, callback);
+        ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
       }],
       addConfigBlock: [
         'initStorage', 'blockHash', 'eventHash', (results, callback) => {

@@ -47,12 +47,11 @@ describe('Performance tests', () => {
     it(`events.add events`, function(done) {
       this.timeout(320000);
       console.log(`Adding ${blocksAndEvents.events.length} events.`);
-      async.eachLimit(blocksAndEvents.events, 100, (e, callback) => {
-        storage.events.add(e.event, e.meta, err => {
+      async.eachLimit(blocksAndEvents.events, 100, (e, callback) =>
+        storage.events.add({event: e.event, meta: e.meta}, err => {
           assertNoError(err);
           callback();
-        });
-      }, err => {
+        }), err => {
         assertNoError(err);
         done();
       });
@@ -79,7 +78,7 @@ describe('Performance tests', () => {
         }, callback),
         add: ['create', (results, callback) =>
           async.eachLimit(results.create, 100, (e, callback) =>
-            storage.events.add(e.event, e.meta, err => {
+            storage.events.add({event: e.event, meta: e.meta}, err => {
               assertNoError(err);
               callback();
             }), callback)]
@@ -103,32 +102,16 @@ describe('Performance tests', () => {
         func: storage.events.getLatestConfig, api: 'events', passNum, opNum
       }, done);
     });
-    it(`events.getHashes ${opNumLow} times`, function(done) {
-      this.timeout(180000);
-      runPasses({
-        func: storage.events.getHashes,
-        concurrency: 3,
-        api: 'events', passNum, opNum: opNumLow}, done);
-    });
-    it(`events.getHashes without consensus ${opNum} times`, function(done) {
-      this.timeout(180000);
-      runPasses({
-        func: storage.events.getHashes,
-        funcOptions: {consensus: false},
-        api: 'events', passNum, opNum: opNumLow}, done);
-    });
   });
 });
 
-function runPasses({
-  func, funcOptions = {}, passNum, opNum, api, concurrency = 100
-}, callback) {
+function runPasses({func, passNum, opNum, api, concurrency = 100}, callback) {
   const passes = [];
   async.timesSeries(passNum, (i, callback) => {
     const start = Date.now();
     async.timesLimit(
-      opNum, concurrency,
-      (i, callback) => func.call(storage[api], funcOptions, callback), err => {
+      opNum, concurrency, (i, callback) => func.call(storage[api], callback),
+      err => {
         const stop = Date.now();
         assertNoError(err);
         passes.push(Math.round(opNum / (stop - start) * 1000));

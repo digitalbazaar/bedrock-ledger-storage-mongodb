@@ -42,7 +42,7 @@ describe('State Machine Storage API', () => {
           consensusDate: Date.now(),
           eventHash: results.eventHash
         };
-        ledgerStorage.events.add(configEventTemplate, meta, callback);
+        ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
       }],
       addConfigBlock: [
         'initStorage', 'blockHash', 'eventHash', (results, callback) => {
@@ -74,7 +74,8 @@ describe('State Machine Storage API', () => {
         }),
       event: ['create', (results, callback) => {
         async.each(results.create.events, (e, callback) =>
-          ledgerStorage.events.add(e.event, e.meta, callback), callback);
+          ledgerStorage.events.add(
+            {event: e.event, meta: e.meta}, callback), callback);
       }],
       block: ['event', (results, callback) => {
         async.each(results.create.blocks, ({block, meta}, callback) =>

@@ -43,7 +43,7 @@ describe('Block Storage API', () => {
           consensusDate: Date.now(),
           eventHash: results.eventHash
         };
-        ledgerStorage.events.add(configEventTemplate, meta, callback);
+        ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
       }],
       addConfigBlock: [
         'initStorage', 'blockHash', 'eventHash', (results, callback) => {
@@ -107,7 +107,6 @@ describe('Block Storage API', () => {
         addAgain: ['add', (results, callback) => {
           const {block} = results.create.blocks[0];
           const {meta} = results.create.blocks[0];
-          console.log('BBBBBBBB', block);
           ledgerStorage.blocks.add({block, meta}, callback);
         }]
       }, (err) => {
@@ -134,7 +133,7 @@ describe('Block Storage API', () => {
         event: ['create', (results, callback) => {
           const event = results.create.events[0].event;
           const meta = results.create.events[0].meta;
-          ledgerStorage.events.add(event, meta, callback);
+          ledgerStorage.events.add({event, meta}, callback);
         }],
         get: ['block', 'event', (results, callback) =>
           ledgerStorage.blocks.get(block.id, (err, result) => {
@@ -192,7 +191,7 @@ describe('Block Storage API', () => {
         event: ['create', (results, callback) => {
           const {event} = results.create.events[0];
           const {meta} = results.create.events[0];
-          ledgerStorage.events.add(event, meta, callback);
+          ledgerStorage.events.add({event, meta}, callback);
         }],
         getAll: ['block', 'event', (results, callback) =>
           ledgerStorage.blocks.getAll(block.id, (err, iterator) => {
@@ -240,7 +239,7 @@ describe('Block Storage API', () => {
         event: ['create', (results, callback) => {
           const event = results.create.events[0].event;
           const meta = results.create.events[0].meta;
-          ledgerStorage.events.add(event, meta, callback);
+          ledgerStorage.events.add({event, meta}, callback);
         }],
         update: ['block', 'event', (results, callback) => {
           const patch = [{
@@ -325,7 +324,7 @@ describe('Block Storage API', () => {
         event: ['create', (results, callback) => {
           const event = results.create.events[0].event;
           const meta = results.create.events[0].meta;
-          ledgerStorage.events.add(event, meta, callback);
+          ledgerStorage.events.add({event, meta}, callback);
         }],
         delete: ['block', (results, callback) => {
           const {blockHash} = results.create.blocks[0].meta;
@@ -377,7 +376,7 @@ describe('Block Storage API', () => {
         event: ['create', (results, callback) => {
           const event = results.create.events[0].event;
           const meta = results.create.events[0].meta;
-          ledgerStorage.events.add(event, meta, callback);
+          ledgerStorage.events.add({event, meta}, callback);
         }],
         latest: ['block', 'event', (results, callback) =>
           ledgerStorage.blocks.getLatest((err, result) => {
@@ -410,7 +409,7 @@ describe('Block Storage API', () => {
         event: ['create', (results, callback) => {
           const event = results.create.events[0].event;
           const meta = results.create.events[0].meta;
-          ledgerStorage.events.add(event, meta, callback);
+          ledgerStorage.events.add({event, meta}, callback);
         }],
         summary: ['block', 'event', (results, callback) =>
           ledgerStorage.blocks.getLatestSummary((err, result) => {

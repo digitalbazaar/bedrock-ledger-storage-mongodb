@@ -40,7 +40,7 @@ describe('Event Storage API', () => {
           consensusDate: Date.now(),
           eventHash: results.eventHash
         };
-        ledgerStorage.events.add(configEventTemplate, meta, callback);
+        ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
       }],
       addConfigBlock: [
         'initStorage', 'blockHash', 'eventHash', (results, callback) => {
@@ -61,13 +61,11 @@ describe('Event Storage API', () => {
     it('should add event', done => {
       const event = _.cloneDeep(mockData.events.alpha);
       const meta = {};
-      const options = {};
-
       async.auto({
         hash: callback => helpers.testHasher(event, callback),
         add: ['hash', (results, callback) => {
           meta.eventHash = results.hash;
-          ledgerStorage.events.add(event, meta, options, callback);
+          ledgerStorage.events.add({event, meta}, callback);
         }],
         ensureAdd: ['add', (results, callback) => {
           const result = results.add;
@@ -91,13 +89,11 @@ describe('Event Storage API', () => {
     it('should not add duplicate event', done => {
       const event = _.cloneDeep(configEventTemplate);
       const meta = {};
-      const options = {};
-
       async.auto({
         hash: callback => helpers.testHasher(event, callback),
         add: ['hash', (results, callback) => {
           meta.eventHash = results.hash;
-          ledgerStorage.events.add(event, meta, options, callback);
+          ledgerStorage.events.add({event, meta}, callback);
         }]
       }, err => {
         should.exist(err);
@@ -121,7 +117,7 @@ describe('Event Storage API', () => {
         // only store the first two
         add: ['hash', (results, callback) => async.times(2, (i, callback) => {
           const meta = {eventHash: results.hash[i]};
-          ledgerStorage.events.add(events[i], meta, callback);
+          ledgerStorage.events.add({event: events[i], meta}, callback);
         }, callback)],
         difference: ['add', (results, callback) =>
           ledgerStorage.events.difference(results.hash, (err, result) => {
@@ -148,9 +144,9 @@ describe('Event Storage API', () => {
         hash: callback => async.map(events, helpers.testHasher, callback),
         // store all the events
         add: ['hash', (results, callback) =>
-          async.eachOf(events, (e, i, callback) => {
+          async.eachOf(events, (event, i, callback) => {
             const meta = {eventHash: results.hash[i]};
-            ledgerStorage.events.add(e, meta, callback);
+            ledgerStorage.events.add({event, meta}, callback);
           }, callback)],
         difference: ['add', (results, callback) =>
           ledgerStorage.events.difference(results.hash, (err, result) => {
@@ -170,9 +166,8 @@ describe('Event Storage API', () => {
       event.description = uuid();
       async.auto({
         hash: callback => helpers.testHasher(event, callback),
-        add: ['hash', (results, callback) => {
-          ledgerStorage.events.add(event, {eventHash: results.hash}, callback);
-        }],
+        add: ['hash', (results, callback) => ledgerStorage.events.add(
+          {event, meta: {eventHash: results.hash}}, callback)],
         test: ['add', (results, callback) => {
           ledgerStorage.events.exists(results.hash, (err, result) => {
             assertNoError(err);
@@ -191,8 +186,9 @@ describe('Event Storage API', () => {
       async.auto({
         hash: callback => async.map(events, helpers.testHasher, callback),
         add: ['hash', (results, callback) =>
-          async.eachOf(events, (e, i, callback) =>
-            ledgerStorage.events.add(e, {eventHash: results.hash[i]}, callback),
+          async.eachOf(events, (event, i, callback) =>
+            ledgerStorage.events.add(
+              {event, meta: {eventHash: results.hash[i]}}, callback),
           callback)
         ],
         test: ['add', (results, callback) => {
@@ -216,17 +212,15 @@ describe('Event Storage API', () => {
       const event = _.cloneDeep(configEventTemplate);
       event.description = counter++;
       const meta = {};
-      const options = {};
-
       async.auto({
         hash: callback => helpers.testHasher(event, callback),
         add: ['hash', (results, callback) => {
           meta.eventHash = results.hash;
-          ledgerStorage.events.add(event, meta, options, callback);
+          ledgerStorage.events.add({event, meta}, callback);
         }],
         get: ['add', (results, callback) => {
           const eventHash = results.add.meta.eventHash;
-          ledgerStorage.events.get(eventHash, options, callback);
+          ledgerStorage.events.get(eventHash, callback);
         }]
       }, (err, results) => {
         assertNoError(err);
@@ -243,8 +237,6 @@ describe('Event Storage API', () => {
       // FIXME: how is uniqueness of ledgerConfigurations guaranteed?
       event.ledgerConfiguration.consensusMethod = 'Continuity2017';
       const meta = {};
-      const options = {};
-
       async.auto({
         hash: callback => helpers.testHasher(event, callback),
         add: ['hash', (results, callback) => {
@@ -252,10 +244,10 @@ describe('Event Storage API', () => {
           meta.blockHeight = 10000000;
           meta.consensus = true;
           meta.consensusDate = Date.now();
-          ledgerStorage.events.add(event, meta, callback);
+          ledgerStorage.events.add({event, meta}, callback);
         }],
         get: ['add', (results, callback) => {
-          ledgerStorage.events.getLatestConfig(options, callback);
+          ledgerStorage.events.getLatestConfig(callback);
         }],
         ensureGet: ['get', (results, callback) => {
           const configEvent = results.get;
@@ -281,7 +273,7 @@ describe('Event Storage API', () => {
         hash: callback => helpers.testHasher(event, callback),
         create: ['hash', (results, callback) => {
           meta.eventHash = results.hash;
-          ledgerStorage.events.add(event, meta, options, callback);
+          ledgerStorage.events.add({event, meta}, callback);
         }],
         update: ['create', (results, callback) => {
           const patch = [{
@@ -315,11 +307,11 @@ describe('Event Storage API', () => {
           }];
 
           const eventHash = results.create.meta.eventHash;
-          ledgerStorage.events.update(eventHash, patch, options, callback);
+          ledgerStorage.events.update({eventHash, patch}, callback);
         }],
         get: ['update', (results, callback) => {
           const eventHash = results.create.meta.eventHash;
-          ledgerStorage.events.get(eventHash, options, callback);
+          ledgerStorage.events.get(eventHash, callback);
         }]
       }, (err, results) => {
         assertNoError(err);
@@ -332,7 +324,6 @@ describe('Event Storage API', () => {
     });
     it('should fail to update invalid event', done => {
       const eventHash = 'ni:///sha-256;INVALID';
-      const options = {};
       const patch = [{
         op: 'unset',
         changes: {
@@ -341,7 +332,7 @@ describe('Event Storage API', () => {
           }
         }
       }];
-      ledgerStorage.events.update(eventHash, patch, options, (err, result) => {
+      ledgerStorage.events.update({eventHash, patch}, (err, result) => {
         should.exist(err);
         should.not.exist(result);
         err.name.should.equal('NotFoundError');
@@ -354,18 +345,16 @@ describe('Event Storage API', () => {
       const event = _.cloneDeep(configEventTemplate);
       event.description = counter++;
       const meta = {};
-      const options = {};
-
       // create the event
       async.auto({
         hash: callback => helpers.testHasher(event, callback),
         create: ['hash', (results, callback) => {
           meta.eventHash = results.hash;
-          ledgerStorage.events.add(event, meta, options, callback);
+          ledgerStorage.events.add({event, meta}, callback);
         }],
         delete: ['create', (results, callback) => {
           const eventHash = results.create.meta.eventHash;
-          ledgerStorage.events.remove(eventHash, options, callback);
+          ledgerStorage.events.remove(eventHash, callback);
         }]
       }, err => {
         assertNoError(err);
@@ -374,8 +363,7 @@ describe('Event Storage API', () => {
     });
     it('should fail to remove non-existent event', done => {
       const eventHash = 'ni:///sha-256;INVALID';
-      const options = {};
-      ledgerStorage.events.remove(eventHash, options, (err, result) => {
+      ledgerStorage.events.remove(eventHash, (err, result) => {
         should.exist(err);
         should.not.exist(result);
         err.name.should.equal('NotFoundError');
