@@ -79,8 +79,8 @@ api.createEvent = ({eventTemplate, eventNum, consensus = true}, callback) => {
   async.timesLimit(eventNum, 100, (i, callback) => {
     const event = bedrock.util.clone(eventTemplate);
     event.id = `https://example.com/events/${uuid()}`;
-    api.testHasher(event, (err, result) => {
-      const meta = {eventHash: result};
+    api.testHasher(event, (err, eventHash) => {
+      const meta = {eventHash};
       if(consensus) {
         meta.consensus = true;
         meta.consensusDate = Date.now();

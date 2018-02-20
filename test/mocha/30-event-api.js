@@ -16,7 +16,6 @@ const configEventTemplate = _.cloneDeep(mockData.events.config);
 configEventTemplate.ledger = exampleLedgerId;
 
 const configBlockTemplate = _.cloneDeep(mockData.configBlocks.alpha);
-configBlockTemplate.event = [configEventTemplate];
 configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 
 describe('Event Storage API', () => {
@@ -24,7 +23,7 @@ describe('Event Storage API', () => {
   let counter = 0;
 
   before(done => {
-    const configBlock = _.cloneDeep(configBlockTemplate);
+    const block = _.cloneDeep(configBlockTemplate);
     const meta = {};
     const options = {ledgerId: exampleLedgerId};
 
@@ -33,13 +32,24 @@ describe('Event Storage API', () => {
         ledgerStorage = storage;
         callback(err, storage);
       }),
-      hashConfig: callback => helpers.testHasher(configBlock, callback),
-      addConfigBlock: ['initStorage', 'hashConfig', (results, callback) => {
-        // blockHash and consensus are normally created by consensus plugin
-        meta.blockHash = results.hashConfig;
-        meta.consensus = Date.now();
-        ledgerStorage.blocks.add(configBlock, meta, {}, callback);
-      }]
+      eventHash: callback => helpers.testHasher(configEventTemplate, callback),
+      blockHash: callback => helpers.testHasher(block, callback),
+      addEvent: ['initStorage', 'eventHash', (results, callback) => {
+        const meta = {
+          consensus: true,
+          consensusDate: Date.now(),
+          eventHash: results.eventHash
+        };
+        ledgerStorage.events.add(configEventTemplate, meta, callback);
+      }],
+      addConfigBlock: [
+        'initStorage', 'blockHash', 'eventHash', (results, callback) => {
+          // blockHash and consensus are normally created by consensus plugin
+          meta.blockHash = results.blockHash;
+          meta.consensus = Date.now();
+          block.event = [results.eventHash];
+          ledgerStorage.blocks.add({block, meta}, callback);
+        }]
     }, done);
   });
   beforeEach(done => {
@@ -48,7 +58,7 @@ describe('Event Storage API', () => {
   });
   describe('add API', () => {
     it('should add event', done => {
-      const event = _.cloneDeep(configEventTemplate);
+      const event = _.cloneDeep(mockData.events.alpha);
       const meta = {};
       const options = {};
 
@@ -239,7 +249,7 @@ describe('Event Storage API', () => {
           meta.eventHash = results.hash;
           meta.consensus = true;
           meta.consensusDate = Date.now();
-          ledgerStorage.events.add(event, meta, options, callback);
+          ledgerStorage.events.add(event, meta, callback);
         }],
         get: ['add', (results, callback) => {
           ledgerStorage.events.getLatestConfig(options, callback);

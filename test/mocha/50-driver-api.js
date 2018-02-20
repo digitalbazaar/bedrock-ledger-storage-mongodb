@@ -22,7 +22,7 @@ describe('Ledger Storage Driver API', () => {
   let ledgerStorage;
 
   before(done => {
-    const configBlock = _.cloneDeep(configBlockTemplate);
+    const block = _.cloneDeep(configBlockTemplate);
     const meta = {};
     const options = {ledgerId: exampleLedgerId};
 
@@ -32,13 +32,24 @@ describe('Ledger Storage Driver API', () => {
           ledgerStorage = storage;
           callback(err, storage);
         }),
-      hashConfig: callback => helpers.testHasher(configBlock, callback),
-      addConfigBlock: ['initStorage', 'hashConfig', (results, callback) => {
+      blockHash: callback => helpers.testHasher(block, callback),
+      eventHash: callback => helpers.testHasher(configEventTemplate, callback),
+      addEvent: ['initStorage', 'eventHash', (results, callback) => {
+        const meta = {
+          consensus: true,
+          consensusDate: Date.now(),
+          eventHash: results.eventHash
+        };
+        ledgerStorage.events.add(configEventTemplate, meta, callback);
+      }],
+      addConfigBlock: [
+        'initStorage', 'blockHash', 'eventHash', (results, callback) => {
         // blockHash and consensus are normally created by consensus plugin
-        meta.blockHash = results.hashConfig;
-        meta.consensus = Date.now();
-        ledgerStorage.blocks.add(configBlock, meta, {}, callback);
-      }]
+          meta.blockHash = results.blockHash;
+          meta.consensus = Date.now();
+          block.event = [results.eventHash];
+          ledgerStorage.blocks.add({block, meta}, callback);
+        }]
     }, done);
   });
   beforeEach(done => {

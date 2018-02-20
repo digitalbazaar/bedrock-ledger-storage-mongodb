@@ -21,7 +21,7 @@ describe('Performance tests', () => {
       done();
     });
   });
-  describe('Block', () => {
+  describe('Blocks and Event Operations', () => {
     const blockNum = 1000;
     const eventNum = 10;
     const opNum = 2500;
@@ -42,15 +42,8 @@ describe('Performance tests', () => {
         done();
       });
     });
-    it(`blocks.add ${blockNum} blocks`, function(done) {
-      this.timeout(320000);
-      async.eachLimit(blocksAndEvents.blocks, 100, (b, callback) => {
-        storage.blocks.add(b.block, b.meta, err => {
-          assertNoError(err);
-          callback();
-        });
-      }, done);
-    });
+
+    // NOTE: the events added here are referenced in the blocks.add test
     it(`events.add events`, function(done) {
       this.timeout(320000);
       console.log(`Adding ${blocksAndEvents.events.length} events.`);
@@ -63,6 +56,18 @@ describe('Performance tests', () => {
         assertNoError(err);
         done();
       });
+    });
+
+    // NOTE: the events referenced in the blocks are stored in events.add
+    it(`blocks.add ${blockNum} blocks`, function(done) {
+      this.timeout(320000);
+      async.eachLimit(
+        blocksAndEvents.blocks, 100, ({block, meta}, callback) => {
+          storage.blocks.add({block, meta}, err => {
+            assertNoError(err);
+            callback();
+          });
+        }, done);
     });
     it(`add ${outstandingEventNum} events without consensus`, function(done) {
       this.timeout(320000);

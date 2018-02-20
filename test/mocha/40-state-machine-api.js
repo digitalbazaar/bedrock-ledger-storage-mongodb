@@ -24,7 +24,7 @@ describe('State Machine Storage API', () => {
   let ledgerStorage;
 
   before(done => {
-    const configBlock = _.cloneDeep(configBlockTemplate);
+    const block = _.cloneDeep(configBlockTemplate);
     const meta = {};
     const options = {ledgerId: exampleLedgerId};
 
@@ -34,7 +34,7 @@ describe('State Machine Storage API', () => {
           ledgerStorage = storage;
           callback(err, storage);
         }),
-      blockHash: callback => helpers.testHasher(configBlock, callback),
+      blockHash: callback => helpers.testHasher(block, callback),
       eventHash: callback => helpers.testHasher(configEventTemplate, callback),
       addEvent: ['initStorage', 'eventHash', (results, callback) => {
         const meta = {
@@ -47,12 +47,12 @@ describe('State Machine Storage API', () => {
       addConfigBlock: [
         'initStorage', 'blockHash', 'eventHash', (results, callback) => {
           // blockHash and consensus are normally created by consensus plugin
-          configBlock.blockHeight = 0;
+          block.blockHeight = 0;
           meta.blockHash = results.blockHash;
           meta.consensus = true;
           meta.consensusDate = Date.now();
-          configBlock.event = [results.eventHash];
-          ledgerStorage.blocks.add(configBlock, meta, {}, callback);
+          block.event = [results.eventHash];
+          ledgerStorage.blocks.add({block, meta}, callback);
         }]
     }, done);
   });
@@ -72,13 +72,13 @@ describe('State Machine Storage API', () => {
           operation2 = result.events[1].event.operation[0];
           callback(err, result);
         }),
-      block: ['create', (results, callback) => {
-        async.each(results.create.blocks, (b, callback) =>
-          ledgerStorage.blocks.add(b.block, b.meta, callback), callback);
-      }],
       event: ['create', (results, callback) => {
         async.each(results.create.events, (e, callback) =>
           ledgerStorage.events.add(e.event, e.meta, callback), callback);
+      }],
+      block: ['event', (results, callback) => {
+        async.each(results.create.blocks, ({block, meta}, callback) =>
+          ledgerStorage.blocks.add({block, meta}, callback), callback);
       }],
       get: ['block', 'event', (results, callback) => {
         ledgerStorage.stateMachine.get(operation1.record.id, callback);
