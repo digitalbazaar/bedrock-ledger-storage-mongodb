@@ -171,12 +171,11 @@ describe('Event Storage API', () => {
         add: ['hash', (results, callback) => ledgerStorage.events.add(
           {event, meta: {eventHash: results.hash}}, callback)],
         test: ['add', (results, callback) => {
-          ledgerStorage.events.exists(
-            database.hash(results.hash), (err, result) => {
-              assertNoError(err);
-              result.should.be.true;
-              callback();
-            });
+          ledgerStorage.events.exists(results.hash, (err, result) => {
+            assertNoError(err);
+            result.should.be.true;
+            callback();
+          });
         }]}, err => done(err));
     });
     it('returns true if multiple events exist', done => {
@@ -195,12 +194,11 @@ describe('Event Storage API', () => {
           callback)
         ],
         test: ['add', (results, callback) => {
-          ledgerStorage.events.exists(
-            results.hash.map(h => database.hash(h)), (err, result) => {
-              assertNoError(err);
-              result.should.be.true;
-              callback();
-            });
+          ledgerStorage.events.exists(results.hash, (err, result) => {
+            assertNoError(err);
+            result.should.be.true;
+            callback();
+          });
         }]}, err => done(err));
     });
     it('returns false if an event does not exist', done => {
@@ -223,7 +221,7 @@ describe('Event Storage API', () => {
           ledgerStorage.events.add({event, meta}, callback);
         }],
         get: ['add', (results, callback) => {
-          const eventHash = database.hash(results.add.meta.eventHash);
+          const eventHash = results.add.meta.eventHash;
           ledgerStorage.events.get(eventHash, callback);
         }]
       }, (err, results) => {
@@ -308,11 +306,11 @@ describe('Event Storage API', () => {
             }
           }];
 
-          const eventHash = database.hash(results.create.meta.eventHash);
+          const eventHash = results.create.meta.eventHash;
           ledgerStorage.events.update({eventHash, patch}, callback);
         }],
         get: ['update', (results, callback) => {
-          const eventHash = database.hash(results.create.meta.eventHash);
+          const eventHash = results.create.meta.eventHash;
           ledgerStorage.events.get(eventHash, callback);
         }]
       }, (err, results) => {
