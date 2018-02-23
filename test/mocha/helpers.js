@@ -60,8 +60,7 @@ api.createBlocks = (
           }
           meta.blockHash = result;
           // block is stored with the eventHashes
-          block.event = results.events.map(
-            e => database.hash(e.meta.eventHash));
+          block.event = results.events.map(e => e.meta.eventHash);
           blocks.push({block, meta});
           callback();
         });

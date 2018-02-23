@@ -125,17 +125,17 @@ describe('Block Storage API', () => {
       async.auto({
         create: callback => helpers.createBlocks(
           {blockTemplate, eventTemplate}, callback),
-        block: ['create', (results, callback) => {
-          block = results.create.blocks[0].block;
-          const meta = results.create.blocks[0].meta;
-          ledgerStorage.blocks.add({block, meta}, callback);
-        }],
         event: ['create', (results, callback) => {
           const event = results.create.events[0].event;
           const meta = results.create.events[0].meta;
           ledgerStorage.events.add({event, meta}, callback);
         }],
-        get: ['block', 'event', (results, callback) =>
+        block: ['event', (results, callback) => {
+          block = results.create.blocks[0].block;
+          const meta = results.create.blocks[0].meta;
+          ledgerStorage.blocks.add({block, meta}, callback);
+        }],
+        get: ['block', (results, callback) =>
           ledgerStorage.blocks.get({blockId: block.id}, (err, result) => {
             assertNoError(err);
             should.exist(result.block);
