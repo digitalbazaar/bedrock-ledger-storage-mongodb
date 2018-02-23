@@ -120,7 +120,7 @@ describe('Event Storage API', () => {
           ledgerStorage.events.add({event: events[i], meta}, callback);
         }, callback)],
         difference: ['add', (results, callback) => {
-          const expectedHashes = results.hash.map(h => database.hash(h));
+          const expectedHashes = results.hash;
           ledgerStorage.events.difference(expectedHashes, (err, result) => {
             assertNoError(err);
             should.exist(result);
@@ -150,14 +150,13 @@ describe('Event Storage API', () => {
             ledgerStorage.events.add({event, meta}, callback);
           }, callback)],
         difference: ['add', (results, callback) =>
-          ledgerStorage.events.difference(
-            results.hash.map(h => database.hash(h)), (err, result) => {
-              assertNoError(err);
-              should.exist(result);
-              result.should.be.an('array');
-              result.should.have.length(0);
-              callback();
-            })]
+          ledgerStorage.events.difference(results.hash, (err, result) => {
+            assertNoError(err);
+            should.exist(result);
+            result.should.be.an('array');
+            result.should.have.length(0);
+            callback();
+          })]
       }, done);
     });
   }); // end difference API
