@@ -60,7 +60,7 @@ describe('State Machine Storage API', () => {
     // FIXME: Remove ledger
     done();
   });
-  it.only('should get state machine object by id', done => {
+  it('should get state machine object by id', done => {
     const blockTemplate = eventBlockTemplate;
     const eventTemplate = mockData.events.alpha;
     let operation1;
@@ -107,7 +107,7 @@ describe('State Machine Storage API', () => {
       done(err);
     });
   });
-  it.only('should get two state machine objects from different blocks by id',
+  it('should get two state machine objects from different blocks by id',
     done => {
     const blockTemplate = eventBlockTemplate;
     const eventTemplate = mockData.events.alpha;
