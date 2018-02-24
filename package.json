@@ -23,7 +23,7 @@
   "peerDependencies": {
     "bedrock": "^1.8.0",
     "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#master",
-    "bedrock-mongodb": "digitalbazaar/bedrock-mongodb#5.x"
+    "bedrock-mongodb": "^5.0.0"
   },
   "engines": {
     "node": ">=6.3.0"

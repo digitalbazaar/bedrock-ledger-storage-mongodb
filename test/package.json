@@ -30,7 +30,7 @@
     "bedrock-jobs": "^2.0.3",
     "bedrock-ledger-context": "digitalbazaar/bedrock-ledger-context#master",
     "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#master",
-    "bedrock-mongodb": "digitalbazaar/bedrock-mongodb#5.x",
+    "bedrock-mongodb": "^5.0.0",
     "bedrock-permission": "^2.3.2",
     "bedrock-test": "^1.2.0",
     "grunt": "^1.0.1",
