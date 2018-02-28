@@ -57,6 +57,28 @@ events.alpha = {
   }]
 };
 
+events.beta = {
+  '@context': config.constants.WEB_LEDGER_CONTEXT_V1_URL,
+  type: 'WebLedgerOperationEvent',
+  operation: [{
+    '@context': config.constants.WEB_LEDGER_CONTEXT_V1_URL,
+    type: 'UpdateWebLedgerRecord',
+    recordPatch: {
+      target: `https://example.com/events/a05bebf8-c966-427f-92f2-ff9060f4bd23`,
+      sequence: 0,
+      patch: [{
+        op: 'add', path: '/endDate', value: '2017-07-14T23:30'
+      }]
+    },
+    proof: {
+      type: 'RsaSignature2018',
+      created: '2017-05-10T19:47:13Z',
+      creator: "https://bedrock.local:18443/consensus/continuity2017/voters/57565658-0d8a-4668-b734-e801aeaa6472#key",
+      jws: "nlx8c9uFI8Ur/h57F5AeHHrKPSKiiGJmN6APRnYesQPK4LXftnm2lzqpWzsvKGDPzH6QfoOIktQu2Ax0pj/Bi6Oa4/Na75HuoRGppaHCqlyrgbr5EUPRCiYSjlsYKBhEN6ITdmR/O8iGz9WZi4PQjSW9XrrP8bQLeu9Kzsu5hdkzmgS4f3PCXpImwpKFttyF7xARvSQxrgRxZrqWPIGtD9sghRY2/Zn3T2npTaOTXMhgW9Lc7uEpjThnCEsrKflshbLGevZglc/njBp5SoEgon8CuzQIkMBFjCTEdJYBtTuk0AF5BcVyoxPDfH9bdUYOIMFaDhZBQKM5tQEU2GqE/g=="
+    }
+  }]
+};
+
 events.config = {
   '@context': config.constants.WEB_LEDGER_CONTEXT_V1_URL,
   type: 'WebLedgerConfigurationEvent',
