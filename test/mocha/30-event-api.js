@@ -36,21 +36,22 @@ describe('Event Storage API', () => {
       blockHash: callback => helpers.testHasher(block, callback),
       addEvent: ['initStorage', 'eventHash', (results, callback) => {
         const meta = {
+          blockHeight: 0,
+          blockOrder: 0,
           consensus: true,
           consensusDate: Date.now(),
           eventHash: results.eventHash
         };
         ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
       }],
-      addConfigBlock: [
-        'initStorage', 'blockHash', 'eventHash', (results, callback) => {
-          // blockHash and consensus are normally created by consensus plugin
-          meta.blockHash = results.blockHash;
-          meta.consensus = Date.now();
-          block.blockHeight = 0;
-          block.event = [results.eventHash];
-          ledgerStorage.blocks.add({block, meta}, callback);
-        }]
+      addConfigBlock: ['addEvent', 'blockHash', (results, callback) => {
+        // blockHash and consensus are normally created by consensus plugin
+        meta.blockHash = results.blockHash;
+        meta.consensus = Date.now();
+        block.blockHeight = 0;
+        block.event = [results.eventHash];
+        ledgerStorage.blocks.add({block, meta}, callback);
+      }]
     }, done);
   });
   beforeEach(done => {

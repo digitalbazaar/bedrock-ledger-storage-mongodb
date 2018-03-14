@@ -43,16 +43,17 @@ api.createBlocks = (
       "consensusDate": time
     };
     async.auto({
-      events: callback => api.createEvent(
-        {eventTemplate, eventNum}, (err, result) => {
-          if(err) {
-            return callback(err);
-          }
-          // must hash with the real events
-          block.event = result.map(e => e.event);
-          events.push(...result);
-          callback(null, result);
-        }),
+      events: callback => api.createEvent({
+        blockHeight: block.blockHeight, eventTemplate, eventNum
+      }, (err, result) => {
+        if(err) {
+          return callback(err);
+        }
+        // must hash with the real events
+        block.event = result.map(e => e.event);
+        events.push(...result);
+        callback(null, result);
+      }),
       hash: ['events', (results, callback) => {
         api.testHasher(block, (err, result) => {
           if(err) {
@@ -74,13 +75,15 @@ api.createBlocks = (
   });
 };
 
-api.createEvent = ({eventTemplate, eventNum, consensus = true}, callback) => {
+api.createEvent = ({
+  blockHeight, eventTemplate, eventNum, consensus = true
+}, callback) => {
   const events = [];
-  async.timesLimit(eventNum, 100, (i, callback) => {
+  async.timesLimit(eventNum, 100, (blockOrder, callback) => {
     const event = bedrock.util.clone(eventTemplate);
     event.id = `https://example.com/events/${uuid()}`;
     api.testHasher(event, (err, eventHash) => {
-      const meta = {eventHash};
+      const meta = {blockHeight, blockOrder, eventHash};
       if(consensus) {
         meta.consensus = true;
         meta.consensusDate = Date.now();
