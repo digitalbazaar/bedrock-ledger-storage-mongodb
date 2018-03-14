@@ -39,22 +39,23 @@ describe('State Machine Storage API', () => {
       eventHash: callback => helpers.testHasher(configEventTemplate, callback),
       addEvent: ['initStorage', 'eventHash', (results, callback) => {
         const meta = {
+          blockHeight: 0,
+          blockOrder: 0,
           consensus: true,
           consensusDate: Date.now(),
           eventHash: results.eventHash
         };
         ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
       }],
-      addConfigBlock: [
-        'initStorage', 'blockHash', 'eventHash', (results, callback) => {
-          // blockHash and consensus are normally created by consensus plugin
-          block.blockHeight = 0;
-          meta.blockHash = results.blockHash;
-          meta.consensus = true;
-          meta.consensusDate = Date.now();
-          block.event = [results.eventHash];
-          ledgerStorage.blocks.add({block, meta}, callback);
-        }]
+      addConfigBlock: ['addEvent', 'blockHash', (results, callback) => {
+        // blockHash and consensus are normally created by consensus plugin
+        block.blockHeight = 0;
+        meta.blockHash = results.blockHash;
+        meta.consensus = true;
+        meta.consensusDate = Date.now();
+        block.event = [results.eventHash];
+        ledgerStorage.blocks.add({block, meta}, callback);
+      }]
     }, done);
   });
   it('should get state machine object by id', done => {

@@ -39,22 +39,23 @@ describe('Block Storage API', () => {
       blockHash: callback => helpers.testHasher(block, callback),
       addEvent: ['initStorage', 'eventHash', (results, callback) => {
         const meta = {
+          blockHeight: 0,
+          blockOrder: 0,
           consensus: true,
           consensusDate: Date.now(),
           eventHash: results.eventHash
         };
         ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
       }],
-      addConfigBlock: [
-        'initStorage', 'blockHash', 'eventHash', (results, callback) => {
-          // blockHash and consensus are normally created by consensus plugin
-          meta.blockHash = results.blockHash;
-          meta.consensus = true;
-          meta.consensusDate = Date.now();
-          block.blockHeight = 0;
-          block.event = [results.eventHash];
-          ledgerStorage.blocks.add({block, meta}, callback);
-        }]
+      addConfigBlock: ['addEvent', 'blockHash', (results, callback) => {
+        // blockHash and consensus are normally created by consensus plugin
+        meta.blockHash = results.blockHash;
+        meta.consensus = true;
+        meta.consensusDate = Date.now();
+        block.blockHeight = 0;
+        block.event = [results.eventHash];
+        ledgerStorage.blocks.add({block, meta}, callback);
+      }]
     }, done);
   });
   beforeEach(done => {
@@ -65,15 +66,13 @@ describe('Block Storage API', () => {
     it('should add block', done => {
       const blockTemplate = eventBlockTemplate;
       const eventTemplate = mockData.events.alpha;
-      let block;
       async.auto({
         create: callback => helpers.createBlocks(
           {blockTemplate, eventTemplate}, callback),
-        add: ['create', (results, callback) => {
-          block = results.create.blocks[0].block;
-          const {meta} = results.create.blocks[0];
-          ledgerStorage.blocks.add({block, meta}, callback);
-        }],
+        event: ['create', (results, callback) => ledgerStorage.events.add(
+          results.create.events[0], callback)],
+        add: ['event', (results, callback) => ledgerStorage.blocks.add(
+          results.create.blocks[0], callback)],
         ensureAdd: ['add', (results, callback) => {
           const result = results.add;
           should.exist(result);
@@ -81,7 +80,8 @@ describe('Block Storage API', () => {
           should.exist(result.meta);
 
           // ensure the block was created in the database
-          const query = {id: database.hash(block.id)};
+          const {id: blockId} = results.create.blocks[0].block;
+          const query = {id: database.hash(blockId)};
           ledgerStorage.blocks.collection.findOne(query, callback);
         }],
         ensureBlock: ['ensureAdd', (results, callback) => {
@@ -91,7 +91,11 @@ describe('Block Storage API', () => {
           should.exist(record.block.id);
           should.exist(record.meta.consensus);
           callback();
-        }]}, err => done(err));
+        }]},
+      err => {
+        assertNoError(err);
+        done();
+      });
     });
     it('should not add duplicate block', done => {
       const blockTemplate = eventBlockTemplate;
@@ -99,16 +103,12 @@ describe('Block Storage API', () => {
       async.auto({
         create: callback => helpers.createBlocks(
           {blockTemplate, eventTemplate}, callback),
-        add: ['create', (results, callback) => {
-          const {block} = results.create.blocks[0];
-          const {meta} = results.create.blocks[0];
-          ledgerStorage.blocks.add({block, meta}, callback);
-        }],
-        addAgain: ['add', (results, callback) => {
-          const {block} = results.create.blocks[0];
-          const {meta} = results.create.blocks[0];
-          ledgerStorage.blocks.add({block, meta}, callback);
-        }]
+        event: ['create', (results, callback) => ledgerStorage.events.add(
+          results.create.events[0], callback)],
+        add: ['event', (results, callback) => ledgerStorage.blocks.add(
+          results.create.blocks[0], callback)],
+        addAgain: ['add', (results, callback) => ledgerStorage.blocks.add(
+          results.create.blocks[0], callback)]
       }, (err) => {
         should.exist(err);
         err.name.should.equal('DuplicateError');
@@ -179,22 +179,16 @@ describe('Block Storage API', () => {
     it('should get all blocks with given ID', done => {
       const blockTemplate = eventBlockTemplate;
       const eventTemplate = mockData.events.alpha;
-      let block;
       async.auto({
         create: callback => helpers.createBlocks(
           {blockTemplate, eventTemplate}, callback),
-        block: ['create', (results, callback) => {
-          block = results.create.blocks[0].block;
-          const {meta} = results.create.blocks[0];
-          ledgerStorage.blocks.add({block, meta}, callback);
-        }],
-        event: ['create', (results, callback) => {
-          const {event} = results.create.events[0];
-          const {meta} = results.create.events[0];
-          ledgerStorage.events.add({event, meta}, callback);
-        }],
-        getAll: ['block', 'event', (results, callback) =>
-          ledgerStorage.blocks.getAll(block.id, (err, iterator) => {
+        event: ['create', (results, callback) => ledgerStorage.events.add(
+          results.create.events[0], callback)],
+        block: ['event', (results, callback) => ledgerStorage.blocks.add(
+          results.create.blocks[0], callback)],
+        getAll: ['block', (results, callback) => {
+          const {id: blockId} = results.create.blocks[0].block;
+          ledgerStorage.blocks.getAll(blockId, (err, iterator) => {
             assertNoError(err);
             should.exist(iterator);
 
@@ -203,7 +197,7 @@ describe('Block Storage API', () => {
               promise.then(result => {
                 should.exist(result.block);
                 should.exist(result.meta);
-                result.block.id.should.equal(block.id);
+                result.block.id.should.equal(blockId);
                 blockCount++;
                 callback();
               }, callback);
@@ -212,7 +206,8 @@ describe('Block Storage API', () => {
               blockCount.should.equal(1);
               callback();
             });
-          })]
+          });
+        }]
       }, done);
 
     });
@@ -226,7 +221,9 @@ describe('Block Storage API', () => {
       async.auto({
         create: callback => helpers.createBlocks(
           {blockTemplate, eventTemplate}, callback),
-        block: ['create', (results, callback) => {
+        event: ['create', (results, callback) => ledgerStorage.events.add(
+          results.create.events[0], callback)],
+        block: ['event', (results, callback) => {
           block = results.create.blocks[0].block;
           const {meta} = results.create.blocks[0];
           _.assign(meta, {
@@ -235,11 +232,6 @@ describe('Block Storage API', () => {
             pending: true
           });
           ledgerStorage.blocks.add({block, meta}, callback);
-        }],
-        event: ['create', (results, callback) => {
-          const event = results.create.events[0].event;
-          const meta = results.create.events[0].meta;
-          ledgerStorage.events.add({event, meta}, callback);
         }],
         update: ['block', 'event', (results, callback) => {
           const patch = [{
@@ -311,20 +303,13 @@ describe('Block Storage API', () => {
     it('should remove block', done => {
       const blockTemplate = eventBlockTemplate;
       const eventTemplate = mockData.events.alpha;
-      let block;
       async.auto({
         create: callback => helpers.createBlocks(
           {blockTemplate, eventTemplate}, callback),
-        block: ['create', (results, callback) => {
-          block = results.create.blocks[0].block;
-          const {meta} = results.create.blocks[0];
-          ledgerStorage.blocks.add({block, meta}, callback);
-        }],
-        event: ['create', (results, callback) => {
-          const event = results.create.events[0].event;
-          const meta = results.create.events[0].meta;
-          ledgerStorage.events.add({event, meta}, callback);
-        }],
+        event: ['create', (results, callback) => ledgerStorage.events.add(
+          results.create.events[0], callback)],
+        block: ['event', (results, callback) => ledgerStorage.blocks.add(
+          results.create.blocks[0], callback)],
         delete: ['block', (results, callback) => {
           const {blockHash} = results.create.blocks[0].meta;
           ledgerStorage.blocks.remove(blockHash, callback);
@@ -363,21 +348,14 @@ describe('Block Storage API', () => {
     it('should get latest block', done => {
       const blockTemplate = eventBlockTemplate;
       const eventTemplate = mockData.events.alpha;
-      let block;
       async.auto({
         create: callback => helpers.createBlocks(
           {blockTemplate, eventTemplate}, callback),
-        block: ['create', (results, callback) => {
-          block = results.create.blocks[0].block;
-          const {meta} = results.create.blocks[0];
-          ledgerStorage.blocks.add({block, meta}, callback);
-        }],
-        event: ['create', (results, callback) => {
-          const event = results.create.events[0].event;
-          const meta = results.create.events[0].meta;
-          ledgerStorage.events.add({event, meta}, callback);
-        }],
-        latest: ['block', 'event', (results, callback) =>
+        event: ['create', (results, callback) => ledgerStorage.events.add(
+          results.create.events[0], callback)],
+        block: ['event', (results, callback) => ledgerStorage.blocks.add(
+          results.create.blocks[0], callback)],
+        latest: ['block', (results, callback) =>
           ledgerStorage.blocks.getLatest((err, result) => {
             assertNoError(err);
             should.exist(result.eventBlock);
@@ -396,20 +374,13 @@ describe('Block Storage API', () => {
     it('should get latest block', done => {
       const blockTemplate = eventBlockTemplate;
       const eventTemplate = mockData.events.alpha;
-      let block;
       async.auto({
         create: callback => helpers.createBlocks(
           {blockTemplate, eventTemplate}, callback),
-        block: ['create', (results, callback) => {
-          block = results.create.blocks[0].block;
-          const {meta} = results.create.blocks[0];
-          ledgerStorage.blocks.add({block, meta}, callback);
-        }],
-        event: ['create', (results, callback) => {
-          const event = results.create.events[0].event;
-          const meta = results.create.events[0].meta;
-          ledgerStorage.events.add({event, meta}, callback);
-        }],
+        event: ['create', (results, callback) => ledgerStorage.events.add(
+          results.create.events[0], callback)],
+        block: ['event', (results, callback) => ledgerStorage.blocks.add(
+          results.create.blocks[0], callback)],
         summary: ['block', 'event', (results, callback) =>
           ledgerStorage.blocks.getLatestSummary((err, result) => {
             assertNoError(err);
