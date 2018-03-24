@@ -3,18 +3,18 @@
  */
 'use strict';
 
-const _ = require('lodash');
 const async = require('async');
+const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
 const exampleLedgerId = 'did:v1:' + uuid.v4();
-const configEventTemplate = _.cloneDeep(mockData.events.config);
+const configEventTemplate = bedrock.util.clone(mockData.events.config);
 configEventTemplate.ledger = exampleLedgerId;
 
-const configBlockTemplate = _.cloneDeep(mockData.configBlocks.alpha);
+const configBlockTemplate = bedrock.util.clone(mockData.configBlocks.alpha);
 configBlockTemplate.event = [configEventTemplate];
 configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 
@@ -22,7 +22,7 @@ describe('Ledger Storage Driver API', () => {
   let ledgerStorage;
 
   before(done => {
-    const block = _.cloneDeep(configBlockTemplate);
+    const block = bedrock.util.clone(configBlockTemplate);
     const meta = {};
     const options = {ledgerId: exampleLedgerId};
 

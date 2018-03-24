@@ -21,22 +21,69 @@ jsigs.use('jsonld', jsonld);
 // test hashing function
 api.testHasher = brLedgerNode.consensus._hasher;
 
+api.addEvent = (
+  {count = 1, eventTemplate, ledgerStorage, opTemplate}, callback) => {
+  const events = {};
+  let operations;
+  async.timesSeries(count, (i, callback) => {
+    const testEvent = bedrock.util.clone(eventTemplate);
+    const operation = bedrock.util.clone(opTemplate);
+    operation.record.id = `https://example.com/event/${uuid()}`;
+    async.auto({
+      operationHash: callback => api.testHasher(operation, (err, opHash) => {
+        if(err) {
+          return callback(err);
+        }
+        testEvent.operationHash = [opHash];
+        callback(null, opHash);
+      }),
+      eventHash: ['operationHash', (results, callback) => api.testHasher(
+        testEvent, callback)],
+      operation: ['eventHash', (results, callback) => {
+        const {eventHash, operationHash} = results;
+        operations = [{
+          meta: {
+            eventHash: database.hash(eventHash), eventOrder: 0, operationHash
+          },
+          operation,
+        }];
+        ledgerStorage.operations.addMany({operations}, callback);
+      }],
+      event: ['operation', (results, callback) => {
+        const {eventHash} = results;
+        const meta = {eventHash};
+        ledgerStorage.events.add(
+          {event: testEvent, meta}, (err, result) => {
+            if(err) {
+              return callback(err);
+            }
+            result.operations = operations;
+            events[result.meta.eventHash] = result;
+            callback();
+          });
+      }]
+    }, callback);
+  }, err => callback(err, events));
+};
+
 api.average = arr => Math.round(arr.reduce((p, c) => p + c, 0) / arr.length);
 
-api.createBlocks = (
-  {blockTemplate, eventTemplate, blockNum = 1, eventNum = 1}, callback) => {
+api.createBlocks = ({
+  blockTemplate, eventTemplate, blockNum = 1, eventNum = 1, opTemplate,
+  startBlock = 1
+}, callback) => {
   const blocks = [];
   const events = [];
+  const operations = [];
   const startTime = Date.now();
   async.timesLimit(blockNum, 100, (i, callback) => {
     const block = bedrock.util.clone(blockTemplate);
-    block.id = uuid();
-    block.blockHeight = i + 1;
+    block.id = `https://example.com/block/${uuid()}`;
+    block.blockHeight = startBlock + i;
     block.previousBlock = uuid();
     block.previousBlockHash = uuid();
     const time = startTime + i;
     const meta = {
-      "blockHash": uuid(),
       "created": time,
       "updated": time,
       "consensus": true,
@@ -44,14 +91,14 @@ api.createBlocks = (
     };
     async.auto({
       events: callback => api.createEvent({
-        blockHeight: block.blockHeight, eventTemplate, eventNum
+        blockHeight: block.blockHeight, eventTemplate, eventNum, opTemplate
       }, (err, result) => {
         if(err) {
           return callback(err);
         }
-        // must hash with the real events
-        block.event = result.map(e => e.event);
-        events.push(...result);
+        block.eventHash = result.events.map(r => r.meta.eventHash);
+        events.push(...result.events);
+        operations.push(...result.operations);
         callback(null, result);
       }),
       hash: ['events', (results, callback) => {
@@ -60,8 +107,8 @@ api.createBlocks = (
             return callback(err);
           }
           meta.blockHash = result;
-          // block is stored with the eventHashes
-          block.event = results.events.map(e => e.meta.eventHash);
+          block.event = block.eventHash;
+          delete block.eventHash;
           blocks.push({block, meta});
           callback();
         });
@@ -71,27 +118,43 @@ api.createBlocks = (
     if(err) {
       return callback(err);
     }
-    callback(null, {blocks, events});
+    callback(null, {blocks, events, operations});
   });
 };
 
 api.createEvent = ({
-  blockHeight, eventTemplate, eventNum, consensus = true
+  blockHeight, eventTemplate, eventNum, consensus = true, opTemplate
 }, callback) => {
   const events = [];
+  const operation = bedrock.util.clone(opTemplate);
+  const operations = [];
   async.timesLimit(eventNum, 100, (blockOrder, callback) => {
+    if(operation.type === 'CreateWebLedgerRecord') {
+      operation.record.id = `https://example.com/events/${uuid()}`;
+    }
     const event = bedrock.util.clone(eventTemplate);
-    event.id = `https://example.com/events/${uuid()}`;
-    api.testHasher(event, (err, eventHash) => {
-      const meta = {blockHeight, blockOrder, eventHash};
-      if(consensus) {
-        meta.consensus = true;
-        meta.consensusDate = Date.now();
-      }
-      events.push({event, meta});
-      callback();
-    });
-  }, err => callback(err, events));
+    async.auto({
+      opHash: callback => api.testHasher(operation, callback),
+      eventHash: ['opHash', (results, callback) => {
+        event.operationHash = [results.opHash];
+        api.testHasher(event, (err, eventHash) => {
+          const meta = {blockHeight, blockOrder, eventHash};
+          if(consensus) {
+            meta.consensus = true;
+            meta.consensusDate = Date.now();
+          }
+          events.push({event, meta});
+          const opMeta = {
+            eventHash: database.hash(eventHash),
+            eventOrder: 0,
+            operationHash: [results.opHash],
+          };
+          operations.push({meta: opMeta, operation});
+          callback();
+        });
+      }]
+    }, callback);
+  }, err => callback(err, {events, operations}));
 };
 
 api.createIdentity = function(userName) {

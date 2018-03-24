@@ -21,6 +21,7 @@ configBlockTemplate.event = [configEventTemplate];
 configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 
 const eventBlockTemplate = bedrock.util.clone(mockData.eventBlocks.alpha);
+const opTemplate = mockData.operations.alpha;
 
 describe('Block Storage API', () => {
   let ledgerStorage;
@@ -68,8 +69,12 @@ describe('Block Storage API', () => {
       const eventTemplate = mockData.events.alpha;
       async.auto({
         create: callback => helpers.createBlocks(
-          {blockTemplate, eventTemplate}, callback),
-        event: ['create', (results, callback) => ledgerStorage.events.add(
+          {blockTemplate, eventTemplate, opTemplate}, callback),
+        operations: ['create', (results, callback) => {
+          const {operations} = results.create;
+          ledgerStorage.operations.addMany({operations}, callback);
+        }],
+        event: ['operations', (results, callback) => ledgerStorage.events.add(
           results.create.events[0], callback)],
         add: ['event', (results, callback) => ledgerStorage.blocks.add(
           results.create.blocks[0], callback)],
@@ -102,8 +107,12 @@ describe('Block Storage API', () => {
       const eventTemplate = mockData.events.alpha;
       async.auto({
         create: callback => helpers.createBlocks(
-          {blockTemplate, eventTemplate}, callback),
-        event: ['create', (results, callback) => ledgerStorage.events.add(
+          {blockTemplate, eventTemplate, opTemplate}, callback),
+        operations: ['create', (results, callback) => {
+          const {operations} = results.create;
+          ledgerStorage.operations.addMany({operations}, callback);
+        }],
+        event: ['operations', (results, callback) => ledgerStorage.events.add(
           results.create.events[0], callback)],
         add: ['event', (results, callback) => ledgerStorage.blocks.add(
           results.create.blocks[0], callback)],
@@ -124,8 +133,12 @@ describe('Block Storage API', () => {
       let block;
       async.auto({
         create: callback => helpers.createBlocks(
-          {blockTemplate, eventTemplate}, callback),
-        event: ['create', (results, callback) => {
+          {blockTemplate, eventTemplate, opTemplate}, callback),
+        operations: ['create', (results, callback) => {
+          const {operations} = results.create;
+          ledgerStorage.operations.addMany({operations}, callback);
+        }],
+        event: ['operations', (results, callback) => {
           const event = results.create.events[0].event;
           const meta = results.create.events[0].meta;
           ledgerStorage.events.add({event, meta}, callback);
@@ -152,7 +165,7 @@ describe('Block Storage API', () => {
       let blockCount = 0;
       async.auto({
         create: callback => helpers.createBlocks(
-          {blockTemplate, eventTemplate}, callback),
+          {blockTemplate, eventTemplate, opTemplate}, callback),
         block: ['create', (results, callback) => {
           block = results.create.blocks[0].block;
           callback();
@@ -181,8 +194,12 @@ describe('Block Storage API', () => {
       const eventTemplate = mockData.events.alpha;
       async.auto({
         create: callback => helpers.createBlocks(
-          {blockTemplate, eventTemplate}, callback),
-        event: ['create', (results, callback) => ledgerStorage.events.add(
+          {blockTemplate, eventTemplate, opTemplate}, callback),
+        operations: ['create', (results, callback) => {
+          const {operations} = results.create;
+          ledgerStorage.operations.addMany({operations}, callback);
+        }],
+        event: ['operations', (results, callback) => ledgerStorage.events.add(
           results.create.events[0], callback)],
         block: ['event', (results, callback) => ledgerStorage.blocks.add(
           results.create.blocks[0], callback)],
@@ -220,8 +237,12 @@ describe('Block Storage API', () => {
       let block;
       async.auto({
         create: callback => helpers.createBlocks(
-          {blockTemplate, eventTemplate}, callback),
-        event: ['create', (results, callback) => ledgerStorage.events.add(
+          {blockTemplate, eventTemplate, opTemplate}, callback),
+        operations: ['create', (results, callback) => {
+          const {operations} = results.create;
+          ledgerStorage.operations.addMany({operations}, callback);
+        }],
+        event: ['operations', (results, callback) => ledgerStorage.events.add(
           results.create.events[0], callback)],
         block: ['event', (results, callback) => {
           block = results.create.blocks[0].block;
@@ -305,8 +326,12 @@ describe('Block Storage API', () => {
       const eventTemplate = mockData.events.alpha;
       async.auto({
         create: callback => helpers.createBlocks(
-          {blockTemplate, eventTemplate}, callback),
-        event: ['create', (results, callback) => ledgerStorage.events.add(
+          {blockTemplate, eventTemplate, opTemplate}, callback),
+        operations: ['create', (results, callback) => {
+          const {operations} = results.create;
+          ledgerStorage.operations.addMany({operations}, callback);
+        }],
+        event: ['operations', (results, callback) => ledgerStorage.events.add(
           results.create.events[0], callback)],
         block: ['event', (results, callback) => ledgerStorage.blocks.add(
           results.create.blocks[0], callback)],
@@ -350,8 +375,12 @@ describe('Block Storage API', () => {
       const eventTemplate = mockData.events.alpha;
       async.auto({
         create: callback => helpers.createBlocks(
-          {blockTemplate, eventTemplate}, callback),
-        event: ['create', (results, callback) => ledgerStorage.events.add(
+          {blockTemplate, eventTemplate, opTemplate}, callback),
+        operations: ['create', (results, callback) => {
+          const {operations} = results.create;
+          ledgerStorage.operations.addMany({operations}, callback);
+        }],
+        event: ['operations', (results, callback) => ledgerStorage.events.add(
           results.create.events[0], callback)],
         block: ['event', (results, callback) => ledgerStorage.blocks.add(
           results.create.blocks[0], callback)],
@@ -376,8 +405,12 @@ describe('Block Storage API', () => {
       const eventTemplate = mockData.events.alpha;
       async.auto({
         create: callback => helpers.createBlocks(
-          {blockTemplate, eventTemplate}, callback),
-        event: ['create', (results, callback) => ledgerStorage.events.add(
+          {blockTemplate, eventTemplate, opTemplate}, callback),
+        operations: ['create', (results, callback) => {
+          const {operations} = results.create;
+          ledgerStorage.operations.addMany({operations}, callback);
+        }],
+        event: ['operations', (results, callback) => ledgerStorage.events.add(
           results.create.events[0], callback)],
         block: ['event', (results, callback) => ledgerStorage.blocks.add(
           results.create.blocks[0], callback)],

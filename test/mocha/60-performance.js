@@ -35,10 +35,21 @@ describe('Performance tests', () => {
         blockNum,
         blockTemplate: mockData.eventBlocks.alpha,
         eventNum,
-        eventTemplate: mockData.events.alpha
+        eventTemplate: mockData.events.alpha,
+        opTemplate: mockData.operations.alpha
       }, (err, result) => {
         assertNoError(err);
         blocksAndEvents = result;
+        done();
+      });
+    });
+
+    it(`operations.add operations`, function(done) {
+      this.timeout(320000);
+      const {operations} = blocksAndEvents;
+      console.log(`Adding ${operations.length} operations.`);
+      storage.operations.addMany({operations}, err => {
+        assertNoError(err);
         done();
       });
     });
@@ -72,12 +83,17 @@ describe('Performance tests', () => {
       this.timeout(320000);
       async.auto({
         create: callback => helpers.createEvent({
-          eventTemplate: mockData.events.alpha,
+          consensus: false,
           eventNum: outstandingEventNum,
-          consensus: false
+          eventTemplate: mockData.events.alpha,
+          opTemplate: mockData.operations.alpha,
         }, callback),
-        add: ['create', (results, callback) =>
-          async.eachLimit(results.create, 100, (e, callback) =>
+        operations: ['create', (results, callback) => {
+          const {operations} = results.create;
+          storage.operations.addMany({operations}, callback);
+        }],
+        add: ['operations', (results, callback) =>
+          async.eachLimit(results.create.events, 100, (e, callback) =>
             storage.events.add({event: e.event, meta: e.meta}, err => {
               assertNoError(err);
               callback();
