@@ -1,0 +1,6 @@
+{
+  "env": {
+    "mocha": true,
+    "ecmaVersion": 2015
+  }
+}
