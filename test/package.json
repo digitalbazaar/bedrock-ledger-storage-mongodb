@@ -28,7 +28,7 @@
     "bedrock": "^1.8.0",
     "bedrock-identity": "^4.6.0",
     "bedrock-jobs": "^2.0.3",
-    "bedrock-ledger-context": "digitalbazaar/bedrock-ledger-context#master",
+    "bedrock-ledger-context": "^1.0.0",
     "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#master",
     "bedrock-ledger-storage-mongodb": "file:..",
     "bedrock-mongodb": "^5.0.0",
