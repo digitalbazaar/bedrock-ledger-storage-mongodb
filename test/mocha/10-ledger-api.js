@@ -19,7 +19,7 @@ describe('Ledger Storage API', () => {
   it('should add a ledger', done => {
     const meta = {};
     const options = {
-      ledgerId: 'did:v1:' + uuid.v4()
+      ledgerId: 'did:v1:' + uuid()
     };
 
     async.auto({
@@ -47,7 +47,7 @@ describe('Ledger Storage API', () => {
   it('should get ledger', done => {
     const meta = {};
     const options = {
-      ledgerId: 'did:v1:' + uuid.v4()
+      ledgerId: 'did:v1:' + uuid()
     };
 
     async.auto({
@@ -78,7 +78,7 @@ describe('Ledger Storage API', () => {
   it('should iterate over ledgers', done => {
     let ledgerCount = 3;
     const ledgerIds = Array(3).fill().map(() => {
-      return 'did:v1:' + uuid.v4();
+      return 'did:v1:' + uuid();
     });
     const storageIds = [];
     async.every(ledgerIds, (ledgerId, callback) => {
@@ -114,7 +114,7 @@ describe('Ledger Storage API', () => {
   it('should remove a ledger', done => {
     const meta = {};
     const options = {
-      ledgerId: 'did:v1:' + uuid.v4(),
+      ledgerId: 'did:v1:' + uuid(),
       owner: testOwner
     };
 

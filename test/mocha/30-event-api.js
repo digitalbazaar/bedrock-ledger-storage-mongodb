@@ -12,7 +12,7 @@ const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
-const exampleLedgerId = 'did:v1:' + uuid.v4();
+const exampleLedgerId = 'did:v1:' + uuid();
 const configEventTemplate = bedrock.util.clone(mockData.events.config);
 configEventTemplate.ledger = exampleLedgerId;
 
@@ -316,11 +316,82 @@ describe('Event Storage API', () => {
       });
     });
   });
+
+  describe('getActiveConfig API', () => {
+    it('should get active config for the given blockHeight', done => {
+      const eventAlpha = bedrock.util.clone(configEventTemplate);
+      eventAlpha.ledgerConfiguration.consensusMethod = `urn:${uuid()}`;
+      const eventBeta = bedrock.util.clone(configEventTemplate);
+      eventBeta.ledgerConfiguration.consensusMethod = `urn:${uuid()}`;
+      const meta = {};
+      async.auto({
+        hashAlpha: callback => helpers.testHasher(eventAlpha, callback),
+        hashBeta: callback => helpers.testHasher(eventBeta, callback),
+        addAlpha: ['hashAlpha', (results, callback) => {
+          meta.eventHash = results.hashAlpha;
+          meta.blockHeight = 20;
+          meta.consensus = true;
+          meta.consensusDate = Date.now();
+          ledgerStorage.events.add({event: eventAlpha, meta}, callback);
+        }],
+        addBeta: ['hashBeta', (results, callback) => {
+          meta.eventHash = results.hashBeta;
+          meta.blockHeight = 30;
+          meta.consensus = true;
+          meta.consensusDate = Date.now();
+          ledgerStorage.events.add({event: eventBeta, meta}, callback);
+        }],
+        get: ['addAlpha', 'addBeta', (results, callback) => {
+          ledgerStorage.events.getLatestConfig((err, result) => {
+            assertNoError(err);
+            should.exist(result);
+            const {event} = result;
+            event.should.eql(eventBeta);
+            callback();
+          });
+        }],
+        getBeforeBlockHeight: ['get', (results, callback) => {
+          // specifying the blockHeight for the beta config
+          ledgerStorage.events.getActiveConfig(
+            {blockHeight: 30}, (err, result) => {
+              assertNoError(err);
+              should.exist(result);
+              const {event} = result;
+              event.should.eql(eventAlpha);
+              callback();
+            });
+        }]
+      }, err => {
+        assertNoError(err);
+        done();
+      });
+    });
+    it('returns NotFoundError when there is no configuration', done => {
+      const meta = {};
+      const options = {ledgerId: `urn:${uuid()}`};
+      async.auto({
+        ledgerStorage: callback => blsMongodb.add(meta, options, callback),
+        latest: ['ledgerStorage', (results, callback) => {
+          const {ledgerStorage} = results;
+          ledgerStorage.events.getActiveConfig(
+            {blockHeight: 10}, (err, result) => {
+              should.exist(err);
+              should.not.exist(result);
+              err.name.should.equal('NotFoundError');
+              callback();
+            });
+        }]
+      }, err => {
+        assertNoError(err);
+        done();
+      });
+    });
+  }); // end getActiveConfig API
+
   describe('getLatestConfig API', () => {
     it('should get latest config event', done => {
       const event = bedrock.util.clone(configEventTemplate);
-      // FIXME: how is uniqueness of ledgerConfigurations guaranteed?
-      event.ledgerConfiguration.consensusMethod = 'Continuity2017';
+      event.ledgerConfiguration.consensusMethod = `urn:${uuid}`;
       const meta = {};
       async.auto({
         hash: callback => helpers.testHasher(event, callback),
@@ -339,9 +410,31 @@ describe('Event Storage API', () => {
           configEvent.event.should.deep.equal(event);
           callback();
         }]
-      }, err => done(err));
+      }, err => {
+        assertNoError(err);
+        done();
+      });
     });
-  });
+    it('returns NotFoundError when there is no configuration', done => {
+      const meta = {};
+      const options = {ledgerId: `urn:${uuid()}`};
+      async.auto({
+        ledgerStorage: callback => blsMongodb.add(meta, options, callback),
+        latest: ['ledgerStorage', (results, callback) => {
+          const {ledgerStorage} = results;
+          ledgerStorage.events.getLatestConfig((err, result) => {
+            should.exist(err);
+            should.not.exist(result);
+            err.name.should.equal('NotFoundError');
+            callback();
+          });
+        }]
+      }, err => {
+        assertNoError(err);
+        done();
+      });
+    });
+  }); // end getLatestConfig API
   describe('update API', () => {
     it('should update event', done => {
       const event = bedrock.util.clone(configEventTemplate);

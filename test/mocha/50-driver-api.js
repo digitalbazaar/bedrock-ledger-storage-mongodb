@@ -10,7 +10,7 @@ const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
-const exampleLedgerId = 'did:v1:' + uuid.v4();
+const exampleLedgerId = 'did:v1:' + uuid();
 const configEventTemplate = bedrock.util.clone(mockData.events.config);
 configEventTemplate.ledger = exampleLedgerId;
 

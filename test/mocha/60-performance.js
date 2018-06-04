@@ -4,28 +4,58 @@
 'use strict';
 
 const async = require('async');
+const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
-let storage;
-describe('Performance tests', () => {
+const exampleLedgerId = 'did:v1:' + uuid();
+const configEventTemplate = bedrock.util.clone(mockData.events.config);
+configEventTemplate.ledger = exampleLedgerId;
 
+const configBlockTemplate = bedrock.util.clone(mockData.configBlocks.alpha);
+configBlockTemplate.id = exampleLedgerId + '/blocks/1';
+
+let ledgerStorage;
+describe('Performance tests', () => {
   before(done => {
-    blsMongodb.add({}, {ledgerId: 'did:v1:' + uuid.v4()}, (err, result) => {
-      if(err) {
-        return done(err);
-      }
-      storage = result;
-      done();
-    });
+    const block = bedrock.util.clone(configBlockTemplate);
+    const meta = {};
+    const options = {ledgerId: exampleLedgerId};
+
+    async.auto({
+      initStorage: callback => blsMongodb.add(meta, options, (err, storage) => {
+        ledgerStorage = storage;
+        callback(err, storage);
+      }),
+      eventHash: callback => helpers.testHasher(configEventTemplate, callback),
+      blockHash: callback => helpers.testHasher(block, callback),
+      addEvent: ['initStorage', 'eventHash', (results, callback) => {
+        const meta = {
+          blockHeight: 0,
+          blockOrder: 0,
+          consensus: true,
+          consensusDate: Date.now(),
+          eventHash: results.eventHash
+        };
+        ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
+      }],
+      addConfigBlock: ['addEvent', 'blockHash', (results, callback) => {
+        // blockHash and consensus are normally created by consensus plugin
+        meta.blockHash = results.blockHash;
+        meta.consensus = Date.now();
+        block.blockHeight = 0;
+        block.event = [results.eventHash];
+        ledgerStorage.blocks.add({block, meta}, callback);
+      }]
+    }, done);
   });
+
   describe('Blocks and Event Operations', () => {
     const blockNum = 1000;
     const eventNum = 10;
     const opNum = 2500;
-    const opNumLow = 250;
     const passNum = 10;
     const outstandingEventNum = 250;
     let blocksAndEvents;
@@ -48,7 +78,7 @@ describe('Performance tests', () => {
       this.timeout(320000);
       const {operations} = blocksAndEvents;
       console.log(`Adding ${operations.length} operations.`);
-      storage.operations.addMany({operations}, err => {
+      ledgerStorage.operations.addMany({operations}, err => {
         assertNoError(err);
         done();
       });
@@ -59,7 +89,7 @@ describe('Performance tests', () => {
       this.timeout(320000);
       console.log(`Adding ${blocksAndEvents.events.length} events.`);
       async.eachLimit(blocksAndEvents.events, 100, (e, callback) =>
-        storage.events.add({event: e.event, meta: e.meta}, err => {
+        ledgerStorage.events.add({event: e.event, meta: e.meta}, err => {
           assertNoError(err);
           callback();
         }), err => {
@@ -73,7 +103,7 @@ describe('Performance tests', () => {
       this.timeout(320000);
       async.eachLimit(
         blocksAndEvents.blocks, 100, ({block, meta}, callback) => {
-          storage.blocks.add({block, meta}, err => {
+          ledgerStorage.blocks.add({block, meta}, err => {
             assertNoError(err);
             callback();
           });
@@ -90,11 +120,11 @@ describe('Performance tests', () => {
         }, callback),
         operations: ['create', (results, callback) => {
           const {operations} = results.create;
-          storage.operations.addMany({operations}, callback);
+          ledgerStorage.operations.addMany({operations}, callback);
         }],
         add: ['operations', (results, callback) =>
           async.eachLimit(results.create.events, 100, (e, callback) =>
-            storage.events.add({event: e.event, meta: e.meta}, err => {
+            ledgerStorage.events.add({event: e.event, meta: e.meta}, err => {
               assertNoError(err);
               callback();
             }), callback)]
@@ -103,19 +133,21 @@ describe('Performance tests', () => {
     it(`blocks.getLatestSummary ${opNum} times`, function(done) {
       this.timeout(320000);
       runPasses({
-        func: storage.blocks.getLatestSummary, api: 'blocks', passNum, opNum
+        func: ledgerStorage.blocks.getLatestSummary, api: 'blocks',
+        passNum, opNum
       }, done);
     });
     it(`blocks.getLatest ${opNum} times`, function(done) {
       this.timeout(320000);
       runPasses({
-        func: storage.blocks.getLatest, api: 'blocks', passNum, opNum
+        func: ledgerStorage.blocks.getLatest, api: 'blocks', passNum, opNum
       }, done);
     });
     it(`events.getLatestConfig ${opNum} times`, function(done) {
       this.timeout(320000);
       runPasses({
-        func: storage.events.getLatestConfig, api: 'events', passNum, opNum
+        func: ledgerStorage.events.getLatestConfig, api: 'events',
+        passNum, opNum
       }, done);
     });
   });
@@ -126,7 +158,8 @@ function runPasses({func, passNum, opNum, api, concurrency = 100}, callback) {
   async.timesSeries(passNum, (i, callback) => {
     const start = Date.now();
     async.timesLimit(
-      opNum, concurrency, (i, callback) => func.call(storage[api], callback),
+      opNum, concurrency, (i, callback) => func.call(
+        ledgerStorage[api], callback),
       err => {
         const stop = Date.now();
         assertNoError(err);
