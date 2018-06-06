@@ -291,7 +291,8 @@ describe('Event Storage API', () => {
         done();
       });
     });
-  });
+  }); // end exists API
+
   describe('get API', () => {
     it('should get event with given hash', done => {
       const event = bedrock.util.clone(configEventTemplate);
@@ -435,6 +436,7 @@ describe('Event Storage API', () => {
       });
     });
   }); // end getLatestConfig API
+
   describe('update API', () => {
     it('should update event', done => {
       const event = bedrock.util.clone(configEventTemplate);
@@ -516,6 +518,7 @@ describe('Event Storage API', () => {
       });
     });
   });
+
   describe('remove API', () => {
     it('should remove event', done => {
       const event = bedrock.util.clone(configEventTemplate);
