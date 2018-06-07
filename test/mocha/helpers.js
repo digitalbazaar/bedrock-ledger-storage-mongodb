@@ -21,19 +21,31 @@ jsigs.use('jsonld', jsonld);
 // test hashing function
 api.testHasher = brLedgerNode.consensus._hasher;
 
-api.addEvent = (
-  {count = 1, eventTemplate, ledgerStorage, opTemplate}, callback) => {
+api.addEvent = ({
+  consensus = false, count = 1, eventTemplate, ledgerStorage, opTemplate,
+  recordId, startBlockHeight = 1
+}, callback) => {
   const events = {};
   let operations;
   async.timesSeries(count, (i, callback) => {
     const testEvent = bedrock.util.clone(eventTemplate);
     const operation = bedrock.util.clone(opTemplate);
-    operation.record.id = `https://example.com/event/${uuid()}`;
+    const testRecordId = recordId || `https://example.com/event/${uuid()}`;
+    if(operation.type === 'CreateWebLedgerRecord') {
+      operation.record.id = testRecordId;
+    }
+    if(operation.type === 'UpdateWebLedgerRecord') {
+      operation.recordPatch.target = testRecordId;
+    }
     async.auto({
       operationHash: callback => api.testHasher(operation, (err, opHash) => {
         if(err) {
           return callback(err);
         }
+
+        // NOTE: nonce is added here to avoid duplicate errors
+        testEvent.nonce = uuid();
+
         testEvent.operationHash = [opHash];
         callback(null, opHash);
       }),
@@ -46,17 +58,28 @@ api.addEvent = (
             eventHash: database.hash(eventHash), eventOrder: 0, operationHash
           },
           operation,
+          recordId: database.hash(testRecordId),
         }];
         ledgerStorage.operations.addMany({operations}, callback);
       }],
       event: ['operation', (results, callback) => {
         const {eventHash} = results;
         const meta = {eventHash};
+        if(consensus) {
+          const blockHeight = i + startBlockHeight;
+          meta.blockHeight = blockHeight;
+          meta.blockOrder = 0;
+          meta.consensus = true;
+          meta.consensusDate = Date.now();
+        }
         ledgerStorage.events.add(
           {event: testEvent, meta}, (err, result) => {
             if(err) {
               return callback(err);
             }
+            // NOTE: operations are added to events object in full here so they
+            // may be inspected in tests. This does not represent the event
+            // in the database
             result.operations = operations;
             events[result.meta.eventHash] = result;
             callback();
