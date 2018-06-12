@@ -7,7 +7,7 @@ const async = require('async');
 const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 // const database = require('bedrock-mongodb');
-// const {expect} = global.chai;
+const {expect} = global.chai;
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
@@ -302,7 +302,12 @@ describe('Operation Storage API', () => {
         done();
       });
     });
-
+    it('throws TypeError on invalid maxBlockHeight param', done => {
+      expect(() => ledgerStorage.operations.getRecordHistory(
+        {maxBlockHeight: 0, recordId: 'urn:test'}, () => {}))
+        .to.throw(/maxBlockHeight must be a positive integer./);
+      done();
+    });
   }); // end getRecordHistory API
 
 });
