@@ -63,6 +63,7 @@ describe('Ledger Storage API', () => {
         should.exist(storage);
         should.exist(storage.blocks);
         should.exist(storage.events);
+        should.exist(storage.operations);
         callback();
       }]}, err => done(err));
   });

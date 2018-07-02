@@ -312,5 +312,4 @@ describe('Operation Storage API', () => {
       done();
     });
   }); // end getRecordHistory API
-
 });
