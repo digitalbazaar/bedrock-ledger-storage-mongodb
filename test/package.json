@@ -27,6 +27,7 @@
     "async": "^2.4.0",
     "bedrock": "^1.8.0",
     "bedrock-identity": "^4.6.0",
+    "bedrock-injector": "github:digitalbazaar/bedrock-injector#implementation",
     "bedrock-jobs": "^2.0.3",
     "bedrock-ledger-context": "^1.0.0",
     "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#storageLedgerNodeId",
