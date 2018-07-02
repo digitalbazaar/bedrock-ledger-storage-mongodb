@@ -312,5 +312,35 @@ describe('Operation Storage API', () => {
       done();
     });
   }); // end getRecordHistory API
-
+  describe.only('query API', () => {
+    it('gets history for two different records', done => {
+      const eventTemplate = mockData.events.alpha;
+      const opTemplate = mockData.operations.alpha;
+      async.auto({
+        events: callback => helpers.addEvent({
+          consensus: true, count: 2, eventTemplate, ledgerStorage, opTemplate
+        }, callback),
+        recordAlpha: ['events', (results, callback) => {
+          const eventHashes = Object.keys(results.events);
+          const {operation} = results.events[eventHashes[0]].operations[0];
+          ledgerStorage.operations.query({
+            minBlockHeight: 1, maxBlockHeight: 2, query: {}
+          }, (err, result) => {
+            assertNoError(err);
+            // should.exist(result);
+            // result.should.be.an('array');
+            // result.should.have.length(1);
+            // const o = result[0];
+            // should.exist(o.meta);
+            // should.exist(o.operation);
+            // o.operation.should.eql(operation);
+            callback();
+          });
+        }],
+      }, err => {
+        assertNoError(err);
+        done();
+      });
+    });
+  }); // end query API
 });
