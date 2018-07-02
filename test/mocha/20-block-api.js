@@ -12,7 +12,8 @@ const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
 
-const exampleLedgerId = 'did:v1:' + uuid();
+const exampleLedgerId = `did:v1:${uuid()}`;
+const exampleLedgerNodeId = `urn:uuid:${uuid()}`;
 const configEventTemplate = bedrock.util.clone(mockData.events.config);
 configEventTemplate.ledger = exampleLedgerId;
 
@@ -29,7 +30,9 @@ describe('Block Storage API', () => {
   before(done => {
     const block = bedrock.util.clone(configBlockTemplate);
     const meta = {};
-    const options = {ledgerId: exampleLedgerId};
+    const options = {
+      ledgerId: exampleLedgerId, ledgerNodeId: exampleLedgerNodeId
+    };
 
     async.auto({
       initStorage: callback => blsMongodb.add(meta, options, (err, storage) => {

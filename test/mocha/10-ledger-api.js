@@ -19,7 +19,8 @@ describe('Ledger Storage API', () => {
   it('should add a ledger', done => {
     const meta = {};
     const options = {
-      ledgerId: 'did:v1:' + uuid()
+      ledgerId: `did:v1:${uuid()}`,
+      ledgerNodeId: `urn:uuid:${uuid()}`,
     };
 
     async.auto({
@@ -47,7 +48,8 @@ describe('Ledger Storage API', () => {
   it('should get ledger', done => {
     const meta = {};
     const options = {
-      ledgerId: 'did:v1:' + uuid()
+      ledgerId: `did:v1:${uuid()}`,
+      ledgerNodeId: `urn:uuid:${uuid()}`,
     };
 
     async.auto({
@@ -83,7 +85,7 @@ describe('Ledger Storage API', () => {
     const storageIds = [];
     async.every(ledgerIds, (ledgerId, callback) => {
       const meta = {};
-      const options = {ledgerId};
+      const options = {ledgerId, ledgerNodeId: `urn:uuid:${uuid()}`};
       blsMongodb.add(meta, options, (err, storage) => {
         assertNoError(err);
         storageIds.push(storage.id);
@@ -115,7 +117,8 @@ describe('Ledger Storage API', () => {
     const meta = {};
     const options = {
       ledgerId: 'did:v1:' + uuid(),
-      owner: testOwner
+      ledgerNodeId: `urn:uuid:${uuid()}`,
+      owner: testOwner,
     };
 
     async.auto({
