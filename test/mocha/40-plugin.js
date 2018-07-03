@@ -44,7 +44,7 @@ blsMongodb.use('foo', {
   }
 });
 
-describe.only('Storage Plugin API', () => {
+describe('Storage Plugin API', () => {
   it('plugin adds an index to the operations collection', done => {
     const meta = {};
     const options = {

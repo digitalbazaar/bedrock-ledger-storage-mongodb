@@ -313,18 +313,37 @@ describe('Operation Storage API', () => {
     });
   }); // end getRecordHistory API
   describe.only('query API', () => {
-    it('gets history for two different records', done => {
-      const eventTemplate = mockData.events.alpha;
-      const opTemplate = mockData.operations.alpha;
+    it('queries for operations by type', done => {
       async.auto({
-        events: callback => helpers.addEvent({
-          consensus: true, count: 2, eventTemplate, ledgerStorage, opTemplate
-        }, callback),
-        recordAlpha: ['events', (results, callback) => {
-          const eventHashes = Object.keys(results.events);
-          const {operation} = results.events[eventHashes[0]].operations[0];
+        concerts: callback => {
+          const eventTemplate = mockData.events.alpha;
+          const opTemplate = mockData.operations.alpha;
+          helpers.addEvent({
+            consensus: true, count: 5, eventTemplate, ledgerStorage, opTemplate
+          }, callback);
+        },
+        offers: ['concerts', (results, callback) => {
+          const eventTemplate = mockData.events.alpha;
+          const opTemplate = mockData.operations.gamma;
+          const eventHashes = Object.keys(results.concerts);
+          opTemplate.record.event = results.concerts[eventHashes[0]]
+            .operations[0].operation.record.id;
+          helpers.addEvent({
+            consensus: true, count: 1, eventTemplate, ledgerStorage, opTemplate
+          }, callback);
+        }],
+        recordAlpha: ['offers', (results, callback) => {
+          const eventHashes = Object.keys(results.concerts);
+          const concertIds = [
+            results.concerts[eventHashes[0]].operations[0].operation.record.id,
+            results.concerts[eventHashes[1]].operations[0].operation.record.id,
+          ];
+          console.log('CCCCCC', concertIds);
           ledgerStorage.operations.query({
-            minBlockHeight: 1, maxBlockHeight: 2, query: {}
+            minBlockHeight: 1, maxBlockHeight: 100, query: {
+              type: 'Offer',
+              event: concertIds,
+            }
           }, (err, result) => {
             assertNoError(err);
             // should.exist(result);
