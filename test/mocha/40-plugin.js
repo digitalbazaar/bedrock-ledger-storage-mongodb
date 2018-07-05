@@ -23,6 +23,46 @@ configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 blsMongodb.use('foo', mockPlugin);
 
 describe('Storage Plugin API', () => {
+  describe('extention of storage classes', () => {
+    it('classes are extended on storage add', done => {
+      const meta = {};
+      const options = {
+        ledgerId: exampleLedgerId, ledgerNodeId: exampleLedgerNodeId,
+        services: ['foo']
+      };
+      async.auto({
+        storage: callback => blsMongodb.add(meta, options, callback),
+        test: ['storage', (results, callback) => {
+          should.exist(results.storage.operations.query);
+          callback();
+        }]
+      }, err => {
+        assertNoError(err);
+        done();
+      });
+    });
+    it('classes are extended on storage get', done => {
+      const meta = {};
+      const options = {
+        ledgerId: exampleLedgerId, ledgerNodeId: exampleLedgerNodeId,
+        services: ['foo']
+      };
+      async.auto({
+        storage: callback => blsMongodb.add(meta, options, callback),
+        get: ['storage', (results, callback) => {
+          const {id} = results.storage;
+          blsMongodb.get(id, {}, callback);
+        }],
+        test: ['get', (results, callback) => {
+          should.exist(results.get.operations.query);
+          callback();
+        }]
+      }, err => {
+        assertNoError(err);
+        done();
+      });
+    });
+  });
   describe('index API', () => {
     it('plugin adds an index to the operations collection', done => {
       const meta = {};
