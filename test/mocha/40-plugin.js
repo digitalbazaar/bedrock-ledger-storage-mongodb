@@ -87,7 +87,7 @@ describe('Storage Plugin API', () => {
         }]
       }, done);
     });
-    it('queries for operations by type', done => {
+    it('record query returns the proper result', done => {
       async.auto({
         concerts: callback => {
           const eventTemplate = mockData.events.alpha;

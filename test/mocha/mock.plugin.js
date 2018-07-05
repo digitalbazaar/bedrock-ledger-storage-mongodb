@@ -29,8 +29,8 @@ module.exports = {
         // bound to the class instance
         query: function({maxBlockHeight, query}, callback) {
           const {
-            assert, dbHash, eventCollection, collection: operationCollection,
-            BedrockError
+            eventCollection, collection: operationCollection,
+            util: {assert, dbHash, BedrockError}
           } = this;
 
           assert.number(maxBlockHeight, 'maxBlockHeight');
