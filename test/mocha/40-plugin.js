@@ -5,6 +5,7 @@
 
 const async = require('async');
 const bedrock = require('bedrock');
+const brLedgerNode = require('bedrock-ledger-node');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const {callbackify} = require('util');
 const helpers = require('./helpers');
@@ -21,7 +22,7 @@ const configBlockTemplate = bedrock.util.clone(mockData.configBlocks.alpha);
 configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 
 // register mock plugin
-blsMongodb.use('mock', mockPlugin);
+brLedgerNode.use('mock', mockPlugin);
 
 describe('Storage Plugin API', () => {
   describe('extention of storage classes', () => {

@@ -4,7 +4,7 @@
 'use strict';
 
 module.exports = {
-  type: 'service',
+  type: 'ledgerStoragePlugin',
   api: {
     expandIndexes: async ({createIndexes, collections}) => {
       should.exist(createIndexes);

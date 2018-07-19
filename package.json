@@ -25,7 +25,6 @@
   "peerDependencies": {
     "bedrock": "^1.8.0",
     "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#master",
-    "bedrock-injector": "^1.0.0",
     "bedrock-mongodb": "^5.0.0"
   },
   "engines": {
