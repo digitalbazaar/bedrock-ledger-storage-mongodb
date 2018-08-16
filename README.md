@@ -82,8 +82,8 @@ const configEvent = {
       validatorFilter: [{
         type: 'ValidatorFilterByType',
         validatorFilterByType: [
-          CreateWebLedgerRecord,
-          UpdateWebLedgerRecord
+          'CreateWebLedgerRecord',
+          'UpdateWebLedgerRecord'
     ]}]}],
     proof: {
       type: 'RsaSignature2018',

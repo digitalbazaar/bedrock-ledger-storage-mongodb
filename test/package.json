@@ -30,7 +30,7 @@
     "bedrock-injector": "^1.0.0",
     "bedrock-jobs": "^2.0.3",
     "bedrock-ledger-context": "^1.0.0",
-    "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#master",
+    "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#multihash",
     "bedrock-ledger-storage-mongodb": "file:..",
     "bedrock-mongodb": "^5.0.0",
     "bedrock-permission": "^2.3.2",
