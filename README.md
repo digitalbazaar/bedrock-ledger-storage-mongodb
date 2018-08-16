@@ -204,7 +204,7 @@ with the block, and a set of options.
 
 ```javascript
 const block = {
-  @context': 'https://w3id.org/webledger/v1',
+  '@context': 'https://w3id.org/webledger/v1',
   id: 'urn:uuid:cb868833-14df-40a0-bdd3-544f77e0a612/blocks/2',
   type: 'WebLedgerEventBlock',
   event: [/* { ... JSON-LD-OBJECT ... }, ... */],
@@ -430,7 +430,7 @@ event and a set of options.
 
 ```javascript
 const event = {
-  @context: 'https://w3id.org/webledger/v1',
+  '@context': 'https://w3id.org/webledger/v1',
   type: 'ContinuityMergeEvent',
   parentHash: [ 'zQmZ3QU3hitUmuZh2KgkKHZJ5Dh7hGvNfLRKJ6cusKCzuRF' ],
   proof: {
