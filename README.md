@@ -3,11 +3,11 @@
 [![Build Status](https://ci.digitalbazaar.com/buildStatus/icon?job=bedrock-ledger-storage-mongodb)](https://ci.digitalbazaar.com/job/bedrock-ledger-storage-mongodb)
 
 A MongoDB ledger storage subsystem for bedrock-ledger that enables the
-storage and retrieval of ledgers, blocks, and events. The relationship
-of these objects are shown below:
+storage and retrieval of ledgers, blocks, events, and operations. The
+relationship of these objects are shown below:
 
-<img alt="Ledgers contain blocks, blocks contain events"
-  src="https://w3c.github.io/web-ledger/diagrams/blocks.svg"
+<img alt= 'Ledgers contain blocks, blocks contain events '
+  src= 'https://w3c.github.io/web-ledger/diagrams/blocks.svg '
   width=450px;/>
 
 This API exposes the following methods:
@@ -71,38 +71,30 @@ const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const configEvent = {
   '@context': 'https://w3id.org/webledger/v1',
   type: 'WebLedgerConfigurationEvent',
-  ledgerConfiguration: [{
+  ledgerConfiguration: {
+    '@context': 'https://w3id.org/example-ledger/v1',
     type: 'WebLedgerConfiguration',
-    ledger: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59',
-    consensusMethod: {
-      type: 'UnilateralConsensus2017'
-    },
-    eventGuard: [{
-      type: 'ProofOfSignature2017',
-      supportedEventType: 'WebLedgerOperationEvent',
-      approvedSigner: [
-        'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
-      ],
-      minimumSignaturesRequired: 1
-    }, {
-      type: 'ProofOfSignature2017',
-      supportedEventType: 'WebLedgerConfigurationEvent',
-      approvedSigner: [
-        'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144'
-      ],
-      minimumSignaturesRequired: 1
-    }]
-  }],
-  signature: {
-    type: 'RsaSignature2017',
-    created: '2017-10-24T05:33:31Z',
-    creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
-    domain: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59',
-    signatureValue: 'eyiOiJJ0eXAK...EjXkgFWFO'
+    ledger: 'urn:uuid:651544dc-c029-420d-9d85-3cecad6fc5c5',
+    consensusMethod: 'Continuity2017',
+    ledgerConfigurationValidator: [],
+    operationValidator: [{
+      type: 'ExampleValidator2017',
+      validatorFilter: [{
+        type: 'ValidatorFilterByType',
+        validatorFilterByType: [
+          CreateWebLedgerRecord,
+          UpdateWebLedgerRecord
+    ]}]}],
+    proof: {
+      type: 'RsaSignature2018',
+      created: '2018-07-01T18:59:52Z',
+      creator: 'did:v1:nym:z2DzQmYumekrfMLh...zSjN5vN8W8g3#authn-key-1',
+      jws: 'eyJhbGciO...ltm5VrsXunx-A '
+    }
   }
 };
 const meta = {
-  eventHash: myBlockHasher(configBlock),
+  eventHash: myBlockHasher(configEvent),
 };
 const options = {};
 
@@ -212,17 +204,17 @@ with the block, and a set of options.
 
 ```javascript
 const block = {
-  '@context': 'https://w3id.org/webledger/v1',
-  id: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/2',
+  @context': 'https://w3id.org/webledger/v1',
+  id: 'urn:uuid:cb868833-14df-40a0-bdd3-544f77e0a612/blocks/2',
   type: 'WebLedgerEventBlock',
   event: [/* { ... JSON-LD-OBJECT ... }, ... */],
-  previousBlock: 'did:v1:e7adbe7-79f2-425a-9dfb-76a234782f30/blocks/1',
-  previousBlockHash: 'ni:///sha-256;cGBSKHn2cBJ563oSt3SAf4OxZXXfwtSxj1xFO5LtkGkW',
+  previousBlock: 'urn:uuid:cb868833-14df-40a0-bdd3-544f77e0a612/blocks/1',
+  previousBlockHash: 'zQmVc1MEd4J3X7UDMojVwU7XN2MRYwvA6zR5wYw1eyJgocv',
   signature: {
-    type: 'RsaSignature2017',
-    created: '2017-05-10T19:47:15Z',
-    creator: 'http://example.com/keys/789',
-    signatureValue: 'JoS27wqa...BFMgXIMw=='
+    type: 'RsaSignature2018',
+    created: '2018-05-10T19:47:15Z',
+    creator: 'http://example.com#keys-789',
+    jws: 'JoS27wqa...BFMgXIMw=='
   }
 };
 const meta = {
@@ -254,7 +246,7 @@ from the ledger given a blockId.
     * meta - metadata about the block.
 
 ```javascript
-const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1';
+const blockId = 'urn:uuid:cb868833-14df-40a0-bdd3-544f77e0a612/blocks/1';
 const options = {};
 
 storage.blocks.get(blockId, options, (err, result) => {
@@ -266,7 +258,7 @@ storage.blocks.get(blockId, options, (err, result) => {
 });
 ```
 
-### Get a All Blocks with ID
+### Get all Blocks with ID
 
 Gets all blocks matching a given blockId even if they have not
 achieved consensus.
@@ -278,7 +270,7 @@ achieved consensus.
    *   iterator - an iterator for all of the returned blocks.
 
 ```javascript
-const blockId = 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/1';
+const blockId = 'urn:uuid:cb868833-14df-40a0-bdd3-544f77e0a612/blocks/1';
 const options = {};
 
 // get all blocks with given blockId
@@ -351,7 +343,7 @@ an array of patch instructions, and a set of options.
   * err - An Error if an error occurred, null otherwise.
 
 ```javascript
-const blockHash = 'ni:///sha-256;TlXpOLkbji1zfToxarRb0L7R7a_a9pHQs10Pk-hwqFs';
+const blockHash = 'zQmVc1MEd4J3X7UDMojVwU7XN2MRYwvA6zR5wYw1eyJgocv';
 const patch = [{
   op: 'unset',
   changes: {
@@ -403,7 +395,7 @@ Remove a block in the ledger given a block hash and a set of options.
   * err - An Error if an error occurred, null otherwise.
 
 ```javascript
-const blockHash = 'ni:///sha-256;TlXpOLkbji1zfToxarRb0L7R7a_a9pHQs10Pk-hwqFs';
+const blockHash = 'zQmVc1MEd4J3X7UDMojVwU7XN2MRYwvA6zR5wYw1eyJgocv';
 const options = {};
 
 storage.blocks.remove(blockHash, options, (err) => {
@@ -438,28 +430,14 @@ event and a set of options.
 
 ```javascript
 const event = {
-  '@context': 'https://w3id.org/webledger/v1',
-  type: 'WebLedgerOperationEvent',
-  operation: 'Create',
-  input: [{
-    '@context': 'https://schema.org/',
-    id: 'https://example.com/events/123456',
-    type: 'Concert',
-    name: 'Big Band Concert in New York City',
-    startDate: '2017-07-14T21:30',
-    location: 'https://example.org/the-venue',
-    offers: {
-      type: 'Offer',
-      price: '13.00',
-      priceCurrency: 'USD',
-      url: 'https://www.ticketfly.com/purchase/309433'
-    }
-  }],
-  signature: {
-    type: 'RsaSignature2017',
-    created: '2017-05-10T19:47:15Z',
-    creator: 'https://www.ticketfly.com/keys/789',
-    signatureValue: 'JoS27wqa...BFMgXIMw=='
+  @context: 'https://w3id.org/webledger/v1',
+  type: 'ContinuityMergeEvent',
+  parentHash: [ 'zQmZ3QU3hitUmuZh2KgkKHZJ5Dh7hGvNfLRKJ6cusKCzuRF' ],
+  proof: {
+    type: 'Ed25519Signature2018',
+    created: '2018-08-16T13:25:14Z',
+    creator: 'https://example.com/.../voters/zQmQNQwo...hTvbWxUrGgh9GP',
+    jws: 'eyJhbGciO...RurJsUXZnyxBg'
   }
 };
 
@@ -491,7 +469,7 @@ Gets one or more events in the ledger given a query and a set of options.
     * meta - metadata about the event.
 
 ```javascript
-const eventHash = 'ni:///sha-256;xarRb0L7R7a_a9pHQs10Pk-hwqFsTlXpOLkbji1zfTo';
+const eventHash = 'zQmNVs8dM6sEmyQiFUkqRWXFUjhzp7mCfnPJKK6pWmgr4uJ';
 const options = {};
 
 storage.events.get(eventHash, options, (err, result) => {
@@ -514,7 +492,7 @@ Determine if one or more events exist given the event hash(es);
       *any* of the events do not exist.
 
 ```javascript
-const eventHash = 'ni:///sha-256;xarRb0L7R7a_a9pHQs10Pk-hwqFsTlXpOLkbji1zfTo';
+const eventHash = 'zQmNVs8dM6sEmyQiFUkqRWXFUjhzp7mCfnPJKK6pWmgr4uJ';
 
 storage.events.exists(eventHash, (err, result) => {
   if(err) {
@@ -564,7 +542,7 @@ an eventHash, an array of patch instructions, and a set of options.
   * result - the value of the updated event.
 
 ```javascript
-const eventHash = 'ni:///sha-256;ji1zfToxarRb0L7R7a_a9pHQs10Pk-hwqFsTlXpOLkb';
+const eventHash = 'zQmTjnK9iQGrGeEWvv37L63JTmSBiLMpVWx6aD1e1YzDuc5';
 const patch = [{
   op: 'delete',
   changes: {
@@ -576,7 +554,7 @@ const patch = [{
   op: 'set',
   changes: {
     meta: {
-      block: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59/blocks/2'
+      block: 'urn:uuid:cb868833-14df-40a0-bdd3-544f77e0a612/blocks/2'
     }
   }
 }, {
@@ -609,7 +587,7 @@ of options.
   * err - An Error if an error occurred, null otherwise.
 
 ```javascript
-const eventHash = 'ni:///sha-256;xarRb0L7R7a_a9pHQs10Pk-hwqFsTlXpOLkbji1zfTo';
+const eventHash = 'zQmNVs8dM6sEmyQiFUkqRWXFUjhzp7mCfnPJKK6pWmgr4uJ';
 const options = {};
 
 storage.events.remove(eventHash, options, (err) => {
