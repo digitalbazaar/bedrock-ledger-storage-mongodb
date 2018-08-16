@@ -32,37 +32,28 @@ events.alpha = {
 };
 
 events.config = {
-  '@context': config.constants.WEB_LEDGER_CONTEXT_V1_URL,
+  '@context': 'https://w3id.org/webledger/v1',
   type: 'WebLedgerConfigurationEvent',
   ledgerConfiguration: {
-    '@context': 'https://w3id.org/webledger/v1',
     type: 'WebLedgerConfiguration',
-    ledger: 'did:v1:eb8c22dc-bde6-4315-92e2-59bd3f3c7d59',
-    consensusMethod: 'UnilateralConsensus2017',
-    ledgerConfigurationValidator: [{
-      type: 'SignatureValidator2017',
-      validatorFilter: [{
-        type: 'ValidatorFilterByType',
-        validatorFilterByType: ['WebLedgerConfiguration']
-      }],
-      approvedSigner: [identities.regularUser.identity.id],
-      minimumSignaturesRequired: 1
-    }],
+    ledger: 'urn:uuid:651544dc-c029-420d-9d85-3cecad6fc5c5',
+    consensusMethod: 'Continuity2017',
+    ledgerConfigurationValidator: [],
     operationValidator: [{
-      type: 'SignatureValidator2017',
+      type: 'ExampleValidator2017',
       validatorFilter: [{
         type: 'ValidatorFilterByType',
-        validatorFilterByType: ['CreateWebLedgerRecord']
-      }],
-      approvedSigner: [identities.regularUser.identity.id],
-      minimumSignaturesRequired: 1
+        validatorFilterByType: [
+          'CreateWebLedgerRecord',
+          'UpdateWebLedgerRecord'
+        ]
+      }]
     }],
     proof: {
       type: 'RsaSignature2018',
-      created: '2017-10-24T05:33:31Z',
-      creator: 'did:v1:53ebca61-5687-4558-b90a-03167e4c2838/keys/144',
-      domain: 'example.com',
-      jws: 'eyiOiJJ0eXAK...EjXkgFWFO'
+      created: '2018-07-01T18:59:52Z',
+      creator: 'did:v1:nym:z2DzQmYumekrfMLh...zSjN5vN8W8g3#authn-key-1',
+      jws: 'eyJhbGciO...ltm5VrsXunx-A '
     }
   }
 };
