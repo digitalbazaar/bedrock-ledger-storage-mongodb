@@ -63,10 +63,10 @@ module.exports = {
           try {
             result = await eventCollection.aggregate([
               {$match: eventQuery},
-              {$project: {_id: 0, eventHash: 1}},
+              {$project: {_id: 0, 'meta.eventHash': 1}},
               {$group: {
                 _id: null,
-                eventHashes: {$addToSet: '$eventHash'}
+                eventHashes: {$addToSet: '$meta.eventHash'}
               }},
               {$lookup: {
                 from: operationCollection.s.name,
