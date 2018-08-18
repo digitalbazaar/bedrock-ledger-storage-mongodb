@@ -55,7 +55,7 @@ api.addEvent = ({
         const {eventHash, operationHash} = results;
         operations = [{
           meta: {
-            eventHash: database.hash(eventHash), eventOrder: 0, operationHash
+            eventHash: eventHash, eventOrder: 0, operationHash
           },
           operation,
           recordId: database.hash(testRecordId),
@@ -168,7 +168,7 @@ api.createEvent = ({
           }
           events.push({event, meta});
           const opMeta = {
-            eventHash: database.hash(eventHash),
+            eventHash: eventHash,
             eventOrder: 0,
             operationHash: [results.opHash],
           };
