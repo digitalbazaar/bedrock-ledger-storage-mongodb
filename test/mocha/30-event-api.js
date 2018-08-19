@@ -84,9 +84,7 @@ describe('Event Storage API', () => {
         operation: ['eventHash', (results, callback) => {
           const {eventHash, operationHash} = results;
           operations = [{
-            meta: {
-              eventHash: eventHash, eventOrder: 0, operationHash
-            },
+            meta: {eventHash, eventOrder: 0, operationHash},
             operation,
           }];
           ledgerStorage.operations.addMany({operations}, callback);
