@@ -305,11 +305,18 @@ describe('Operation Storage API', () => {
         done();
       });
     });
-    it('throws TypeError on invalid maxBlockHeight param', done => {
-      expect(() => ledgerStorage.operations.getRecordHistory(
-        {maxBlockHeight: 0, recordId: 'urn:test'}, () => {}))
-        .to.throw(/maxBlockHeight must be a positive integer./);
-      done();
+    it('throws TypeError on invalid maxBlockHeight param', async () => {
+      const event = {};
+      let err;
+      try {
+        await ledgerStorage.operations.getRecordHistory(
+          {maxBlockHeight: 0, recordId: 'urn:test'});
+      } catch(e) {
+        err = e;
+      }
+      should.exist(err);
+      err.name.should.equal('TypeError');
+      err.message.should.equal('maxBlockHeight must be a positive integer.');
     });
   }); // end getRecordHistory API
 });
