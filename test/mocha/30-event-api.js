@@ -138,37 +138,43 @@ describe('Event Storage API', () => {
         }],
       }, err => done(err));
     });
-    it('throws TypeError if `meta.eventHash` is omitted', done => {
+    it('throws TypeError if `meta.eventHash` is omitted', async () => {
       const testEvent = bedrock.util.clone(mockData.events.alpha);
       const operation = bedrock.util.clone(mockData.operations.alpha);
       operation.record.id = `https://example.com/event/${uuid()}`;
       const meta = {};
-      async.auto({
-        opHash: callback => helpers.testHasher(operation, (err, opHash) => {
-          if(err) {
-            return callback(err);
-          }
-          testEvent.operationHash = [opHash];
-          callback(null, opHash);
-        }),
-        add: ['opHash', (results, callback) => {
-          expect(() => ledgerStorage.events.add(
-            {event: testEvent, meta}, callback)).to.throw(TypeError);
-          callback();
-        }],
-      }, err => done(err));
+      const opHash = await helpers.testHasher(operation);
+      testEvent.operationHash = [opHash];
+      let err;
+      try {
+        await ledgerStorage.events.add({event: testEvent, meta});
+      } catch(e) {
+        err = e;
+      }
+      should.exist(err);
+      err.name.should.equal('TypeError');
     });
-    it('throws TypeError if `event` is omitted', done => {
+    it('throws TypeError if `event` is omitted', async () => {
       const meta = {};
-      expect(() => ledgerStorage.events.add({meta}, () => {}))
-        .to.throw(TypeError);
-      done();
+      let err;
+      try {
+        await ledgerStorage.events.add({meta});
+      } catch(e) {
+        err = e;
+      }
+      should.exist(err);
+      err.name.should.equal('TypeError');
     });
-    it('throws TypeError if `meta` is omitted', done => {
+    it('throws TypeError if `meta` is omitted', async () => {
       const event = {};
-      expect(() => ledgerStorage.events.add({event}, () => {}))
-        .to.throw(TypeError);
-      done();
+      let err;
+      try {
+        await ledgerStorage.events.add({event});
+      } catch(e) {
+        err = e;
+      }
+      should.exist(err);
+      err.name.should.equal('TypeError');
     });
     it('returns error if `operationHash` is missing', done => {
       const event = bedrock.util.clone(mockData.events.alpha);

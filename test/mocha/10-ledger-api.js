@@ -16,67 +16,52 @@ const testOwner = 'https://example.com/i/testOwner';
 jsigs.use('jsonld', bedrock.jsonld);
 
 describe('Ledger Storage API', () => {
-  it('should add a ledger', done => {
+  it('should add a ledger', async () => {
     const meta = {};
     const options = {
       ledgerId: `did:v1:${uuid()}`,
       ledgerNodeId: `urn:uuid:${uuid()}`,
     };
 
-    async.auto({
-      add: callback => blsMongodb.add(meta, options, callback),
-      ensureStorage: ['add', (results, callback) => {
-        const storage = results.add;
-        // ensure ledger storage API exists
-        should.exist(storage);
-        should.exist(storage.blocks);
-        should.exist(storage.events);
+    const storage = await blsMongodb.add(meta, options);
+    // ensure ledger storage API exists
+    should.exist(storage);
+    should.exist(storage.blocks);
+    should.exist(storage.events);
 
-        // ensure the ledger was created in the database
-        const query = {id: storage.id};
-        database.collections.ledger.findOne(query, callback);
-      }],
-      ensureLedger: ['ensureStorage', (results, callback) => {
-        const record = results.ensureStorage;
-        should.exist(record);
-        should.exist(record.ledger.id);
-        should.exist(record.ledger.eventCollection);
-        should.exist(record.ledger.blockCollection);
-        callback();
-      }]}, err => done(err));
+    // ensure the ledger was created in the database
+    const query = {id: storage.id};
+    const record = await database.collections.ledger.findOne(query);
+    should.exist(record);
+    should.exist(record.ledger.id);
+    should.exist(record.ledger.eventCollection);
+    should.exist(record.ledger.blockCollection);
   });
-  it('should get ledger', done => {
+  it('should get ledger', async () => {
     const meta = {};
     const options = {
       ledgerId: `did:v1:${uuid()}`,
       ledgerNodeId: `urn:uuid:${uuid()}`,
     };
 
-    async.auto({
-      add: callback => blsMongodb.add(meta, options, callback),
-      get: ['add', (results, callback) => {
-        const storage = results.add;
-        blsMongodb.get(storage.id, options, callback);
-      }],
-      ensureGet: ['get', (results, callback) => {
-        const storage = results.get;
-        should.exist(storage);
-        should.exist(storage.blocks);
-        should.exist(storage.events);
-        should.exist(storage.operations);
-        callback();
-      }]}, err => done(err));
+    let storage = await blsMongodb.add(meta, options);
+    storage = await blsMongodb.get(storage.id, options);
+    should.exist(storage);
+    should.exist(storage.blocks);
+    should.exist(storage.events);
+    should.exist(storage.operations);
   });
-  it('should fail to get non-existent ledger', done => {
+  it('should fail to get non-existent ledger', async () => {
     const storageId = 'urn:uuid:INVALID';
     const options = {};
-
-    blsMongodb.get(storageId, options, (err, storage) => {
-      should.exist(err);
-      should.not.exist(storage);
-      err.name.should.equal('NotFoundError');
-      done();
-    });
+    let err;
+    try {
+      await blsMongodb.get(storageId, options);
+    } catch(e) {
+      err = e;
+    }
+    should.exist(err);
+    err.name.should.equal('NotFoundError');
   });
   it('should iterate over ledgers', done => {
     let ledgerCount = 3;
