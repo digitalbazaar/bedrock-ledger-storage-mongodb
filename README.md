@@ -6,9 +6,9 @@ A MongoDB ledger storage subsystem for bedrock-ledger that enables the
 storage and retrieval of ledgers, blocks, events, and operations. The
 relationship of these objects are shown below:
 
-<img alt= 'Ledgers contain blocks, blocks contain events '
-  src= 'https://w3c.github.io/web-ledger/diagrams/blocks.svg '
-  width=450px;/>
+<img alt="Ledgers contain blocks, blocks contain events"
+  src="https://w3c.github.io/web-ledger/diagrams/blocks.svg"
+  width="450px">
 
 This API exposes the following methods:
 
