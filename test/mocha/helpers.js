@@ -166,7 +166,7 @@ api.createEvent = ({
           }
           events.push({event, meta});
           const opMeta = {
-            eventHash: eventHash,
+            eventHash,
             eventOrder: 0,
             operationHash: [results.opHash],
           };
