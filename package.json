@@ -20,8 +20,6 @@
     "assert-plus": "^1.0.0",
     "async": "^2.4.0",
     "fast-json-patch": "^2.0.6",
-    "multibase": "^0.4.0",
-    "multihashes": "^0.4.14",
     "uuid": "^3.0.1"
   },
   "peerDependencies": {
