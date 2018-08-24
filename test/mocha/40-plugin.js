@@ -13,13 +13,13 @@ const mockData = require('./mock.data');
 const mockPlugin = require('./mock.plugin');
 const uuid = require('uuid/v4');
 
-const exampleLedgerId = `did:v1:${uuid()}`;
-const exampleLedgerNodeId = `urn:uuid:${uuid()}`;
+const exampleLedgerId = () => `did:v1:${uuid()}`;
+const exampleLedgerNodeId = () => `urn:uuid:${uuid()}`;
 const configEventTemplate = bedrock.util.clone(mockData.events.config);
-configEventTemplate.ledger = exampleLedgerId;
+configEventTemplate.ledger = exampleLedgerId();
 
 const configBlockTemplate = bedrock.util.clone(mockData.configBlocks.alpha);
-configBlockTemplate.id = exampleLedgerId + '/blocks/1';
+configBlockTemplate.id = configEventTemplate.ledger + '/blocks/1';
 
 // register mock plugin
 brLedgerNode.use('mock', mockPlugin);
@@ -29,7 +29,7 @@ describe('Storage Plugin API', () => {
     it('classes are extended on storage add', done => {
       const meta = {};
       const options = {
-        ledgerId: exampleLedgerId, ledgerNodeId: exampleLedgerNodeId,
+        ledgerId: exampleLedgerId(), ledgerNodeId: exampleLedgerNodeId(),
         plugins: ['mock']
       };
       async.auto({
@@ -46,7 +46,7 @@ describe('Storage Plugin API', () => {
     it('classes are extended on storage get', done => {
       const meta = {};
       const options = {
-        ledgerId: exampleLedgerId, ledgerNodeId: exampleLedgerNodeId,
+        ledgerId: exampleLedgerId(), ledgerNodeId: exampleLedgerNodeId(),
         plugins: ['mock']
       };
       async.auto({
@@ -69,7 +69,7 @@ describe('Storage Plugin API', () => {
     it('plugin adds an index to the operations collection', done => {
       const meta = {};
       const options = {
-        ledgerId: exampleLedgerId, ledgerNodeId: exampleLedgerNodeId,
+        ledgerId: exampleLedgerId(), ledgerNodeId: exampleLedgerNodeId(),
         plugins: ['mock']
       };
       async.auto({
@@ -96,7 +96,7 @@ describe('Storage Plugin API', () => {
       const block = bedrock.util.clone(configBlockTemplate);
       const meta = {};
       const options = {
-        ledgerId: exampleLedgerId, ledgerNodeId: exampleLedgerNodeId,
+        ledgerId: exampleLedgerId(), ledgerNodeId: exampleLedgerNodeId(),
         plugins: ['mock']
       };
 

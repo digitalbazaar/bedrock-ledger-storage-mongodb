@@ -28,14 +28,34 @@ describe('Ledger Storage API', () => {
     should.exist(storage);
     should.exist(storage.blocks);
     should.exist(storage.events);
+    should.exist(storage.operations);
 
     // ensure the ledger was created in the database
     const query = {id: storage.id};
     const record = await database.collections.ledger.findOne(query);
     should.exist(record);
+    should.exist(record.id);
+    record.id.should.be.a('string');
     should.exist(record.ledger.id);
-    should.exist(record.ledger.eventCollection);
-    should.exist(record.ledger.blockCollection);
+    record.ledger.id.should.be.a('string');
+    should.exist(record.ledger.ledgerNode);
+    record.ledger.ledgerNode.should.be.a('string');
+    should.exist(record.ledger.collections);
+    const {collections} = record.ledger;
+    collections.should.be.an('object');
+    should.exist(collections.block);
+    collections.block.should.be.a('string');
+    should.exist(collections.event);
+    collections.event.should.be.a('string');
+    should.exist(collections.operation);
+    collections.operation.should.be.a('string');
+    should.exist(record.ledger.plugins);
+    record.ledger.plugins.should.be.an('array');
+    record.ledger.plugins.should.have.length(0);
+    should.exist(record.meta);
+    record.meta.should.be.an('object');
+    should.exist(record.meta.created);
+    should.exist(record.meta.updated);
   });
   it('should get ledger', async () => {
     const meta = {};
