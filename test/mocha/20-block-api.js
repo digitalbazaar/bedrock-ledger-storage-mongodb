@@ -191,48 +191,6 @@ describe('Block Storage API', () => {
     });
   }); // end get API
 
-  describe('getAll API', () => {
-    it('should get all blocks with given ID', done => {
-      const blockTemplate = eventBlockTemplate;
-      const eventTemplate = mockData.events.alpha;
-      async.auto({
-        create: callback => helpers.createBlocks(
-          {blockTemplate, eventTemplate, opTemplate}, callback),
-        operations: ['create', (results, callback) => {
-          const {operations} = results.create;
-          ledgerStorage.operations.addMany({operations}, callback);
-        }],
-        event: ['operations', (results, callback) => ledgerStorage.events.add(
-          results.create.events[0], callback)],
-        block: ['event', (results, callback) => ledgerStorage.blocks.add(
-          results.create.blocks[0], callback)],
-        getAll: ['block', (results, callback) => {
-          const {id: blockId} = results.create.blocks[0].block;
-          ledgerStorage.blocks.getAll(blockId, (err, iterator) => {
-            assertNoError(err);
-            should.exist(iterator);
-
-            let blockCount = 0;
-            async.eachSeries(iterator, (promise, callback) => {
-              promise.then(result => {
-                should.exist(result.block);
-                should.exist(result.meta);
-                result.block.id.should.equal(blockId);
-                blockCount++;
-                callback();
-              }, callback);
-            }, err => {
-              assertNoError(err);
-              blockCount.should.equal(1);
-              callback();
-            });
-          });
-        }]
-      }, done);
-
-    });
-  }); // end getAll
-
   describe('update API', () => {
     it('should update block', done => {
       const blockTemplate = eventBlockTemplate;
