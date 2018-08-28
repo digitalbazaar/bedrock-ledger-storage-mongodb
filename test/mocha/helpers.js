@@ -64,8 +64,7 @@ api.addEvent = ({
         const {eventHash} = results;
         const meta = {eventHash};
         if(consensus) {
-          const blockHeight = i + startBlockHeight;
-          meta.blockHeight = blockHeight;
+          meta.blockHeight = i + startBlockHeight;
           meta.blockOrder = 0;
           meta.consensus = true;
           meta.consensusDate = Date.now();

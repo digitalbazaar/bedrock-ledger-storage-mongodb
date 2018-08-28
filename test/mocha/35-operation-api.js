@@ -23,7 +23,7 @@ configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 describe('Operation Storage API', () => {
   let ledgerStorage;
 
-  before(done => {
+  beforeEach(done => {
     const block = bedrock.util.clone(configBlockTemplate);
     const meta = {};
     const options = {

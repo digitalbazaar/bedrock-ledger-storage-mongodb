@@ -129,7 +129,8 @@ describe('Storage Plugin API', () => {
           ledgerStorage.blocks.add({block, meta}, callback);
         }]
       }, done);
-    });
+    }); // en beforeEach
+
     it('record query returns the proper result', done => {
       async.auto({
         concerts: callback => {
@@ -146,7 +147,8 @@ describe('Storage Plugin API', () => {
           opTemplate.record.event = results.concerts[eventHashes[0]]
             .operations[0].operation.record.id;
           helpers.addEvent({
-            consensus: true, count: 1, eventTemplate, ledgerStorage, opTemplate
+            consensus: true, count: 1, eventTemplate, ledgerStorage, opTemplate,
+            startBlockHeight: 6
           }, callback);
         }],
         recordAlpha: ['offers', (results, callback) => {
@@ -198,7 +200,8 @@ describe('Storage Plugin API', () => {
           opTemplate.record.event = results.concerts[eventHashes[0]]
             .operations[0].operation.record.id;
           helpers.addEvent({
-            consensus: true, count: 1, eventTemplate, ledgerStorage, opTemplate
+            consensus: true, count: 1, eventTemplate, ledgerStorage, opTemplate,
+            startBlockHeight: 6
           }, callback);
         }],
         query: ['offers', (results, callback) => {

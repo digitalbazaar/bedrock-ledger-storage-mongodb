@@ -27,7 +27,7 @@ const opTemplate = mockData.operations.alpha;
 describe('Block Storage API', () => {
   let ledgerStorage;
 
-  before(done => {
+  beforeEach(done => {
     const block = bedrock.util.clone(configBlockTemplate);
     const meta = {};
     const options = {
@@ -61,11 +61,8 @@ describe('Block Storage API', () => {
         ledgerStorage.blocks.add({block, meta}, callback);
       }]
     }, done);
-  });
-  beforeEach(done => {
-    // FIXME: Remove ledger
-    done();
-  });
+  }); // end beforeEach
+
   describe('add API', () => {
     it('should add block', done => {
       const blockTemplate = eventBlockTemplate;
