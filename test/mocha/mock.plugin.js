@@ -40,7 +40,7 @@ module.exports = {
           const eventQuery = {
             'event.type': 'WebLedgerOperationEvent',
             'meta.blockHeight': {$lte: maxBlockHeight},
-            'meta.consensus': {$exists: true},
+            'meta.consensus': true,
           };
           const operationMatch = {
             $and: [

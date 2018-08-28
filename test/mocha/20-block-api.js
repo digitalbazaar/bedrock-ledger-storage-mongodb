@@ -227,7 +227,7 @@ describe('Block Storage API', () => {
             op: 'set',
             changes: {
               meta: {
-                consensus: Date.now()
+                consensus: false
               }
             }
           }, {
@@ -249,12 +249,14 @@ describe('Block Storage API', () => {
           ledgerStorage.blocks.update({blockHash, patch}, callback);
         }],
         get: ['update', (results, callback) => {
-          ledgerStorage.blocks.get({blockId: block.id}, callback);
+          ledgerStorage.blocks.get(
+            {blockId: block.id, consensus: false}, callback);
         }]
       }, (err, results) => {
         assertNoError(err);
         should.exist(results.get.meta.consensus);
         should.not.exist(results.get.meta.pending);
+        results.get.meta.consensus.should.be.false;
         results.get.meta.testArrayOne.should.eql(['a', 'b', 'c']);
         results.get.meta.testArrayTwo.should.eql(['a', 'b', 'c']);
         done();
