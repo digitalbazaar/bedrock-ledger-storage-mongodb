@@ -194,7 +194,7 @@ describe('Event Storage API', () => {
     });
     it('should not add duplicate event', done => {
       const event = bedrock.util.clone(configEventTemplate);
-      const meta = {};
+      const meta = {consensus: false};
       async.auto({
         hash: callback => helpers.testHasher(event, callback),
         add: ['hash', (results, callback) => {
