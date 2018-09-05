@@ -6,8 +6,6 @@
 const async = require('async');
 const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
-const database = require('bedrock-mongodb');
-const {expect} = global.chai;
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const uuid = require('uuid/v4');
@@ -449,6 +447,45 @@ describe('Event Storage API', () => {
       });
     });
   }); // end getLatestConfig API
+
+  describe('hasEvent', () => {
+    it('properly detects a configuration event', async () => {
+      const r = await ledgerStorage.events.hasEvent(
+        {blockHeight: 0, type: 'WebLedgerConfigurationEvent'});
+      should.exist(r);
+      r.should.be.a('boolean');
+      r.should.be.true;
+    });
+    it('properly detects absence of an operation event', async () => {
+      const r = await ledgerStorage.events.hasEvent(
+        {blockHeight: 0, type: 'WebLedgerOperationEvent'});
+      should.exist(r);
+      r.should.be.a('boolean');
+      r.should.be.false;
+    });
+    it('positive result is properly indexed', async () => {
+      // this is a covered query
+      const r = await ledgerStorage.events.hasEvent(
+        {blockHeight: 0, explain: true, type: 'WebLedgerConfigurationEvent'});
+      const {indexName} = r.queryPlanner.winningPlan.inputStage.inputStage;
+      indexName.should.equal('event.consensus.core.1');
+      const s = r.executionStats;
+      s.nReturned.should.equal(1);
+      s.totalKeysExamined.should.equal(1);
+      s.totalDocsExamined.should.equal(0);
+    });
+    it('negative result is properly indexed', async () => {
+      // this is a covered query
+      const r = await ledgerStorage.events.hasEvent(
+        {blockHeight: 0, explain: true, type: 'WebLedgerOperationEvent'});
+      const {indexName} = r.queryPlanner.winningPlan.inputStage.inputStage;
+      indexName.should.equal('event.consensus.core.1');
+      const s = r.executionStats;
+      s.nReturned.should.equal(0);
+      s.totalKeysExamined.should.equal(0);
+      s.totalDocsExamined.should.equal(0);
+    });
+  });
 
   describe('update API', () => {
     it('should update event', done => {
