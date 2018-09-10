@@ -448,6 +448,38 @@ describe('Event Storage API', () => {
     });
   }); // end getLatestConfig API
 
+  describe('getMany', () => {
+    it('TypeError if `blockHeight` and `eventHashes` specified', async () => {
+      let error;
+      let r;
+      try {
+        r = await ledgerStorage.events.getMany({
+          blockHeight: 0,
+          eventHashes: ['hash1', 'hash2']
+        });
+      } catch(e) {
+        error = e;
+      }
+      should.not.exist(r);
+      should.exist(error);
+      error.should.be.instanceOf(TypeError);
+    });
+    it('returns a cursor using `blockHeight` parameter', async () => {
+      const r = await ledgerStorage.events.getMany({blockHeight: 0});
+      should.exist(r);
+      should.exist(r.hasNext);
+      (await r.hasNext()).should.be.true;
+    });
+    it('returns a cursor using `eventHashes` parameter', async () => {
+      const r = await ledgerStorage.events.getMany({
+        eventHashes: ['hash1', 'hash2']
+      });
+      should.exist(r);
+      should.exist(r.hasNext);
+      (await r.hasNext()).should.be.false;
+    });
+  }); // end getMany
+
   describe('hasEvent', () => {
     it('properly detects a configuration event', async () => {
       const r = await ledgerStorage.events.hasEvent(
