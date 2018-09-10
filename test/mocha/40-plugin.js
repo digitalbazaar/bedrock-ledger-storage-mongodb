@@ -129,7 +129,7 @@ describe('Storage Plugin API', () => {
           ledgerStorage.blocks.add({block, meta}, callback);
         }]
       }, done);
-    }); // en beforeEach
+    }); // end beforeEach
 
     it('record query returns the proper result', done => {
       async.auto({
