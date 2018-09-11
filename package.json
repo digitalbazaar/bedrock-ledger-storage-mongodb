@@ -22,8 +22,8 @@
     "uuid": "^3.0.1"
   },
   "peerDependencies": {
-    "bedrock": "^1.8.0",
-    "bedrock-ledger-node": "digitalbazaar/bedrock-ledger-node#master",
+    "bedrock": "^1.12.0",
+    "bedrock-ledger-node": "^1.0.0",
     "bedrock-mongodb": "^5.0.0"
   },
   "engines": {
