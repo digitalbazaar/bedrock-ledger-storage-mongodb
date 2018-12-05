@@ -1,6 +1,6 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
-## 1.1.0 - TBD
+## 1.1.0 - 2018-12-05
 
 ### Added
 - Implement `basisBlockHeight`. `basisBlockHeight` is used to record on what
