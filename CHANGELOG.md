@@ -1,5 +1,14 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
+## 1.1.0 - TBD
+
+### Added
+- Implement `basisBlockHeight`. `basisBlockHeight` is used to record on what
+  basis ledger operations were validated. `basisBlockHeight` is recorded in
+  `WebLedgerConfigurationEvent` and `WebLedgerOperationEvent` events. Peers
+  receiving these types of events via gossip should validate the events and
+  operations based on the state of the ledger indicated by `basisBlockHeight`.
+
 ## 1.0.1 - 2018-09-20
 
 ### Changed
