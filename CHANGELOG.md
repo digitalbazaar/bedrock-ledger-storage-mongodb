@@ -1,5 +1,10 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
+## 1.2.0 - 2018-12-12
+
+### Added
+- Support for `creator` in events.
+
 ## 1.1.0 - 2018-12-05
 
 ### Added
