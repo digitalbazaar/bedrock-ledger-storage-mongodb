@@ -1,5 +1,10 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
+## 2.0.0 - TBD
+
+### Changed
+- Make eventHash parameter optional in `operations.exists`
+
 ## 1.2.0 - 2018-12-12
 
 ### Added
