@@ -13,14 +13,13 @@ const uuid = require('uuid/v4');
 const exampleLedgerId = `did:v1:${uuid()}`;
 const exampleLedgerNodeId = `urn:uuid:${uuid()}`;
 const configEventTemplate = bedrock.util.clone(mockData.events.config);
-configEventTemplate.ledger = exampleLedgerId;
+configEventTemplate.ledgerConfiguration.ledger = exampleLedgerId;
 
 const configBlockTemplate = bedrock.util.clone(mockData.configBlocks.alpha);
 configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 
 describe('Event Storage API', () => {
   let ledgerStorage;
-  let counter = 0;
 
   before(done => {
     const block = bedrock.util.clone(configBlockTemplate);
@@ -300,24 +299,19 @@ describe('Event Storage API', () => {
 
   describe('get API', () => {
     it('should get event with given hash', done => {
+      // calculate the hash of the genesis configuration at get the event
       const event = bedrock.util.clone(configEventTemplate);
-      event.description = counter++;
-      const meta = {};
+      let eventHash;
       async.auto({
-        hash: callback => helpers.testHasher(event, callback),
-        add: ['hash', (results, callback) => {
-          meta.eventHash = results.hash;
-          ledgerStorage.events.add({event, meta}, callback);
-        }],
-        get: ['add', (results, callback) => {
-          const eventHash = results.add.meta.eventHash;
+        eventHash: callback => helpers.testHasher(event, callback),
+        get: ['eventHash', (results, callback) => {
+          ({eventHash} = results);
           ledgerStorage.events.get(eventHash, callback);
         }]
       }, (err, results) => {
         assertNoError(err);
-        // get the event by hash
-        assertNoError(err);
-        results.get.meta.eventHash.should.equal(meta.eventHash);
+        results.get.event.should.eql(event);
+        results.get.meta.eventHash.should.equal(eventHash);
         done();
       });
     });
@@ -522,7 +516,7 @@ describe('Event Storage API', () => {
   describe('update API', () => {
     it('should update event', done => {
       const event = bedrock.util.clone(configEventTemplate);
-      event.description = counter++;
+      event.ledgerConfiguration.creator = `https://example.com/${uuid()}`;
       const meta = {
         testArrayOne: ['a', 'b'],
         testArrayTwo: ['a', 'b', 'c', 'z'],
@@ -604,7 +598,7 @@ describe('Event Storage API', () => {
   describe('remove API', () => {
     it('should remove event', done => {
       const event = bedrock.util.clone(configEventTemplate);
-      event.description = counter++;
+      event.ledgerConfiguration.creator = `https://example.com/${uuid()}`;
       const meta = {};
       // create the event
       async.auto({
@@ -623,7 +617,7 @@ describe('Event Storage API', () => {
       });
     });
     it('should fail to remove non-existent event', done => {
-      const eventHash = 'ni:///sha-256;INVALID';
+      const eventHash = 'InvalidHash';
       ledgerStorage.events.remove(eventHash, (err, result) => {
         should.exist(err);
         should.not.exist(result);
