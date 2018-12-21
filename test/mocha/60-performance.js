@@ -39,7 +39,8 @@ describe('Performance tests', () => {
           blockOrder: 0,
           consensus: true,
           consensusDate: Date.now(),
-          eventHash: results.eventHash
+          eventHash: results.eventHash,
+          validConfiguration: true
         };
         ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
       }],

@@ -32,7 +32,7 @@ events.alpha = {
 };
 
 events.config = {
-  '@context': 'https://w3id.org/webledger/v1',
+  '@context': config.constants.WEB_LEDGER_CONTEXT_V1_URL,
   type: 'WebLedgerConfigurationEvent',
   ledgerConfiguration: {
     type: 'WebLedgerConfiguration',
@@ -54,7 +54,8 @@ events.config = {
       created: '2018-07-01T18:59:52Z',
       creator: 'did:v1:nym:z2DzQmYumekrfMLh...zSjN5vN8W8g3#authn-key-1',
       jws: 'eyJhbGciO...ltm5VrsXunx-A '
-    }
+    },
+    sequence: 0
   }
 };
 
