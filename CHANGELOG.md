@@ -6,8 +6,10 @@
 - **BREAKING** Remove support for `creator` in events.
 
 ### Changed
+- **BREAKING** Change `getActiveConfiguration` API to
+  `getEffectiveConfiguration`.
 - **BREAKING** Valid ledger configurations are identified by a
-  `validConfiguration` flag.
+  `meta.effectiveConfiguration` flag.
 - Make `eventHash` parameter optional in `operations.exists`
 
 ## 1.2.0 - 2018-12-12

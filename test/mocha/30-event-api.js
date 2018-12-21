@@ -43,7 +43,7 @@ describe('Event Storage API', () => {
           consensus: true,
           consensusDate: Date.now(),
           eventHash: results.eventHash,
-          validConfiguration: true
+          effectiveConfiguration: true
         };
         ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
       }],
@@ -318,7 +318,7 @@ describe('Event Storage API', () => {
     });
   });
 
-  describe('getActiveConfig API', () => {
+  describe('getEffectiveConfig API', () => {
     it('is properly indexed', async () => {
       const event = bedrock.util.clone(configEventTemplate);
       event.ledgerConfiguration.sequence = 1;
@@ -328,7 +328,7 @@ describe('Event Storage API', () => {
         blockHeight: 10000000,
         consensus: true,
         consensusDate: Date.now(),
-        validConfiguration: true,
+        effectiveConfiguration: true,
       };
       await ledgerStorage.events.add({event, meta});
       event.ledgerConfiguration.sequence = 2;
@@ -337,10 +337,10 @@ describe('Event Storage API', () => {
       meta.blockHeight = 20000000;
       await ledgerStorage.events.add({event, meta});
       const result = await ledgerStorage.events
-        .getActiveConfig({blockHeight: 1500000, explain: true});
+        .getEffectiveConfig({blockHeight: 1500000, explain: true});
       const {executionStats} = result;
       executionStats.executionStages.inputStage.inputStage.inputStage.indexName
-        .should.equal('event.validConfiguration.core.1');
+        .should.equal('event.effectiveConfiguration.core.1');
       executionStats.totalKeysExamined.should.equal(1);
       executionStats.totalDocsExamined.should.equal(1);
     });
@@ -349,7 +349,7 @@ describe('Event Storage API', () => {
       eventAlpha.ledgerConfiguration.consensusMethod = `urn:${uuid()}`;
       const eventBeta = bedrock.util.clone(configEventTemplate);
       eventBeta.ledgerConfiguration.consensusMethod = `urn:${uuid()}`;
-      const meta = {validConfiguration: true};
+      const meta = {effectiveConfiguration: true};
       async.auto({
         hashAlpha: callback => helpers.testHasher(eventAlpha, callback),
         hashBeta: callback => helpers.testHasher(eventBeta, callback),
@@ -378,7 +378,7 @@ describe('Event Storage API', () => {
         }],
         getBeforeBlockHeight: ['get', (results, callback) => {
           // specifying the blockHeight for the beta config
-          ledgerStorage.events.getActiveConfig(
+          ledgerStorage.events.getEffectiveConfig(
             {blockHeight: 30}, (err, result) => {
               assertNoError(err);
               should.exist(result);
@@ -402,7 +402,7 @@ describe('Event Storage API', () => {
         ledgerStorage: callback => blsMongodb.add(meta, options, callback),
         latest: ['ledgerStorage', (results, callback) => {
           const {ledgerStorage} = results;
-          ledgerStorage.events.getActiveConfig(
+          ledgerStorage.events.getEffectiveConfig(
             {blockHeight: 10}, (err, result) => {
               should.exist(err);
               should.not.exist(result);
@@ -415,7 +415,7 @@ describe('Event Storage API', () => {
         done();
       });
     });
-  }); // end getActiveConfig API
+  }); // end getEffectiveConfig API
 
   describe('getLatestConfig API', () => {
     it('is properly indexed', async () => {
@@ -427,7 +427,7 @@ describe('Event Storage API', () => {
         blockHeight: 10000000,
         consensus: true,
         consensusDate: Date.now(),
-        validConfiguration: true,
+        effectiveConfiguration: true,
       };
       await ledgerStorage.events.add({event, meta});
       event.ledgerConfiguration.sequence = 2;
@@ -439,7 +439,7 @@ describe('Event Storage API', () => {
         .getLatestConfig({explain: true});
       const {executionStats} = result;
       executionStats.executionStages.inputStage.inputStage.inputStage.indexName
-        .should.equal('event.validConfiguration.core.1');
+        .should.equal('event.effectiveConfiguration.core.1');
       executionStats.totalKeysExamined.should.equal(1);
       executionStats.totalDocsExamined.should.equal(1);
     });
@@ -455,7 +455,7 @@ describe('Event Storage API', () => {
           meta.blockHeight = 10000000;
           meta.consensus = true;
           meta.consensusDate = Date.now();
-          meta.validConfiguration = true;
+          meta.effectiveConfiguration = true;
           ledgerStorage.events.add({event, meta}, callback);
         }],
         get: ['add', (results, callback) => {

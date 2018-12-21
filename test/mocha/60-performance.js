@@ -40,7 +40,7 @@ describe('Performance tests', () => {
           consensus: true,
           consensusDate: Date.now(),
           eventHash: results.eventHash,
-          validConfiguration: true
+          effectiveConfiguration: true
         };
         ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
       }],
