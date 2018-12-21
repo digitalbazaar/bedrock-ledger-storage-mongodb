@@ -2,8 +2,13 @@
 
 ## 2.0.0 - TBD
 
+### Removed
+- **BREAKING** Remove support for `creator` in events.
+
 ### Changed
-- Make eventHash parameter optional in `operations.exists`
+- **BREAKING** Valid ledger configurations are identified by a
+  `validConfiguration` flag.
+- Make `eventHash` parameter optional in `operations.exists`
 
 ## 1.2.0 - 2018-12-12
 
