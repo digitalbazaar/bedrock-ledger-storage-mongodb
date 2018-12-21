@@ -344,7 +344,7 @@ describe('Event Storage API', () => {
       executionStats.totalKeysExamined.should.equal(1);
       executionStats.totalDocsExamined.should.equal(1);
     });
-    it('should get active config for the given blockHeight', done => {
+    it('should get the effective config for the given blockHeight', done => {
       const eventAlpha = bedrock.util.clone(configEventTemplate);
       eventAlpha.ledgerConfiguration.consensusMethod = `urn:${uuid()}`;
       const eventBeta = bedrock.util.clone(configEventTemplate);
