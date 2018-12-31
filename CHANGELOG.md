@@ -1,6 +1,6 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
-## 2.0.0 - TBD
+## 2.0.0 - 2018-12-31
 
 ### Removed
 - **BREAKING** Remove support for `creator` in events.
