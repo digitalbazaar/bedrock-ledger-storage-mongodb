@@ -1,5 +1,10 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
+## 2.1.0 - 2019-01-11
+
+### Changed
+- Allow `maxBlockHeight` of zero in the `getRecordHistory` API.
+
 ## 2.0.0 - 2018-12-31
 
 ### Removed
