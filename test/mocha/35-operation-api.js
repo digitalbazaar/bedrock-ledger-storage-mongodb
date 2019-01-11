@@ -310,13 +310,13 @@ describe('Operation Storage API', () => {
       let err;
       try {
         await ledgerStorage.operations.getRecordHistory(
-          {maxBlockHeight: 0, recordId: 'urn:test'});
+          {maxBlockHeight: -1, recordId: 'urn:test'});
       } catch(e) {
         err = e;
       }
       should.exist(err);
       err.name.should.equal('TypeError');
-      err.message.should.equal('maxBlockHeight must be a positive integer.');
+      err.message.should.equal('maxBlockHeight must be an integer >= 0.');
     });
   }); // end getRecordHistory API
 });
