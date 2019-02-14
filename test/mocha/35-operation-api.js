@@ -319,4 +319,21 @@ describe('Operation Storage API', () => {
       err.message.should.equal('maxBlockHeight must be an integer >= 0.');
     });
   }); // end getRecordHistory API
+
+  describe('exists API', () => {
+    it('properly indexed with operationHash param', async () => {
+      const result = await ledgerStorage.operations.exists(
+        {explain: true, operationHash: 'foo'});
+      result.executionStats.executionStages.inputStage.indexName.should.equal(
+        'operation.operationHash.core.1');
+    });
+    it('properly indexed with operationHash and eventHash params', async () => {
+      const result = await ledgerStorage.operations.exists(
+        {eventHash: 'bar', explain: true, operationHash: 'foo'});
+      // NOTE: operation.eventHash.core.1 index is a rejected plan here, but
+      // may also be selected under different conditions
+      result.executionStats.executionStages.inputStage.indexName.should.equal(
+        'operation.operationHash.core.1');
+    });
+  });
 });
