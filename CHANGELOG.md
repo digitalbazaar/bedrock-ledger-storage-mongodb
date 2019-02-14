@@ -1,5 +1,10 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
+## 2.2.0 - 2019-02-14
+
+### Added
+- Added index on `meta.operationHash` in support of `operations.exists` API.
+
 ## 2.1.0 - 2019-01-11
 
 ### Changed
