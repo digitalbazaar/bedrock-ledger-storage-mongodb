@@ -3,6 +3,9 @@
   "version": "2.1.1-0",
   "description": "Bedrock ledger storage module for MongoDB",
   "main": "./lib",
+  "scripts": {
+    "lint": "eslint lib"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/digitalbazaar/bedrock-ledger-storage-mongodb.git"
@@ -28,5 +31,9 @@
   },
   "engines": {
     "node": ">=6.3.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.13.0",
+    "eslint-config-digitalbazaar": "^1.5.0"
   }
 }
