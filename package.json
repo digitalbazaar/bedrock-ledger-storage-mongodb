@@ -21,7 +21,9 @@
   "homepage": "https://github.com/digitalbazaar/bedrock-ledger-storage-mongodb/",
   "dependencies": {
     "assert-plus": "^1.0.0",
+    "bson": "^4.0.2",
     "fast-json-patch": "^2.0.6",
+    "lodash": "^4.17.11",
     "uuid": "^3.0.1"
   },
   "peerDependencies": {
