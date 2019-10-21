@@ -11,7 +11,7 @@ const {callbackify} = require('util');
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const mockPlugin = require('./mock.plugin');
-const uuid = require('uuid/v4');
+const {util: {uuid}} = bedrock;
 
 const exampleLedgerId = () => `did:v1:${uuid()}`;
 const exampleLedgerNodeId = () => `urn:uuid:${uuid()}`;

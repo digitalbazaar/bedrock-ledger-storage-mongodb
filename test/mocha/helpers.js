@@ -8,15 +8,10 @@ const bedrock = require('bedrock');
 const brIdentity = require('bedrock-identity');
 const brLedgerNode = require('bedrock-ledger-node');
 const database = require('bedrock-mongodb');
-const jsonld = bedrock.jsonld;
-const jsigs = require('jsonld-signatures')();
-const uuid = require('uuid/v4');
+const {util: {uuid}} = bedrock;
 
 const api = {};
 module.exports = api;
-
-// use local JSON-LD processor for checking signatures
-jsigs.use('jsonld', jsonld);
 
 // test hashing function
 api.testHasher = brLedgerNode.consensus._hasher;
@@ -104,10 +99,10 @@ api.createBlocks = ({
     block.previousBlockHash = uuid();
     const time = startTime + i;
     const meta = {
-      "created": time,
-      "updated": time,
-      "consensus": true,
-      "consensusDate": time
+      created: time,
+      updated: time,
+      consensus: true,
+      consensusDate: time
     };
     async.auto({
       events: callback => api.createEvent({

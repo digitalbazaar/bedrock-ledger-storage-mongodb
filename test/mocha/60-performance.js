@@ -8,7 +8,7 @@ const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
-const uuid = require('uuid/v4');
+const {util: {uuid}} = bedrock;
 
 const exampleLedgerId = `did:v1:${uuid()}`;
 const exampleLedgerNodeId = `urn:uuid:${uuid()}`;

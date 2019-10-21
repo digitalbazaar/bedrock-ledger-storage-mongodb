@@ -10,7 +10,7 @@ const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const database = require('bedrock-mongodb');
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
-const uuid = require('uuid/v4');
+const {util: {uuid}} = bedrock;
 
 const exampleLedgerId = `did:v1:${uuid()}`;
 const exampleLedgerNodeId = `urn:uuid:${uuid()}`;
@@ -118,7 +118,7 @@ describe('Block Storage API', () => {
           results.create.blocks[0], callback)],
         addAgain: ['add', (results, callback) => ledgerStorage.blocks.add(
           results.create.blocks[0], callback)]
-      }, (err) => {
+      }, err => {
         should.exist(err);
         err.name.should.equal('DuplicateError');
         done();
@@ -307,7 +307,7 @@ describe('Block Storage API', () => {
     it('should fail to remove non-existent block', done => {
       const blockHash = 'INVALID HASH';
       // delete the block
-      ledgerStorage.blocks.remove(blockHash, (err) => {
+      ledgerStorage.blocks.remove(blockHash, err => {
         should.exist(err);
         err.name.should.equal('NotFoundError');
         done();

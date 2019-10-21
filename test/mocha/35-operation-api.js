@@ -6,11 +6,9 @@
 const async = require('async');
 const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
-// const database = require('bedrock-mongodb');
-const {expect} = global.chai;
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
-const uuid = require('uuid/v4');
+const {util: {uuid}} = bedrock;
 
 const exampleLedgerId = `did:v1:${uuid()}`;
 const exampleLedgerNodeId = `urn:uuid:${uuid()}`;
@@ -306,7 +304,6 @@ describe('Operation Storage API', () => {
       });
     });
     it('throws TypeError on invalid maxBlockHeight param', async () => {
-      const event = {};
       let err;
       try {
         await ledgerStorage.operations.getRecordHistory(

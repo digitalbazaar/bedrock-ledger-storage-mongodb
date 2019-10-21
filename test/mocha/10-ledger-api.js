@@ -4,16 +4,10 @@
 'use strict';
 
 const async = require('async');
-const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const database = require('bedrock-mongodb');
-const jsigs = require('jsonld-signatures');
-const uuid = require('uuid/v4');
-
+const {util: {uuid}} = require('bedrock');
 const testOwner = 'https://example.com/i/testOwner';
-
-// use local JSON-LD processor for signatures
-jsigs.use('jsonld', bedrock.jsonld);
 
 describe('Ledger Storage API', () => {
   it('should add a ledger', async () => {
