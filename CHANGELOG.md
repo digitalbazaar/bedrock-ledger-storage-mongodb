@@ -1,11 +1,16 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
+## 3.0.0 - 2019-10-22
+
+## Changed
+- **BREAKING**: Refactor for use with bedrock@2.
+
 ## 2.4.0 - 2019-05-20
 
 ### Added
 - Estimate BSON document sizes before passing into the Mongo `insertMany` API.
   If the document exceeds the Mongo 16MB document size limit, separate the
-  array into multiple chunks. 
+  array into multiple chunks.
 
 ## 2.3.0 - 2019-03-25
 
