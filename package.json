@@ -2,7 +2,8 @@
   "name": "bedrock-ledger-storage-mongodb",
   "version": "3.0.1-0",
   "description": "Bedrock ledger storage module for MongoDB",
-  "main": "./lib",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "main": "lib",
   "scripts": {
     "lint": "eslint lib"
   },
@@ -26,7 +27,7 @@
     "lodash": "^4.17.11"
   },
   "peerDependencies": {
-    "bedrock": "^2.0.0",
+    "bedrock": "2.x - 3.x",
     "bedrock-ledger-node": "1.x - 9.x",
     "bedrock-mongodb": "5 - 6.x"
   },
