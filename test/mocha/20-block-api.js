@@ -11,6 +11,7 @@ const database = require('bedrock-mongodb');
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const {util: {uuid}} = bedrock;
+const {promisify} = require('util');
 
 const exampleLedgerId = `did:v1:${uuid()}`;
 const exampleLedgerNodeId = `urn:uuid:${uuid()}`;
@@ -23,6 +24,8 @@ configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 
 const eventBlockTemplate = bedrock.util.clone(mockData.eventBlocks.alpha);
 const opTemplate = mockData.operations.alpha;
+
+const createBlocks = promisify(helpers.createBlocks);
 
 describe('Block Storage API', () => {
   let ledgerStorage;
@@ -358,6 +361,53 @@ describe('Block Storage API', () => {
       }, done);
     });
   }); // end getLatest
+
+  describe('getLatestBlockHeight API', () => {
+    it('should get latest block height', async () => {
+      const blockTemplate = eventBlockTemplate;
+      const eventTemplate = mockData.events.alpha;
+      const {blocks, events, operations} = await createBlocks(
+        {blockTemplate, eventTemplate, opTemplate});
+      await ledgerStorage.operations.addMany({operations});
+      await ledgerStorage.events.add(events[0]);
+      await ledgerStorage.blocks.add(blocks[0]);
+      let result;
+      let error;
+      try {
+        result = await ledgerStorage.blocks.getLatestBlockHeight();
+      } catch(e) {
+        error = e;
+      }
+      assertNoError(error);
+      should.exist(result);
+      result.should.equal(1);
+    });
+    it('should be a covered query', async () => {
+      const blockTemplate = eventBlockTemplate;
+      const eventTemplate = mockData.events.alpha;
+      const {blocks, events, operations} = await createBlocks(
+        {blockTemplate, eventTemplate, opTemplate});
+      await ledgerStorage.operations.addMany({operations});
+      await ledgerStorage.events.add(events[0]);
+      await ledgerStorage.blocks.add(blocks[0]);
+      let result;
+      let error;
+      try {
+        result = await ledgerStorage.blocks.getLatestBlockHeight(
+          {explain: true});
+      } catch(e) {
+        error = e;
+      }
+      assertNoError(error);
+      should.exist(result);
+      should.exist(result.executionStats);
+      result.executionStats.nReturned.should.equal(1);
+      result.executionStats.totalKeysExamined.should.equal(1);
+      result.executionStats.totalDocsExamined.should.equal(0);
+      result.executionStats.executionStages.inputStage.inputStage.indexName
+        .should.equal('block.consensus.core.1');
+    });
+  }); // end getLatestBlockHeight
 
   describe('getLatestSummary API', () => {
     it('should get latest block', done => {
