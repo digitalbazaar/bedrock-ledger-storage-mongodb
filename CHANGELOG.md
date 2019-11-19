@@ -1,5 +1,10 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
+## 3.1.0 - 2019-11-19
+
+### Added
+- Implement getLatestBlockHeight API.
+
 ## 3.0.1 - 2019-11-13
 
 ### Changed
