@@ -28,7 +28,7 @@
   },
   "peerDependencies": {
     "bedrock": "2.x - 3.x",
-    "bedrock-ledger-node": "1.x - 9.x",
+    "bedrock-ledger-node": "1.x - 10.x",
     "bedrock-mongodb": "5 - 6.x"
   },
   "engines": {
