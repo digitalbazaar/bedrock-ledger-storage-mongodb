@@ -1,5 +1,10 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
+## 3.1.1 - 2019-12-17
+
+### Changed
+- Update peer dependencies.
+
 ## 3.1.0 - 2019-11-19
 
 ### Added
