@@ -5,6 +5,7 @@
   "main": "./test",
   "scripts": {
     "test": "node --preserve-symlinks test test",
+    "debug": "node --preserve-symlinks test test --log-level debug",
     "watch": "grunt watch"
   },
   "private": true,
