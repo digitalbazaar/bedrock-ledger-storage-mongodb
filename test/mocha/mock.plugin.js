@@ -69,7 +69,7 @@ module.exports = {
                 eventHashes: {$addToSet: '$meta.eventHash'}
               }},
               {$lookup: {
-                from: operationCollection.s.name,
+                from: operationCollection.collectionName,
                 let: {eventHashes: '$eventHashes'},
                 pipeline: [
                   {$match: {$expr: operationMatch}},
