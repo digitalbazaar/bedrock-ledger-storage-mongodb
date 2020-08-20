@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2017-2019 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2017-2020 Digital Bazaar, Inc. All rights reserved.
  */
 
 const config = require('bedrock').config;
@@ -9,6 +9,7 @@ require('bedrock-permission');
 const roles = config.permission.roles;
 
 config.mocha.tests.push(path.join(__dirname, 'mocha'));
+config.mocha.options.timeout = 60000;
 
 // MongoDB
 config.mongodb.name = 'bedrock_ledger_storage_mongodb_test';
