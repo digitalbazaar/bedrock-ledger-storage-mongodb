@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2017-2019 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2017-2020 Digital Bazaar, Inc. All rights reserved.
  */
 'use strict';
 
@@ -9,7 +9,7 @@ const database = require('bedrock-mongodb');
 const {util: {uuid}} = require('bedrock');
 const testOwner = 'https://example.com/i/testOwner';
 
-describe('Ledger Storage API', () => {
+describe('Ledger Storage API', function() {
   it('should add a ledger', async () => {
     const meta = {};
     const options = {
@@ -77,7 +77,8 @@ describe('Ledger Storage API', () => {
     should.exist(err);
     err.name.should.equal('NotFoundError');
   });
-  it('should iterate over ledgers', done => {
+  // NOTE: this test succeeds, but can take upwards of a minute to complete
+  it('should iterate over ledgers', function(done) {
     let ledgerCount = 3;
     const ledgerIds = Array(3).fill().map(() => {
       return 'did:v1:' + uuid();
@@ -93,7 +94,6 @@ describe('Ledger Storage API', () => {
       });
     }, err => {
       assertNoError(err);
-
       // iterate through all of the ledger IDs
       const options = {owner: testOwner + '-iterator'};
       blsMongodb.getLedgerIterator(options, (err, iterator) => {

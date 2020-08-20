@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2017-2019 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2017-2020 Digital Bazaar, Inc. All rights reserved.
  */
 'use strict';
 
@@ -258,7 +258,7 @@ describe('Event Storage API', () => {
     });
   }); // end difference API
 
-  describe('exists API', () => {
+  describe('exists API', function() {
     it('returns true if an event exists', done => {
       const eventTemplate = mockData.events.alpha;
       const opTemplate = mockData.operations.alpha;
@@ -274,7 +274,7 @@ describe('Event Storage API', () => {
           });
         }]}, err => done(err));
     });
-    it('returns true if multiple events exist', done => {
+    it('returns true if multiple events exist', function(done) {
       const eventTemplate = mockData.events.alpha;
       const opTemplate = mockData.operations.alpha;
       async.auto({
