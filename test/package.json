@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node --preserve-symlinks test test",
     "coverage": "cross-env NODE_ENV=test nyc --reporter=lcov --reporter=text-summary npm test",
-    "coverage-ci": "cross-env NODE_ENV=test nyc --reporter=text-lcov npm test > coverage.lcov",
+    "coverage-ci": "cross-env NODE_ENV=test nyc --reporter=lcov npm test",
     "coverage-report": "nyc report",
     "debug": "node --preserve-symlinks test test --log-level debug",
     "watch": "grunt watch"
