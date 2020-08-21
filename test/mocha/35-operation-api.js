@@ -329,8 +329,8 @@ describe('Operation Storage API', () => {
         {eventHash: 'bar', explain: true, operationHash: 'foo'});
       // NOTE: operation.eventHash.core.1 index is a rejected plan here, but
       // may also be selected under different conditions
-      result.executionStats.executionStages.inputStage.indexName.should.equal(
-        'operation.operationHash.core.1');
+      result.executionStats.executionStages.inputStage.indexName.should.be.
+        oneOf(['operation.operationHash.core.1', 'operation.eventHash.core.1']);
     });
   });
 });
