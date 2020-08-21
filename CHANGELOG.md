@@ -1,5 +1,22 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
+## 4.0.0 -
+
+### Changed
+- Updated peerDep `bedrock-mongodb` to 7.0.0.
+- Updated peerDep `bedrock-ledger-node` to include 11.
+- Updated Copyrights to include 2020.
+- Pass projection as an option to various mongoDB 3.5 API calls.
+- Linted files to pass latest `eslint-config-digitialbazaar` rules.
+- Changed calls on `collection.update` to either `updateOne` or `updateMany`.
+- Use `collection.collectionName` over `collection.s.name`.
+- Use `collection.countDocuments` over `collection.find(query).count()`.
+
+### Added
+- Github actions integration
+- Istanbul code coverage scripts
+- A debug script to the test project
+
 ## 3.1.1 - 2019-12-17
 
 ### Changed
