@@ -46,5 +46,14 @@
     "cross-env": "^7.0.2",
     "grunt": "^1.0.1",
     "nyc": "^15.1.0"
+  },
+  "nyc": {
+    "excludeNodeModules": false,
+    "include": [
+      "node_modules/bedrock-ledger-storage-mongodb/**"
+    ],
+    "exclude": [
+      "node_modules/bedrock-ledger-storage-mongodb/node_modules/**"
+    ]
   }
 }
