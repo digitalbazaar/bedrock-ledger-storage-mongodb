@@ -193,7 +193,7 @@ api.removeCollection = function(collection, callback) {
   const collectionNames = [collection];
   database.openCollections(collectionNames, () => {
     async.each(collectionNames, function(collectionName, callback) {
-      database.collections[collectionName].remove({}, callback);
+      database.collections[collectionName].deleteMany({}, callback);
     }, function(err) {
       callback(err);
     });
@@ -204,7 +204,7 @@ api.removeCollections = function(callback) {
   const collectionNames = ['identity', 'eventLog'];
   database.openCollections(collectionNames, () => {
     async.each(collectionNames, (collectionName, callback) => {
-      database.collections[collectionName].remove({}, callback);
+      database.collections[collectionName].deleteMany({}, callback);
     }, function(err) {
       callback(err);
     });
