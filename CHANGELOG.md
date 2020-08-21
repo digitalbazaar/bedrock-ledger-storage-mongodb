@@ -3,7 +3,7 @@
 ## 4.0.0 -
 
 ### Changed
-- Updated peerDep `bedrock-mongodb` to 7.0.0.
+- **BREAKING**: Use `bedrock-mongodb` 7.0.0.
 - Updated peerDep `bedrock-ledger-node` to include 11.
 - Updated Copyrights to include 2020.
 - Pass projection as an option to various mongoDB 3.5 API calls.
