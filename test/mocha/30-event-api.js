@@ -354,18 +354,20 @@ describe('Event Storage API', () => {
         hashAlpha: callback => helpers.testHasher(eventAlpha, callback),
         hashBeta: callback => helpers.testHasher(eventBeta, callback),
         addAlpha: ['hashAlpha', (results, callback) => {
-          meta.eventHash = results.hashAlpha;
-          meta.blockHeight = 20;
-          meta.consensus = true;
-          meta.consensusDate = Date.now();
-          ledgerStorage.events.add({event: eventAlpha, meta}, callback);
+          const _meta = {...meta};
+          _meta.eventHash = results.hashAlpha;
+          _meta.blockHeight = 20;
+          _meta.consensus = true;
+          _meta.consensusDate = Date.now();
+          ledgerStorage.events.add({event: eventAlpha, meta: _meta}, callback);
         }],
         addBeta: ['hashBeta', (results, callback) => {
-          meta.eventHash = results.hashBeta;
-          meta.blockHeight = 30;
-          meta.consensus = true;
-          meta.consensusDate = Date.now();
-          ledgerStorage.events.add({event: eventBeta, meta}, callback);
+          const _meta = {...meta};
+          _meta.eventHash = results.hashBeta;
+          _meta.blockHeight = 30;
+          _meta.consensus = true;
+          _meta.consensusDate = Date.now();
+          ledgerStorage.events.add({event: eventBeta, meta: _meta}, callback);
         }],
         get: ['addAlpha', 'addBeta', (results, callback) => {
           ledgerStorage.events.getLatestConfig((err, result) => {
