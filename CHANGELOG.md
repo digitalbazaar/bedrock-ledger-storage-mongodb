@@ -3,8 +3,8 @@
 ## 4.0.0 -
 
 ### Changed
-- **BREAKING**: Use `bedrock-mongodb` 7.0.0.
-- Updated peerDep `bedrock-ledger-node` to include 11.
+- **BREAKING**: Use `bedrock-mongodb` 7.x-8.x.
+- Updated peerDep `bedrock-ledger-node` to ^ 11.0.0.
 - Updated Copyrights to include 2020.
 - Pass projection as an option to various mongoDB 3.5 API calls.
 - Linted files to pass latest `eslint-config-digitialbazaar` rules.
