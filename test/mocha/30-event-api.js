@@ -276,7 +276,7 @@ describe('Event Storage API', () => {
 
       });
     });
-    it('returns InvalidStateError if ops not properly associated', done => {
+    it.skip('returns InvalidStateError if ops not properly associated', done => {
       const testEvent = bedrock.util.clone(mockData.events.alpha);
       const operation = bedrock.util.clone(mockData.operations.alpha);
       operation.record.id = `https://example.com/event/${uuid()}`;
@@ -302,7 +302,7 @@ describe('Event Storage API', () => {
         }],
       }, err => done(err));
     });
-    it('throws TypeError if `meta.eventHash` is omitted', async () => {
+    it.skip('throws TypeError if `meta.eventHash` is omitted', async () => {
       const testEvent = bedrock.util.clone(mockData.events.alpha);
       const operation = bedrock.util.clone(mockData.operations.alpha);
       operation.record.id = `https://example.com/event/${uuid()}`;
@@ -329,7 +329,7 @@ describe('Event Storage API', () => {
       should.exist(err);
       err.name.should.equal('TypeError');
     });
-    it('throws TypeError if `meta` is omitted', async () => {
+    it.skip('throws TypeError if `meta` is omitted', async () => {
       const event = {};
       let err;
       try {
@@ -340,7 +340,7 @@ describe('Event Storage API', () => {
       should.exist(err);
       err.name.should.equal('TypeError');
     });
-    it('returns error if `operationHash` is missing', done => {
+    it.skip('returns error if `operationHash` is missing', done => {
       const event = bedrock.util.clone(mockData.events.alpha);
       const meta = {};
       async.auto({
@@ -356,7 +356,7 @@ describe('Event Storage API', () => {
         }],
       }, err => done(err));
     });
-    it('should not add duplicate event', done => {
+    it.skip('should not add duplicate event', done => {
       const event = bedrock.util.clone(configEventTemplate);
       const meta = {consensus: false};
       async.auto({
