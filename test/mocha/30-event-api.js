@@ -208,52 +208,73 @@ describe('Event Storage API', () => {
   }); // end add API
   describe('addMany API', () => {
     it('should add many events', done => {
-      const testEvent = bedrock.util.clone(mockData.events.alpha);
-      const operation = bedrock.util.clone(mockData.operations.alpha);
-      operation.record.id = `https://example.com/event/${uuid()}`;
-      const meta = {};
-      let operations;
-      async.auto({
-        operationHash: callback => helpers.testHasher(
-          operation, (err, opHash) => {
+      async.times(5, (id, next) => {
+        const testEvent = bedrock.util.clone(mockData.events.alpha);
+        const operation = bedrock.util.clone(mockData.operations.alpha);
+        operation.record.id = `https://example.com/event/${uuid()}`;
+        helpers.testHasher(operation, (err, opHash) => {
+          if(err) {
+            return next(err);
+          }
+          testEvent.operationHash = [opHash];
+          helpers.testHasher(testEvent, (err, eventHash) => {
             if(err) {
-              return callback(err);
+              return next(err);
             }
-            testEvent.operationHash = [opHash];
-            callback(null, opHash);
-          }),
-        eventHash: ['operationHash', (results, callback) => helpers.testHasher(
-          testEvent, callback)],
-        operation: ['eventHash', (results, callback) => {
-          const {eventHash, operationHash} = results;
-          operations = [{
-            meta: {eventHash, eventOrder: 0, operationHash},
-            operation,
-          }];
-          ledgerStorage.operations.addMany({operations}, callback);
-        }],
-        add: ['operation', (results, callback) => {
-          meta.eventHash = results.eventHash;
-          ledgerStorage.events.add({event: testEvent, meta}, callback);
-        }],
-        ensureAdd: ['add', (results, callback) => {
-          const result = results.add;
-          should.exist(result);
-          should.exist(result.event);
-          should.exist(result.meta);
+            next(null, {event: testEvent, opHash, eventHash, operation});
+          });
+        });
+      }, (err, results) => {
+        const operations = results.map(({operation, opHash, eventHash}) => ({
+          operation,
+          meta: {
+            eventHash, eventOrder: 0, operationHash: opHash
+          }
+        }));
+        const events = results.map(({event, eventHash}) => ({
+          event,
+          meta: {
+            consensus: false,
+            eventHash
+          }
+        }));
+        async.auto({
+          operation: [callback => {
+            ledgerStorage.operations.addMany({operations}, callback);
+          }],
+          addMany: ['operation', (results, callback) => {
+            ledgerStorage.events.addMany({events}, callback);
+          }],
+          ensureAdd: ['addMany', (results, callback) => {
+            const result = results.addMany;
+            should.exist(result);
+            should.exist(result.dupHashes);
+            result.dupHashes.should.be.an('array');
+            result.dupHashes.length.should.equal(0);
+            // ensure the event was created in the database
+            ledgerStorage.events.collection.find({}, callback);
+          }],
+          ensureEvent: ['ensureAdd', (results, callback) => {
+            results.ensureAdd.toArray().then(records => {
+              should.exist(records);
+              records.should.be.an('array');
+              // there is one extra event added in a before block
+              records.length.should.equal(events.length + 1);
+              const eventHashes = records.map(r => r.meta.eventHash);
+              for(const e of events) {
+                //ensure each event was written to the database
+                eventHashes.should.include(e.meta.eventHash);
+              }
+              // filter out duplicate eventHashes
+              const uniqueEvents = new Set(eventHashes);
+              // this ensures that we do not have duplicate eventHashes
+              uniqueEvents.size.should.equal(eventHashes.length);
+              callback();
+            }).catch(callback);
+          }]
+        }, err => done(err));
 
-          // ensure the event was created in the database
-          const query = {'meta.eventHash': result.meta.eventHash};
-          ledgerStorage.events.collection.findOne(query, callback);
-        }],
-        ensureEvent: ['ensureAdd', (results, callback) => {
-          const record = results.ensureAdd;
-          should.exist(record);
-          should.exist(record.meta);
-          should.exist(record.meta.eventHash);
-          callback();
-        }]
-      }, err => done(err));
+      });
     });
     it('returns InvalidStateError if ops not properly associated', done => {
       const testEvent = bedrock.util.clone(mockData.events.alpha);
