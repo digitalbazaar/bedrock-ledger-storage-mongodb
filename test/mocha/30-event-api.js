@@ -349,6 +349,156 @@ describe('Event Storage API', () => {
         }, err => done(err));
       });
     });
+    it('should add events even if first event is a duplicate', done => {
+      async.times(5, (id, next) => {
+        const testEvent = bedrock.util.clone(mockData.events.alpha);
+        const operation = bedrock.util.clone(mockData.operations.alpha);
+        operation.record.id = `https://example.com/event/${uuid()}`;
+        helpers.testHasher(operation, (err, opHash) => {
+          if(err) {
+            return next(err);
+          }
+          testEvent.operationHash = [opHash];
+          helpers.testHasher(testEvent, (err, eventHash) => {
+            if(err) {
+              return next(err);
+            }
+            next(null, {event: testEvent, opHash, eventHash, operation});
+          });
+        });
+      }, (err, results) => {
+        const operations = results.map(({operation, opHash, eventHash}) => ({
+          operation,
+          meta: {
+            eventHash, eventOrder: 0, operationHash: opHash
+          }
+        }));
+        const events = results.map(({event, eventHash}) => ({
+          event,
+          meta: {
+            consensus: false,
+            eventHash
+          }
+        }));
+        async.auto({
+          operation: [callback => {
+            ledgerStorage.operations.addMany({operations}, callback);
+          }],
+          addOne: ['operation', (results, callback) => {
+            const {event, meta} = events[0];
+            ledgerStorage.events.add({event, meta}, callback);
+          }],
+          addMany: ['operation', 'addOne', (results, callback) => {
+            ledgerStorage.events.addMany({events}, callback);
+          }],
+          ensureAdd: ['addMany', (results, callback) => {
+            const result = results.addMany;
+            should.exist(result);
+            should.exist(result.dupHashes);
+            result.dupHashes.should.be.an('array');
+            result.dupHashes.length.should.equal(1);
+            // the duplicate should be the first event
+            result.dupHashes.should.include(events[0].meta.eventHash);
+            // ensure the event was created in the database
+            ledgerStorage.events.collection.find({}, callback);
+          }],
+          ensureEvent: ['ensureAdd', (results, callback) => {
+            results.ensureAdd.toArray().then(records => {
+              should.exist(records);
+              records.should.be.an('array');
+              // there is one extra event added in a before block
+              records.length.should.equal(events.length + 1);
+              const eventHashes = records.map(r => r.meta.eventHash);
+              for(const e of events) {
+                //ensure each event was written to the database
+                eventHashes.should.include(e.meta.eventHash);
+              }
+              // filter out duplicate eventHashes
+              const uniqueEvents = new Set(eventHashes);
+              // this ensures that we do not have duplicate eventHashes
+              uniqueEvents.size.should.equal(eventHashes.length);
+              callback();
+            }).catch(callback);
+          }]
+        }, err => done(err));
+      });
+    });
+
+    it('should add events even if last event is a duplicate', done => {
+      async.times(5, (id, next) => {
+        const testEvent = bedrock.util.clone(mockData.events.alpha);
+        const operation = bedrock.util.clone(mockData.operations.alpha);
+        operation.record.id = `https://example.com/event/${uuid()}`;
+        helpers.testHasher(operation, (err, opHash) => {
+          if(err) {
+            return next(err);
+          }
+          testEvent.operationHash = [opHash];
+          helpers.testHasher(testEvent, (err, eventHash) => {
+            if(err) {
+              return next(err);
+            }
+            next(null, {event: testEvent, opHash, eventHash, operation});
+          });
+        });
+      }, (err, results) => {
+        const operations = results.map(({operation, opHash, eventHash}) => ({
+          operation,
+          meta: {
+            eventHash, eventOrder: 0, operationHash: opHash
+          }
+        }));
+        const events = results.map(({event, eventHash}) => ({
+          event,
+          meta: {
+            consensus: false,
+            eventHash
+          }
+        }));
+        async.auto({
+          operation: [callback => {
+            ledgerStorage.operations.addMany({operations}, callback);
+          }],
+          addOne: ['operation', (results, callback) => {
+            const {event, meta} = events[events.length - 1];
+            ledgerStorage.events.add({event, meta}, callback);
+          }],
+          addMany: ['operation', 'addOne', (results, callback) => {
+            ledgerStorage.events.addMany({events}, callback);
+          }],
+          ensureAdd: ['addMany', (results, callback) => {
+            const result = results.addMany;
+            should.exist(result);
+            should.exist(result.dupHashes);
+            result.dupHashes.should.be.an('array');
+            result.dupHashes.length.should.equal(1);
+            // the duplicate should be the first event
+            result.dupHashes.should.include(
+              events[events.length - 1].meta.eventHash);
+            // ensure the event was created in the database
+            ledgerStorage.events.collection.find({}, callback);
+          }],
+          ensureEvent: ['ensureAdd', (results, callback) => {
+            results.ensureAdd.toArray().then(records => {
+              should.exist(records);
+              records.should.be.an('array');
+              // there is one extra event added in a before block
+              records.length.should.equal(events.length + 1);
+              const eventHashes = records.map(r => r.meta.eventHash);
+              for(const e of events) {
+                //ensure each event was written to the database
+                eventHashes.should.include(e.meta.eventHash);
+              }
+              // filter out duplicate eventHashes
+              const uniqueEvents = new Set(eventHashes);
+              // this ensures that we do not have duplicate eventHashes
+              uniqueEvents.size.should.equal(eventHashes.length);
+              callback();
+            }).catch(callback);
+          }]
+        }, err => done(err));
+      });
+    });
 
     it.skip('returns InvalidStateError if ops not properly associated', done => {
       async.times(5, (id, next) => {
