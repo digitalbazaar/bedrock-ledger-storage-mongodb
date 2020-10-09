@@ -262,7 +262,7 @@ describe('Event Storage API', () => {
               records.length.should.equal(events.length + 1);
               const eventHashes = records.map(r => r.meta.eventHash);
               for(const e of events) {
-                //ensure each event was written to the database
+                // ensure each event was written to the database
                 eventHashes.should.include(e.meta.eventHash);
               }
               // filter out duplicate eventHashes
