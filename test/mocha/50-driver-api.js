@@ -3,7 +3,6 @@
  */
 'use strict';
 
-const async = require('async');
 const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const helpers = require('./helpers');
@@ -22,59 +21,45 @@ configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 describe('Ledger Storage Driver API', () => {
   let ledgerStorage;
 
-  before(done => {
+  before(async () => {
     const block = bedrock.util.clone(configBlockTemplate);
-    const meta = {};
+    let meta = {};
     const options = {
       ledgerId: exampleLedgerId, ledgerNodeId: exampleLedgerNodeId
     };
-    async.auto({
-      initStorage: callback => blsMongodb.add(
-        meta, options, (err, storage) => {
-          ledgerStorage = storage;
-          callback(err, storage);
-        }),
-      blockHash: callback => helpers.testHasher(block, callback),
-      eventHash: callback => helpers.testHasher(configEventTemplate, callback),
-      addEvent: ['initStorage', 'eventHash', (results, callback) => {
-        const meta = {
-          blockHeight: 0,
-          blockOrder: 0,
-          consensus: true,
-          consensusDate: Date.now(),
-          eventHash: results.eventHash
-        };
-        ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
-      }],
-      addConfigBlock: ['addEvent', 'blockHash', (results, callback) => {
-        // blockHash and consensus are normally created by consensus plugin
-        meta.blockHash = results.blockHash;
-        meta.consensus = Date.now();
-        block.blockHeight = 0;
-        block.event = [results.eventHash];
-        ledgerStorage.blocks.add({block, meta}, callback);
-      }]
-    }, done);
+
+    const ledgerStorage = await blsMongodb.add(meta, options);
+    const eventHash = await helpers.testHasher(configEventTemplate);
+    const blockHash = await helpers.testHasher(block);
+    meta = {
+      blockHeight: 0,
+      blockOrder: 0,
+      consensus: true,
+      consensusDate: Date.now(),
+      eventHash
+    };
+    await ledgerStorage.events.add({event: configEventTemplate, meta});
+    // blockHash and consensus are normally created by consensus plugin
+    meta.blockHash = blockHash;
+    meta.consensus = Date.now();
+    block.blockHeight = 0;
+    block.event = [eventHash];
+    await ledgerStorage.blocks.add({block, meta});
   });
-  beforeEach(done => {
+  beforeEach(async () => {
     // FIXME: Remove ledger
-    done();
   });
-  it('should be able to retrieve the driver', done => {
+  it('should be able to retrieve the driver', async () => {
     should.exist(ledgerStorage.driver);
-    done();
   });
-  it('should be able to perform a query', done => {
+  it('should be able to perform a query', async () => {
     const query = {
       'ledger.id': ledgerStorage.id
     };
-    ledgerStorage.driver.collections.ledger.findOne(query, (err, result) => {
-      assertNoError(err);
-      result.ledger.id.should.equal(ledgerStorage.id);
-      done();
-    });
+    const result = await ledgerStorage.driver.collections.ledger.findOne(query);
+    result.ledger.id.should.equal(ledgerStorage.id);
   });
-  it('should be able to perform a write', done => {
+  it('should be able to perform a write', async () => {
     const filter = {
       'ledger.id': ledgerStorage.id
     };
@@ -86,10 +71,7 @@ describe('Ledger Storage Driver API', () => {
       }
     };
     const lc = ledgerStorage.driver.collections.ledger;
-    lc.updateOne(filter, update, (err, result) => {
-      assertNoError(err);
-      result.matchedCount.should.equal(1);
-      done();
-    });
+    const result = await lc.updateOne(filter, update);
+    result.matchedCount.should.equal(1);
   });
 });

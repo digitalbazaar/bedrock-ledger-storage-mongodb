@@ -3,7 +3,6 @@
  */
 'use strict';
 
-const async = require('async');
 const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const helpers = require('./helpers');
@@ -21,287 +20,221 @@ configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 describe('Operation Storage API', () => {
   let ledgerStorage;
 
-  beforeEach(done => {
+  beforeEach(async () => {
     const block = bedrock.util.clone(configBlockTemplate);
-    const meta = {};
+    let meta = {};
     const options = {
       ledgerId: exampleLedgerId, ledgerNodeId: exampleLedgerNodeId
     };
 
-    async.auto({
-      initStorage: callback => blsMongodb.add(meta, options, (err, storage) => {
-        ledgerStorage = storage;
-        callback(err, storage);
-      }),
-      eventHash: callback => helpers.testHasher(configEventTemplate, callback),
-      blockHash: callback => helpers.testHasher(block, callback),
-      addEvent: ['initStorage', 'eventHash', (results, callback) => {
-        const meta = {
-          blockHeight: 0,
-          blockOrder: 0,
-          consensus: true,
-          consensusDate: Date.now(),
-          eventHash: results.eventHash
-        };
-        ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
-      }],
-      addConfigBlock: ['addEvent', 'blockHash', (results, callback) => {
-        // blockHash and consensus are normally created by consensus plugin
-        meta.blockHash = results.blockHash;
-        meta.consensus = Date.now();
-        block.blockHeight = 0;
-        block.event = [results.eventHash];
-        ledgerStorage.blocks.add({block, meta}, callback);
-      }]
-    }, done);
+    ledgerStorage = await blsMongodb.add(meta, options);
+    const eventHash = await helpers.testHasher(configEventTemplate);
+    const blockHash = await helpers.testHasher(block);
+
+    meta = {
+      blockHeight: 0,
+      blockOrder: 0,
+      consensus: true,
+      consensusDate: Date.now(),
+      eventHash
+    };
+    await ledgerStorage.events.add({event: configEventTemplate, meta});
+
+    // blockHash and consensus are normally created by consensus plugin
+    meta.blockHash = blockHash;
+    meta.consensus = Date.now();
+    block.blockHeight = 0;
+    block.event = [eventHash];
+    await ledgerStorage.blocks.add({block, meta});
   });
 
   describe('getRecordHistory API', () => {
-    it('gets history for two different records', done => {
+    it('gets history for two different records', async () => {
       const eventTemplate = mockData.events.alpha;
       const opTemplate = mockData.operations.alpha;
-      async.auto({
-        events: callback => helpers.addEvent({
-          consensus: true, count: 2, eventTemplate, ledgerStorage, opTemplate
-        }, callback),
-        recordAlpha: ['events', (results, callback) => {
-          const eventHashes = Object.keys(results.events);
-          const {operation} = results.events[eventHashes[0]].operations[0];
-          const {id: recordId} = operation.record;
-          ledgerStorage.operations.getRecordHistory(
-            {recordId}, (err, result) => {
-              assertNoError(err);
-              should.exist(result);
-              result.should.be.an('array');
-              result.should.have.length(1);
-              const o = result[0];
-              should.exist(o.meta);
-              should.exist(o.operation);
-              o.operation.should.eql(operation);
-              callback();
-            });
-        }],
-        recordBeta: ['recordAlpha', (results, callback) => {
-          const eventHashes = Object.keys(results.events);
-          const {operation} = results.events[eventHashes[1]].operations[0];
-          const {id: recordId} = operation.record;
-          ledgerStorage.operations.getRecordHistory(
-            {recordId}, (err, result) => {
-              assertNoError(err);
-              should.exist(result);
-              result.should.be.an('array');
-              result.should.have.length(1);
-              const o = result[0];
-              should.exist(o.meta);
-              should.exist(o.operation);
-              o.operation.should.eql(operation);
-              callback();
-            });
-        }]
-      }, err => {
-        assertNoError(err);
-        done();
-      });
+      const events = await helpers.addEvent({
+        consensus: true, count: 2, eventTemplate, ledgerStorage, opTemplate});
+      const eventHashes = Object.keys(events);
+      // record alpha
+      {
+        const {operation} = events[eventHashes[0]].operations[0];
+        const {id: recordId} = operation.record;
+        const result = await ledgerStorage.operations.getRecordHistory(
+          {recordId});
+        should.exist(result);
+        result.should.be.an('array');
+        result.should.have.length(1);
+        const o = result[0];
+        should.exist(o.meta);
+        should.exist(o.operation);
+        o.operation.should.eql(operation);
+      }
+      // record beta
+      {
+        const {operation} = events[eventHashes[0]].operations[0];
+        const {id: recordId} = operation.record;
+        const result = await ledgerStorage.operations.getRecordHistory(
+          {recordId});
+        should.exist(result);
+        result.should.be.an('array');
+        result.should.have.length(1);
+        const o = result[0];
+        should.exist(o.meta);
+        should.exist(o.operation);
+        o.operation.should.eql(operation);
+      }
     });
-    it('returns NotFoundError on an unknown recordId', done => {
+    it('returns NotFoundError on an unknown recordId', async () => {
       const recordId = 'https://example.com/record/unknown';
-      ledgerStorage.operations.getRecordHistory({recordId}, (err, result) => {
-        should.exist(err);
-        should.not.exist(result);
-        err.name.should.equal('NotFoundError');
-        done();
-      });
+      let result;
+      let err;
+      try {
+        result = await ledgerStorage.operations.getRecordHistory({recordId});
+      } catch(e) {
+        err = e;
+      }
+      should.exist(err);
+      should.not.exist(result);
+      err.name.should.equal('NotFoundError');
     });
-    it('does not get history for an operation without consensus', done => {
+    it('does not get history for an operation without consensus', async () => {
       const eventTemplate = mockData.events.alpha;
       const opTemplate = mockData.operations.alpha;
-      async.auto({
-        // the helper creates events without consensus by default
-        events: callback => helpers.addEvent(
-          {eventTemplate, ledgerStorage, opTemplate}, callback),
-        recordAlpha: ['events', (results, callback) => {
-          const eventHashes = Object.keys(results.events);
-          const {operation} = results.events[eventHashes[0]].operations[0];
-          const {id: recordId} = operation.record;
-          ledgerStorage.operations.getRecordHistory(
-            {recordId}, (err, result) => {
-              should.exist(err);
-              should.not.exist(result);
-              err.name.should.equal('NotFoundError');
-              callback();
-            });
-        }],
-      }, err => {
-        assertNoError(err);
-        done();
-      });
+      // the helper creates events without consensus by default
+      const events = await helpers.addEvent(
+        {eventTemplate, ledgerStorage, opTemplate});
+      const eventHashes = Object.keys(events);
+      const {operation} = events[eventHashes[0]].operations[0];
+      const {id: recordId} = operation.record;
+      let result;
+      let err;
+      try {
+        result = await ledgerStorage.operations.getRecordHistory(
+          {recordId});
+      } catch(e) {
+        err = e;
+      }
+      should.not.exist(result);
+      err.name.should.equal('NotFoundError');
     });
-    it('gets history with multiple CreateWebLedgerRecord operations', done => {
+    it('gets history w/ several CreateWebLedgerRecord operations', async () => {
       // it is acceptable for this to happen, the state machine is responsible
       // for picking for determining which record to use
       const eventTemplate = mockData.events.alpha;
       const opTemplate = mockData.operations.alpha;
       const testRecordId = `https://example.com/event/${uuid()}`;
-      async.auto({
-        // the helper creates events without consensus by default
-        events: callback => helpers.addEvent({
-          consensus: true, count: 2, eventTemplate, ledgerStorage, opTemplate,
-          recordId: testRecordId
-        }, callback),
-        recordAlpha: ['events', (results, callback) => {
-          ledgerStorage.operations.getRecordHistory(
-            {recordId: testRecordId}, (err, result) => {
-              assertNoError(err);
-              should.exist(result);
-              result.should.be.an('array');
-              result.should.have.length(2);
-              // the operations should be in separate events
-              result[0].meta.eventHash.should.not.equal(
-                result[1].meta.eventHash);
-              // the operationHash should be the same
-              result[0].meta.operationHash.should.equal(
-                result[1].meta.operationHash);
-              callback();
-            });
-        }],
-      }, err => {
-        assertNoError(err);
-        done();
+      // the helper creates events without consensus by default
+      await helpers.addEvent({
+        consensus: true, count: 2, eventTemplate, ledgerStorage, opTemplate,
+        recordId: testRecordId
       });
+      const result = await ledgerStorage.operations.getRecordHistory(
+        {recordId: testRecordId});
+      should.exist(result);
+      result.should.be.an('array');
+      result.should.have.length(2);
+      // the operations should be in separate events
+      result[0].meta.eventHash.should.not.equal(
+        result[1].meta.eventHash);
+      // the operationHash should be the same
+      result[0].meta.operationHash.should.equal(
+        result[1].meta.operationHash);
     });
-    it('gets history for a record with one update', done => {
+    it('gets history for a record with one update', async () => {
       const eventTemplate = mockData.events.alpha;
       const opTemplate = mockData.operations.alpha;
       const updateOperationTemplate = mockData.operations.beta;
       const testRecordId = `https://example.com/event/${uuid()}`;
-      async.auto({
-        // the helper creates events without consensus by default
-        createOperation: callback => helpers.addEvent({
-          consensus: true, eventTemplate, ledgerStorage, opTemplate,
-          recordId: testRecordId
-        }, callback),
-        updateOperation: callback => helpers.addEvent({
-          consensus: true, eventTemplate, ledgerStorage,
-          opTemplate: updateOperationTemplate, recordId: testRecordId,
-          startBlockHeight: 2
-        }, callback),
-        recordAlpha: [
-          'createOperation', 'updateOperation', (results, callback) => {
-            ledgerStorage.operations.getRecordHistory(
-              {recordId: testRecordId}, (err, result) => {
-                assertNoError(err);
-                should.exist(result);
-                result.should.be.an('array');
-                result.should.have.length(2);
-                let eventHashes = Object.keys(results.createOperation);
-                let {operation} = results.createOperation[eventHashes[0]]
-                  .operations[0];
-                result[0].operation.should.eql(operation);
-                eventHashes = Object.keys(results.updateOperation);
-                operation = results.updateOperation[eventHashes[0]]
-                  .operations[0].operation;
-                result[1].operation.should.eql(operation);
-                callback();
-              });
-          }],
-      }, err => {
-        assertNoError(err);
-        done();
+      // the helper creates events without consensus by default
+      const createOperation = await helpers.addEvent({
+        consensus: true, eventTemplate, ledgerStorage, opTemplate,
+        recordId: testRecordId
       });
+      // update operation
+      const updateOperation = await helpers.addEvent({
+        consensus: true, eventTemplate, ledgerStorage,
+        opTemplate: updateOperationTemplate, recordId: testRecordId,
+        startBlockHeight: 2
+      });
+      const result = await ledgerStorage.operations.getRecordHistory(
+        {recordId: testRecordId});
+      should.exist(result);
+      result.should.be.an('array');
+      result.should.have.length(2);
+      let eventHashes = Object.keys(createOperation);
+      let {operation} = createOperation[eventHashes[0]]
+        .operations[0];
+      result[0].operation.should.eql(operation);
+      eventHashes = Object.keys(updateOperation);
+      operation = updateOperation[eventHashes[0]]
+        .operations[0].operation;
+      result[1].operation.should.eql(operation);
     });
-    it('gets history for a record with four updates', done => {
+    it('gets history for a record with four updates', async () => {
       const eventTemplate = mockData.events.alpha;
       const opTemplate = mockData.operations.alpha;
       const updateOperationTemplate = mockData.operations.beta;
       const testRecordId = `https://example.com/event/${uuid()}`;
-      async.auto({
-        // the helper creates events without consensus by default
-        createOperation: callback => helpers.addEvent({
-          consensus: true, eventTemplate, ledgerStorage, opTemplate,
-          recordId: testRecordId
-        }, callback),
-        updateOperation: callback => helpers.addEvent({
-          consensus: true, count: 4, eventTemplate, ledgerStorage,
-          opTemplate: updateOperationTemplate, recordId: testRecordId,
-          startBlockHeight: 2
-        }, callback),
-        recordAlpha: [
-          'createOperation', 'updateOperation', (results, callback) => {
-            ledgerStorage.operations.getRecordHistory(
-              {recordId: testRecordId}, (err, result) => {
-                assertNoError(err);
-                should.exist(result);
-                result.should.be.an('array');
-                result.should.have.length(5);
-                const ops = [];
-                for(const eventHash in results.createOperation) {
-                  ops.push(
-                    results.createOperation[eventHash].operations[0].operation);
-                }
-                for(const eventHash in results.updateOperation) {
-                  ops.push(
-                    results.updateOperation[eventHash].operations[0].operation);
-                }
-                result.map(o => o.operation).should.eql(ops);
-                callback();
-              });
-          }],
-      }, err => {
-        assertNoError(err);
-        done();
+      // the helper creates events without consensus by default
+      const createOperation = await helpers.addEvent({
+        consensus: true, eventTemplate, ledgerStorage, opTemplate,
+        recordId: testRecordId
       });
+      const updateOperation = await helpers.addEvent({
+        consensus: true, count: 4, eventTemplate, ledgerStorage,
+        opTemplate: updateOperationTemplate, recordId: testRecordId,
+        startBlockHeight: 2
+      });
+      const result = await ledgerStorage.operations.getRecordHistory(
+        {recordId: testRecordId});
+      should.exist(result);
+      result.should.be.an('array');
+      result.should.have.length(5);
+      const ops = [];
+      for(const eventHash in createOperation) {
+        ops.push(createOperation[eventHash].operations[0].operation);
+      }
+      for(const eventHash in updateOperation) {
+        ops.push(updateOperation[eventHash].operations[0].operation);
+      }
+      result.map(o => o.operation).should.eql(ops);
     });
-    it('updates without consensus are not included in history', done => {
+    it('updates without consensus are not included in history', async () => {
       const eventTemplate = mockData.events.alpha;
       const opTemplate = mockData.operations.alpha;
       const updateOperationTemplate = mockData.operations.beta;
       const testRecordId = `https://example.com/event/${uuid()}`;
-      async.auto({
-        // the helper creates events without consensus by default
-        createOperation: callback => helpers.addEvent({
-          consensus: true, eventTemplate, ledgerStorage, opTemplate,
-          recordId: testRecordId
-        }, callback),
-        // no consensus here
-        updateOperationAlpha: callback => helpers.addEvent({
-          consensus: false, count: 2, eventTemplate, ledgerStorage,
-          opTemplate: updateOperationTemplate, recordId: testRecordId,
-          startBlockHeight: 2
-        }, callback),
-        // consensus here
-        updateOperationBeta: callback => helpers.addEvent({
-          consensus: true, count: 2, eventTemplate, ledgerStorage,
-          opTemplate: updateOperationTemplate, recordId: testRecordId,
-          startBlockHeight: 5
-        }, callback),
-        recordAlpha: [
-          'createOperation', 'updateOperationAlpha', 'updateOperationBeta',
-          (results, callback) => {
-            ledgerStorage.operations.getRecordHistory(
-              {recordId: testRecordId}, (err, result) => {
-                assertNoError(err);
-                should.exist(result);
-                result.should.be.an('array');
-                result.should.have.length(3);
-                const ops = [];
-                for(const eventHash in results.createOperation) {
-                  ops.push(
-                    results.createOperation[eventHash].operations[0].operation);
-                }
-                // operations from updateOperationAlpha should not be included
-                for(const eventHash in results.updateOperationBeta) {
-                  ops.push(
-                    results.updateOperationBeta[eventHash].operations[0]
-                      .operation);
-                }
-                result.map(o => o.operation).should.eql(ops);
-                callback();
-              });
-          }],
-      }, err => {
-        assertNoError(err);
-        done();
+      // the helper creates events without consensus by default
+      const createOperation = await helpers.addEvent({
+        consensus: true, eventTemplate, ledgerStorage, opTemplate,
+        recordId: testRecordId
       });
+      // no consensus here
+      await helpers.addEvent({
+        consensus: false, count: 2, eventTemplate, ledgerStorage,
+        opTemplate: updateOperationTemplate, recordId: testRecordId,
+        startBlockHeight: 2
+      });
+      // consensus here
+      const updateOperationBeta = await helpers.addEvent({
+        consensus: true, count: 2, eventTemplate, ledgerStorage,
+        opTemplate: updateOperationTemplate, recordId: testRecordId,
+        startBlockHeight: 5
+      });
+      const result = await ledgerStorage.operations.getRecordHistory(
+        {recordId: testRecordId});
+      should.exist(result);
+      result.should.be.an('array');
+      result.should.have.length(3);
+      const ops = [];
+      for(const eventHash in createOperation) {
+        ops.push(createOperation[eventHash].operations[0].operation);
+      }
+      // operations from updateOperationAlpha should not be included
+      for(const eventHash in updateOperationBeta) {
+        ops.push(updateOperationBeta[eventHash].operations[0].operation);
+      }
+      result.map(o => o.operation).should.eql(ops);
     });
     it('throws TypeError on invalid maxBlockHeight param', async () => {
       let err;

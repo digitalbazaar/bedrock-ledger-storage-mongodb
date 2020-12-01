@@ -29,9 +29,7 @@
   },
   "homepage": "https://github.com/digitalbazaar/bedrock-ledger-storage-mongodb/",
   "dependencies": {
-    "async": "^2.4.0",
     "bedrock": "^3.1.1",
-    "bedrock-identity": "^8.0.0",
     "bedrock-injector": "^1.0.0",
     "bedrock-jobs": "^3.0.0",
     "bedrock-jsonld-document-loader": "^1.0.0",

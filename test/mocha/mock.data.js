@@ -4,26 +4,10 @@
 'use strict';
 
 const config = require('bedrock').config;
-const helpers = require('./helpers');
 
 const mock = {};
 module.exports = mock;
 
-const identities = mock.identities = {};
-
-// identity with permission to access its own agreements
-const userName = 'regularUser';
-identities[userName] = {};
-identities[userName].identity = helpers.createIdentity(userName);
-// identities[userName].identity.sysResourceRole.push({
-//   sysRole: 'bedrock-ledger.test',
-//   generateResource: 'id'
-// });
-
-// // identity with no permissions
-// userName = 'noPermission';
-// identities[userName] = {};
-// identities[userName].identity = helpers.createIdentity(userName);
 const events = mock.events = {};
 
 events.alpha = {
@@ -99,7 +83,9 @@ operations.alpha = {
   proof: {
     type: 'RsaSignature2018',
     created: '2017-05-10T19:47:13Z',
+    // eslint-disable-next-line
     creator: "https://bedrock.local:18443/consensus/continuity2017/voters/57565658-0d8a-4668-b734-e801aeaa6472#key",
+    // eslint-disable-next-line
     jws: "nlx8c9uFI8Ur/h57F5AeHHrKPSKiiGJmN6APRnYesQPK4LXftnm2lzqpWzsvKGDPzH6QfoOIktQu2Ax0pj/Bi6Oa4/Na75HuoRGppaHCqlyrgbr5EUPRCiYSjlsYKBhEN6ITdmR/O8iGz9WZi4PQjSW9XrrP8bQLeu9Kzsu5hdkzmgS4f3PCXpImwpKFttyF7xARvSQxrgRxZrqWPIGtD9sghRY2/Zn3T2npTaOTXMhgW9Lc7uEpjThnCEsrKflshbLGevZglc/njBp5SoEgon8CuzQIkMBFjCTEdJYBtTuk0AF5BcVyoxPDfH9bdUYOIMFaDhZBQKM5tQEU2GqE/g=="
   }
 };
@@ -117,7 +103,9 @@ operations.beta = {
   proof: {
     type: 'RsaSignature2018',
     created: '2017-05-10T19:47:13Z',
+    // eslint-disable-next-line
     creator: "https://bedrock.local:18443/consensus/continuity2017/voters/57565658-0d8a-4668-b734-e801aeaa6472#key",
+    // eslint-disable-next-line
     jws: "nlx8c9uFI8Ur/h57F5AeHHrKPSKiiGJmN6APRnYesQPK4LXftnm2lzqpWzsvKGDPzH6QfoOIktQu2Ax0pj/Bi6Oa4/Na75HuoRGppaHCqlyrgbr5EUPRCiYSjlsYKBhEN6ITdmR/O8iGz9WZi4PQjSW9XrrP8bQLeu9Kzsu5hdkzmgS4f3PCXpImwpKFttyF7xARvSQxrgRxZrqWPIGtD9sghRY2/Zn3T2npTaOTXMhgW9Lc7uEpjThnCEsrKflshbLGevZglc/njBp5SoEgon8CuzQIkMBFjCTEdJYBtTuk0AF5BcVyoxPDfH9bdUYOIMFaDhZBQKM5tQEU2GqE/g=="
   }
 };
@@ -137,7 +125,9 @@ operations.gamma = {
   proof: {
     type: 'RsaSignature2018',
     created: '2017-05-10T19:47:13Z',
+    // eslint-disable-next-line
     creator: "https://bedrock.local:18443/consensus/continuity2017/voters/57565658-0d8a-4668-b734-e801aeaa6472#key",
+    // eslint-disable-next-line
     jws: "nlx8c9uFI8Ur/h57F5AeHHrKPSKiiGJmN6APRnYesQPK4LXftnm2lzqpWzsvKGDPzH6QfoOIktQu2Ax0pj/Bi6Oa4/Na75HuoRGppaHCqlyrgbr5EUPRCiYSjlsYKBhEN6ITdmR/O8iGz9WZi4PQjSW9XrrP8bQLeu9Kzsu5hdkzmgS4f3PCXpImwpKFttyF7xARvSQxrgRxZrqWPIGtD9sghRY2/Zn3T2npTaOTXMhgW9Lc7uEpjThnCEsrKflshbLGevZglc/njBp5SoEgon8CuzQIkMBFjCTEdJYBtTuk0AF5BcVyoxPDfH9bdUYOIMFaDhZBQKM5tQEU2GqE/g=="
   }
 };
