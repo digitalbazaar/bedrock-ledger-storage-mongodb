@@ -3,11 +3,9 @@
  */
 'use strict';
 
-const async = require('async');
 const bedrock = require('bedrock');
 const brLedgerNode = require('bedrock-ledger-node');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
-const {callbackify} = require('util');
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const mockPlugin = require('./mock.plugin');
@@ -26,206 +24,137 @@ brLedgerNode.use('mock', mockPlugin);
 
 describe('Storage Plugin API', () => {
   describe('extention of storage classes', () => {
-    it('classes are extended on storage add', done => {
+    it('classes are extended on storage add', async () => {
       const meta = {};
       const options = {
         ledgerId: exampleLedgerId(), ledgerNodeId: exampleLedgerNodeId(),
         plugins: ['mock']
       };
-      async.auto({
-        storage: callback => blsMongodb.add(meta, options, callback),
-        test: ['storage', (results, callback) => {
-          should.exist(results.storage.operations.plugins.mock.mockQuery);
-          callback();
-        }]
-      }, err => {
-        assertNoError(err);
-        done();
-      });
+      const storage = await blsMongodb.add(meta, options);
+      should.exist(storage.operations.plugins.mock.mockQuery);
     });
-    it('classes are extended on storage get', done => {
+    it('classes are extended on storage get', async () => {
       const meta = {};
       const options = {
         ledgerId: exampleLedgerId(), ledgerNodeId: exampleLedgerNodeId(),
         plugins: ['mock']
       };
-      async.auto({
-        storage: callback => blsMongodb.add(meta, options, callback),
-        get: ['storage', (results, callback) => {
-          const {id} = results.storage;
-          blsMongodb.get(id, {}, callback);
-        }],
-        test: ['get', (results, callback) => {
-          should.exist(results.get.operations.plugins.mock.mockQuery);
-          callback();
-        }]
-      }, err => {
-        assertNoError(err);
-        done();
-      });
+      const storage = await blsMongodb.add(meta, options);
+      const {id} = storage;
+      const result = await blsMongodb.get(id, {});
+      should.exist(result.operations.plugins.mock.mockQuery);
     });
   });
   describe('index API', () => {
-    it('plugin adds an index to the operations collection', done => {
+    it('plugin adds an index to the operations collection', async () => {
       const meta = {};
       const options = {
         ledgerId: exampleLedgerId(), ledgerNodeId: exampleLedgerNodeId(),
         plugins: ['mock']
       };
-      async.auto({
-        storage: callback => blsMongodb.add(meta, options, callback),
-        test: ['storage', (results, callback) => {
-          const {storage} = results;
-          storage.operations.collection.indexExists(
-            'mockIndex', (err, result) => {
-              assertNoError(err);
-              result.should.be.true;
-              callback();
-            });
-        }]
-      }, err => {
-        assertNoError(err);
-        done();
-      });
+      const storage = await blsMongodb.add(meta, options);
+      const result = await storage.operations.collection.indexExists(
+        'mockIndex');
+      result.should.be.true;
     });
   });
   describe('mock record query API', () => {
     let ledgerStorage;
 
-    beforeEach(done => {
+    beforeEach(async () => {
       const block = bedrock.util.clone(configBlockTemplate);
-      const meta = {};
+      let meta = {};
       const options = {
         ledgerId: exampleLedgerId(), ledgerNodeId: exampleLedgerNodeId(),
         plugins: ['mock']
       };
 
-      async.auto({
-        initStorage: callback => blsMongodb.add(
-          meta, options, (err, storage) => {
-            ledgerStorage = storage;
-            callback(err, storage);
-          }),
-        eventHash: callback => helpers.testHasher(
-          configEventTemplate, callback),
-        blockHash: callback => helpers.testHasher(block, callback),
-        addEvent: ['initStorage', 'eventHash', (results, callback) => {
-          const meta = {
-            blockHeight: 0,
-            blockOrder: 0,
-            consensus: true,
-            consensusDate: Date.now(),
-            eventHash: results.eventHash
-          };
-          ledgerStorage.events.add(
-            {event: configEventTemplate, meta}, callback);
-        }],
-        addConfigBlock: ['addEvent', 'blockHash', (results, callback) => {
-          // blockHash and consensus are normally created by consensus plugin
-          meta.blockHash = results.blockHash;
-          meta.consensus = Date.now();
-          block.blockHeight = 0;
-          block.event = [results.eventHash];
-          ledgerStorage.blocks.add({block, meta}, callback);
-        }]
-      }, done);
+      const ledgerStorage = await blsMongodb.add(meta, options);
+      const eventHash = await helpers.testHasher(configEventTemplate);
+      const blockHash = await helpers.testHasher(block);
+      meta = {
+        blockHeight: 0,
+        blockOrder: 0,
+        consensus: true,
+        consensusDate: Date.now(),
+        eventHash
+      };
+      await ledgerStorage.events.add({event: configEventTemplate, meta});
+      // blockHash and consensus are normally created by consensus plugin
+      meta.blockHash = blockHash;
+      meta.consensus = Date.now();
+      block.blockHeight = 0;
+      block.event = [eventHash];
+      await ledgerStorage.blocks.add({block, meta});
     }); // end beforeEach
 
-    it('record query returns the proper result', done => {
-      async.auto({
-        concerts: callback => {
-          const eventTemplate = mockData.events.alpha;
-          const opTemplate = mockData.operations.alpha;
-          helpers.addEvent({
-            consensus: true, count: 5, eventTemplate, ledgerStorage, opTemplate
-          }, callback);
-        },
-        offers: ['concerts', (results, callback) => {
-          const eventTemplate = mockData.events.alpha;
-          const opTemplate = mockData.operations.gamma;
-          const eventHashes = Object.keys(results.concerts);
-          opTemplate.record.event = results.concerts[eventHashes[0]]
-            .operations[0].operation.record.id;
-          helpers.addEvent({
-            consensus: true, count: 1, eventTemplate, ledgerStorage, opTemplate,
-            startBlockHeight: 6
-          }, callback);
-        }],
-        recordAlpha: ['offers', (results, callback) => {
-          const eventHashes = Object.keys(results.concerts);
-          const concertIds = [
-            results.concerts[eventHashes[0]].operations[0].operation.record.id,
-            results.concerts[eventHashes[1]].operations[0].operation.record.id,
-          ];
-          // the mockQuery API has been implemented using async/await
-          const mockQuery = callbackify(
-            ledgerStorage.operations.plugins.mock.mockQuery);
-          mockQuery({
-            maxBlockHeight: 100,
-            query: {
-              type: 'Offer',
-              event: concertIds,
-            }
-          }, (err, result) => {
-            assertNoError(err);
-            should.exist(result);
-            result.should.be.an('object');
-            should.exist(result.records);
-            result.records.should.be.an('array');
-            result.records.should.have.length(1);
-            const offerEventHashes = Object.keys(results.offers);
-            result.records[0].should.equal(results.offers[offerEventHashes[0]]
-              .operations[0].operation.record.id);
-            callback();
-          });
-        }],
-      }, err => {
-        assertNoError(err);
-        done();
+    it('record query returns the proper result', async () => {
+      const eventTemplate = mockData.events.alpha;
+      let opTemplate = mockData.operations.alpha;
+      const concerts = await helpers.addEvent({
+        consensus: true, count: 5, eventTemplate, ledgerStorage, opTemplate});
+      opTemplate = bedrock.util.clone(mockData.operations.gamma);
+      const eventHashes = Object.keys(concerts);
+      opTemplate.record.event = concerts[eventHashes[0]]
+        .operations[0].operation.record.id;
+      const offers = await helpers.addEvent({
+        consensus: true, count: 1, eventTemplate, ledgerStorage, opTemplate,
+        startBlockHeight: 6
       });
+      const concertIds = [
+        concerts[eventHashes[0]].operations[0].operation.record.id,
+        concerts[eventHashes[1]].operations[0].operation.record.id,
+      ];
+      // the mockQuery API has been implemented using async/await
+      const mockQuery = ledgerStorage.operations.plugins.mock.mockQuery;
+      const result = await mockQuery({
+        maxBlockHeight: 100,
+        query: {
+          type: 'Offer',
+          event: concertIds,
+        }
+      });
+      should.exist(result);
+      result.should.be.an('object');
+      should.exist(result.records);
+      result.records.should.be.an('array');
+      result.records.should.have.length(1);
+      const offerEventHashes = Object.keys(offers);
+      result.records[0].should.equal(offers[offerEventHashes[0]]
+        .operations[0].operation.record.id);
     });
-    it('returns NotFoundError when there are no matching records', done => {
-      async.auto({
-        concerts: callback => {
-          const eventTemplate = mockData.events.alpha;
-          const opTemplate = mockData.operations.alpha;
-          helpers.addEvent({
-            consensus: true, count: 5, eventTemplate, ledgerStorage, opTemplate
-          }, callback);
-        },
-        offers: ['concerts', (results, callback) => {
-          const eventTemplate = mockData.events.alpha;
-          const opTemplate = mockData.operations.gamma;
-          const eventHashes = Object.keys(results.concerts);
-          opTemplate.record.event = results.concerts[eventHashes[0]]
-            .operations[0].operation.record.id;
-          helpers.addEvent({
-            consensus: true, count: 1, eventTemplate, ledgerStorage, opTemplate,
-            startBlockHeight: 6
-          }, callback);
-        }],
-        query: ['offers', (results, callback) => {
-          // the mockQuery API has been implemented using async/await
-          const mockQuery = callbackify(
-            ledgerStorage.operations.plugins.mock.mockQuery);
-          // NOTE: querying for an unknown type
-          mockQuery({
-            maxBlockHeight: 100,
-            query: {
-              type: 'UnknownType',
-            }
-          }, (err, result) => {
-            should.exist(err);
-            should.not.exist(result);
-            should.exist(err.name);
-            err.name.should.equal('NotFoundError');
-            callback();
-          });
-        }],
-      }, err => {
-        assertNoError(err);
-        done();
+    it('returns NotFoundError when there are no matching records', async () => {
+      const eventTemplate = mockData.events.alpha;
+      let opTemplate = mockData.operations.alpha;
+      const concerts = await helpers.addEvent({
+        consensus: true, count: 5, eventTemplate, ledgerStorage, opTemplate
       });
+      opTemplate = bedrock.util.clone(mockData.operations.gamma);
+      const eventHashes = Object.keys(concerts);
+      opTemplate.record.event = concerts[eventHashes[0]]
+        .operations[0].operation.record.id;
+      await helpers.addEvent({
+        consensus: true, count: 1, eventTemplate, ledgerStorage, opTemplate,
+        startBlockHeight: 6
+      });
+      const mockQuery = ledgerStorage.operations.plugins.mock.mockQuery;
+      // NOTE: querying for an unknown type
+      let result;
+      let err;
+      try {
+        result = await mockQuery({
+          maxBlockHeight: 100,
+          query: {
+            type: 'UnknownType',
+          }
+        });
+      } catch(e) {
+        err = e;
+      }
+      should.exist(err);
+      should.not.exist(result);
+      should.exist(err.name);
+      err.name.should.equal('NotFoundError');
     });
   }); // end query API
 });

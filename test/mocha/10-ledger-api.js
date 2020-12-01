@@ -3,7 +3,6 @@
  */
 'use strict';
 
-const async = require('async');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const database = require('bedrock-mongodb');
 const {util: {uuid}} = require('bedrock');
@@ -78,42 +77,31 @@ describe('Ledger Storage API', function() {
     err.name.should.equal('NotFoundError');
   });
   // NOTE: this test succeeds, but can take upwards of a minute to complete
-  it('should iterate over ledgers', function(done) {
+  it('should iterate over ledgers', async function() {
     let ledgerCount = 3;
     const ledgerIds = Array(3).fill().map(() => {
       return 'did:v1:' + uuid();
     });
     const storageIds = [];
-    async.every(ledgerIds, (ledgerId, callback) => {
+    for(const ledgerId of ledgerIds) {
       const meta = {};
       const options = {ledgerId, ledgerNodeId: `urn:uuid:${uuid()}`};
-      blsMongodb.add(meta, options, (err, storage) => {
-        assertNoError(err);
-        storageIds.push(storage.id);
-        callback(err, true);
-      });
-    }, err => {
-      assertNoError(err);
-      // iterate through all of the ledger IDs
-      const options = {owner: testOwner + '-iterator'};
-      blsMongodb.getLedgerIterator(options, (err, iterator) => {
-        assertNoError(err);
-        ledgerCount = 0;
-        async.eachSeries(iterator, (promise, callback) => {
-          promise.then(storage => {
-            if(storageIds.indexOf(storage.id) !== -1) {
-              ledgerCount++;
-            }
-            callback();
-          }, callback);
-        }, err => {
-          ledgerCount.should.equal(3);
-          done(err);
-        });
-      });
-    });
+      const storage = await blsMongodb.add(meta, options);
+      storageIds.push(storage.id);
+    }
+    // iterate through all of the ledger IDs
+    const options = {owner: testOwner + '-iterator'};
+    const iterator = await blsMongodb.getLedgerIterator(options);
+    ledgerCount = 0;
+    for(const promise of iterator) {
+      const storage = await promise;
+      if(storageIds.indexOf(storage.id) !== -1) {
+        ledgerCount++;
+      }
+    }
+    ledgerCount.should.equal(3);
   });
-  it('should remove a ledger', done => {
+  it('should remove a ledger', async () => {
     const meta = {};
     const options = {
       ledgerId: 'did:v1:' + uuid(),
@@ -121,34 +109,22 @@ describe('Ledger Storage API', function() {
       owner: testOwner,
     };
 
-    async.auto({
-      add: callback => blsMongodb.add(meta, options, callback),
-      get: ['add', (results, callback) => {
-        const storage = results.add;
-        blsMongodb.get(storage.id, options, callback);
-      }],
-      ensureGet: ['get', (results, callback) => {
-        const storage = results.get;
-        should.exist(storage);
-        should.exist(storage.blocks);
-        should.exist(storage.events);
-        callback();
-      }],
-      remove: ['ensureGet', (results, callback) => {
-        const storage = results.get;
-        blsMongodb.remove(storage.id, options, err => {
-          assertNoError(err);
-          callback();
-        });
-      }],
-      ensureGone: ['remove', (results, callback) => {
-        const storage = results.get;
-        blsMongodb.get(storage.id, options, (err, storage) => {
-          should.exist(err);
-          should.not.exist(storage);
-          err.name.should.equal('NotFoundError');
-          callback();
-        });
-      }]}, err => done(err));
+    const add = await blsMongodb.add(meta, options);
+    const get = await blsMongodb.get(add.id, options);
+    should.exist(get);
+    should.exist(get.blocks);
+    should.exist(get.events);
+
+    await blsMongodb.remove(get.id, options);
+    let err;
+    let gone;
+    try {
+      gone = await blsMongodb.get(add.id, options);
+    } catch(e) {
+      err = e;
+    }
+    should.exist(err);
+    should.not.exist(gone);
+    err.name.should.equal('NotFoundError');
   });
 });

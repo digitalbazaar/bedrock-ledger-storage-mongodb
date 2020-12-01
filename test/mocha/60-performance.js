@@ -3,7 +3,6 @@
  */
 'use strict';
 
-const async = require('async');
 const bedrock = require('bedrock');
 const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const helpers = require('./helpers');
@@ -20,39 +19,30 @@ configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 
 let ledgerStorage;
 describe('Performance tests', () => {
-  before(done => {
+  before(async () => {
     const block = bedrock.util.clone(configBlockTemplate);
-    const meta = {};
+    let meta = {};
     const options = {
       ledgerId: exampleLedgerId, ledgerNodeId: exampleLedgerNodeId
     };
-    async.auto({
-      initStorage: callback => blsMongodb.add(meta, options, (err, storage) => {
-        ledgerStorage = storage;
-        callback(err, storage);
-      }),
-      eventHash: callback => helpers.testHasher(configEventTemplate, callback),
-      blockHash: callback => helpers.testHasher(block, callback),
-      addEvent: ['initStorage', 'eventHash', (results, callback) => {
-        const meta = {
-          blockHeight: 0,
-          blockOrder: 0,
-          consensus: true,
-          consensusDate: Date.now(),
-          eventHash: results.eventHash,
-          effectiveConfiguration: true
-        };
-        ledgerStorage.events.add({event: configEventTemplate, meta}, callback);
-      }],
-      addConfigBlock: ['addEvent', 'blockHash', (results, callback) => {
-        // blockHash and consensus are normally created by consensus plugin
-        meta.blockHash = results.blockHash;
-        meta.consensus = Date.now();
-        block.blockHeight = 0;
-        block.event = [results.eventHash];
-        ledgerStorage.blocks.add({block, meta}, callback);
-      }]
-    }, done);
+
+    const ledgerStorage = await blsMongodb.add(meta, options);
+    const eventHash = await helpers.testHasher(configEventTemplate);
+    const blockHash = await helpers.testHasher(block);
+    meta = {
+      blockHeight: 0,
+      blockOrder: 0,
+      consensus: true,
+      consensusDate: Date.now(),
+      eventHash
+    };
+    await ledgerStorage.events.add({event: configEventTemplate, meta});
+    // blockHash and consensus are normally created by consensus plugin
+    meta.blockHash = blockHash;
+    meta.consensus = Date.now();
+    block.blockHeight = 0;
+    block.event = [eventHash];
+    await ledgerStorage.blocks.add({block, meta});
   });
 
   describe('Blocks and Event Operations', () => {
@@ -62,117 +52,93 @@ describe('Performance tests', () => {
     const passNum = 10;
     const outstandingEventNum = 250;
     let blocksAndEvents;
-    it(`generating ${blockNum} blocks`, function(done) {
+    it(`generating ${blockNum} blocks`, async function() {
       this.timeout(320000);
-      helpers.createBlocks({
+      blocksAndEvents = await helpers.createBlocks({
         blockNum,
         blockTemplate: mockData.eventBlocks.alpha,
         eventNum,
         eventTemplate: mockData.events.alpha,
         opTemplate: mockData.operations.alpha
-      }, (err, result) => {
-        assertNoError(err);
-        blocksAndEvents = result;
-        done();
       });
     });
 
-    it(`operations.add operations`, function(done) {
+    it(`operations.add operations`, async function() {
       this.timeout(320000);
       const {operations} = blocksAndEvents;
       console.log(`Adding ${operations.length} operations.`);
-      ledgerStorage.operations.addMany({operations}, err => {
-        assertNoError(err);
-        done();
-      });
+      await ledgerStorage.operations.addMany({operations});
     });
 
     // NOTE: the events added here are referenced in the blocks.add test
-    it(`events.add events`, function(done) {
+    it(`events.add events`, async function() {
       this.timeout(320000);
       console.log(`Adding ${blocksAndEvents.events.length} events.`);
-      async.eachLimit(blocksAndEvents.events, 100, (e, callback) =>
-        ledgerStorage.events.add({event: e.event, meta: e.meta}, err => {
-          assertNoError(err);
-          callback();
-        }), err => {
-        assertNoError(err);
-        done();
-      });
+      await Promise.all(blocksAndEvents.events.map(
+        e => ledgerStorage.events.add({event: e.event, meta: e.meta})));
     });
 
     // NOTE: the events referenced in the blocks are stored in events.add
-    it(`blocks.add ${blockNum} blocks`, function(done) {
+    it(`blocks.add ${blockNum} blocks`, async function() {
       this.timeout(320000);
-      async.eachLimit(
-        blocksAndEvents.blocks, 100, ({block, meta}, callback) => {
-          ledgerStorage.blocks.add({block, meta}, err => {
-            assertNoError(err);
-            callback();
-          });
-        }, done);
+      await Promise.all(blocksAndEvents.blocks.map(
+        ({block, meta}) => ledgerStorage.blocks.add({block, meta})));
     });
-    it(`add ${outstandingEventNum} events without consensus`, function(done) {
+    it(`add ${outstandingEventNum} events without consensus`, async function() {
       this.timeout(320000);
-      async.auto({
-        create: callback => helpers.createEvent({
-          consensus: false,
-          eventNum: outstandingEventNum,
-          eventTemplate: mockData.events.alpha,
-          opTemplate: mockData.operations.alpha,
-        }, callback),
-        operations: ['create', (results, callback) => {
-          const {operations} = results.create;
-          ledgerStorage.operations.addMany({operations}, callback);
-        }],
-        add: ['operations', (results, callback) =>
-          async.eachLimit(results.create.events, 100, (e, callback) =>
-            ledgerStorage.events.add({event: e.event, meta: e.meta}, err => {
-              assertNoError(err);
-              callback();
-            }), callback)]
-      }, done);
+      const {operations, events} = await helpers.createEvent({
+        consensus: false,
+        eventNum: outstandingEventNum,
+        eventTemplate: mockData.events.alpha,
+        opTemplate: mockData.operations.alpha,
+      });
+      await ledgerStorage.operations.addMany({operations});
+      await Promise.all(events.map(
+        ({event, meta}) => ledgerStorage.events.add({event, meta})));
     });
-    it(`blocks.getLatestSummary ${opNum} times`, function(done) {
+    it(`blocks.getLatestSummary ${opNum} times`, async function() {
       this.timeout(320000);
-      runPasses({
+      await runPasses({
         func: ledgerStorage.blocks.getLatestSummary, api: 'blocks',
         passNum, opNum
-      }, done);
+      });
     });
-    it(`blocks.getLatest ${opNum} times`, function(done) {
+    it(`blocks.getLatest ${opNum} times`, async function() {
       this.timeout(320000);
-      runPasses({
+      await runPasses({
         func: ledgerStorage.blocks.getLatest, api: 'blocks', passNum, opNum
-      }, done);
+      });
     });
-    it(`events.getLatestConfig ${opNum} times`, function(done) {
+    it(`events.getLatestConfig ${opNum} times`, async function() {
       this.timeout(320000);
-      runPasses({
+      await runPasses({
         func: ledgerStorage.events.getLatestConfig, api: 'events',
         passNum, opNum
-      }, done);
+      });
     });
   });
 });
 
-function runPasses({func, passNum, opNum, api, concurrency = 100}, callback) {
+async function runPasses({func, passNum, opNum, api, concurrency = 100}) {
   const passes = [];
-  async.timesSeries(passNum, (i, callback) => {
+  for(let i = 0; i < passNum; ++i) {
     const start = Date.now();
-    async.timesLimit(
-      opNum, concurrency, (i, callback) => func.call(
-        ledgerStorage[api], callback),
-      err => {
-        const stop = Date.now();
-        assertNoError(err);
-        passes.push(Math.round(opNum / (stop - start) * 1000));
-        callback();
-      });
-  }, err => {
-    assertNoError(err);
-    console.log('ops/sec passes', passes);
-    console.log('average ops/sec', helpers.average(passes));
-    callback();
-  });
+    let remainingOps = opNum;
+    while(remainingOps > 0) {
+      const promises = [];
+      let count = remainingOps - concurrency;
+      if(count < 0) {
+        count = remainingOps;
+      }
+      remainingOps -= count;
+      for(let j = 0; j < count; ++j) {
+        promises.push(func.call(ledgerStorage[api]));
+      }
+      await promises;
+    }
+    const stop = Date.now();
+    passes.push(Math.round(opNum / (stop - start) * 1000));
+  }
+  console.log('ops/sec passes', passes);
+  console.log('average ops/sec', helpers.average(passes));
 }
