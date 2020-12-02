@@ -6,7 +6,6 @@
 const bedrock = require('bedrock');
 const brLedgerNode = require('bedrock-ledger-node');
 const database = require('bedrock-mongodb');
-const {promisify} = require('util');
 const {util: {uuid}} = bedrock;
 
 const api = {};
