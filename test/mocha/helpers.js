@@ -129,7 +129,7 @@ api.createEvent = async ({
 
 api.removeCollections = async function(collections = []) {
   const collectionNames = [].concat(collections);
-  await promisify(database.openCollections)(collectionNames);
+  await database.openCollections(collectionNames);
   for(const collectionName of collectionNames) {
     await database.collections[collectionName].deleteMany({});
   }

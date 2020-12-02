@@ -3,7 +3,7 @@
 ## 4.0.0 -
 
 ### Changed
-- **BREAKING**: Use `bedrock-mongodb` 7.x-8.x.
+- **BREAKING**: Use `bedrock-mongodb` 8.1.x.
 - **BREAKING**: callback API remove, promises only.
 - Updated peerDep `bedrock-ledger-node` to ^ 11.0.0.
 - Updated Copyrights to include 2020.

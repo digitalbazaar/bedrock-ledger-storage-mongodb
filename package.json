@@ -29,7 +29,7 @@
   "peerDependencies": {
     "bedrock": "2.x - 3.x",
     "bedrock-ledger-node": "^11.0.0",
-    "bedrock-mongodb": "7.x - 8.x"
+    "bedrock-mongodb": "^8.1.0"
   },
   "engines": {
     "node": ">=12.0.0"
