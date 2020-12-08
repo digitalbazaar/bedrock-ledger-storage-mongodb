@@ -1,5 +1,10 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
+## 4.1.0 - 2020-12-xx
+
+### Changed
+- Include "mergeHeight" in retrieved merge events.
+
 ## 4.0.1 - 2021-04-07
 
 ### Fixed
