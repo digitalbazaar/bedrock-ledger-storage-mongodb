@@ -33,7 +33,7 @@
     "bedrock-injector": "^1.0.0",
     "bedrock-jobs": "^3.0.0",
     "bedrock-jsonld-document-loader": "^1.0.0",
-    "bedrock-ledger-context": "^15.0.0",
+    "bedrock-ledger-context": "^16.0.0",
     "bedrock-ledger-node": "^11.0.0",
     "bedrock-ledger-storage-mongodb": "file:..",
     "bedrock-mongodb": "^8.1.0",
