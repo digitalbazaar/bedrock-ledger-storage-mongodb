@@ -28,7 +28,7 @@ describe('Ledger Storage Driver API', () => {
       ledgerId: exampleLedgerId, ledgerNodeId: exampleLedgerNodeId
     };
 
-    const ledgerStorage = await blsMongodb.add(meta, options);
+    ledgerStorage = await blsMongodb.add(meta, options);
     const eventHash = await helpers.testHasher(configEventTemplate);
     const blockHash = await helpers.testHasher(block);
     meta = {
