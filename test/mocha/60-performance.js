@@ -8,6 +8,7 @@ const blsMongodb = require('bedrock-ledger-storage-mongodb');
 const helpers = require('./helpers');
 const mockData = require('./mock.data');
 const {util: {uuid}} = bedrock;
+const pTimes = require('p-times');
 
 const exampleLedgerId = `did:v1:${uuid()}`;
 const exampleLedgerNodeId = `urn:uuid:${uuid()}`;
@@ -26,7 +27,7 @@ describe('Performance tests', () => {
       ledgerId: exampleLedgerId, ledgerNodeId: exampleLedgerNodeId
     };
 
-    const ledgerStorage = await blsMongodb.add(meta, options);
+    ledgerStorage = await blsMongodb.add(meta, options);
     const eventHash = await helpers.testHasher(configEventTemplate);
     const blockHash = await helpers.testHasher(block);
     meta = {
@@ -34,7 +35,8 @@ describe('Performance tests', () => {
       blockOrder: 0,
       consensus: true,
       consensusDate: Date.now(),
-      eventHash
+      eventHash,
+      effectiveConfiguration: true
     };
     await ledgerStorage.events.add({event: configEventTemplate, meta});
     // blockHash and consensus are normally created by consensus plugin
@@ -123,19 +125,7 @@ async function runPasses({func, passNum, opNum, api, concurrency = 100}) {
   const passes = [];
   for(let i = 0; i < passNum; ++i) {
     const start = Date.now();
-    let remainingOps = opNum;
-    while(remainingOps > 0) {
-      const promises = [];
-      let count = remainingOps - concurrency;
-      if(count < 0) {
-        count = remainingOps;
-      }
-      remainingOps -= count;
-      for(let j = 0; j < count; ++j) {
-        promises.push(func.call(ledgerStorage[api]));
-      }
-      await promises;
-    }
+    await pTimes(opNum, () => func.call(ledgerStorage[api]), {concurrency});
     const stop = Date.now();
     passes.push(Math.round(opNum / (stop - start) * 1000));
   }
