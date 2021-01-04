@@ -69,7 +69,7 @@ describe('Storage Plugin API', () => {
         plugins: ['mock']
       };
 
-      const ledgerStorage = await blsMongodb.add(meta, options);
+      ledgerStorage = await blsMongodb.add(meta, options);
       const eventHash = await helpers.testHasher(configEventTemplate);
       const blockHash = await helpers.testHasher(block);
       meta = {
