@@ -754,6 +754,109 @@ describe('Event Storage API', () => {
     });
   });
 
+  describe('updateMany API', () => {
+    it('should update many events', async () => {
+      const count = 50;
+      let i = 0;
+      const events = [];
+      while(i++ < count) {
+        const event = bedrock.util.clone(configEventTemplate);
+        event.ledgerConfiguration.creator = `https://example.com/${uuid()}`;
+        const meta = {
+          testArrayOne: ['a', 'b'],
+          testArrayTwo: ['a', 'b', 'c', 'z'],
+          pending: true
+        };
+        // create the block
+        const eventHash = await helpers.testHasher(event);
+        meta.eventHash = eventHash;
+        events.push({
+          event,
+          meta
+        });
+      }
+
+      await Promise.all(events.map(event => ledgerStorage.events.add(event)));
+
+      // patch the event
+      const patch = [
+        {op: 'unset', changes: {meta: {pending: 1}}},
+        {op: 'set', changes: {meta: {consensus: Date.now()}}},
+        {op: 'add', changes: {meta: {testArrayOne: 'c'}}},
+        {op: 'remove', changes: {meta: {testArrayTwo: 'z'}}}
+      ];
+
+      const eventUpdates = events.map(({meta}) => ({
+        eventHash: meta.eventHash, patch
+      }));
+
+      await ledgerStorage.events.updateMany({events: eventUpdates});
+      for(const event of events) {
+        const {eventHash} = event.meta;
+        const result = await ledgerStorage.events.get(eventHash);
+        should.exist(result.meta.consensus);
+        should.not.exist(result.meta.pending);
+        result.meta.testArrayOne.should.eql(['a', 'b', 'c']);
+        result.meta.testArrayTwo.should.eql(['a', 'b', 'c']);
+      }
+    });
+    it('should fail to update many invalid events', async () => {
+      const count = 50;
+      let i = 0;
+      const events = [];
+      while(i++ < count) {
+        const event = bedrock.util.clone(configEventTemplate);
+        event.ledgerConfiguration.creator = `https://example.com/${uuid()}`;
+        const meta = {
+          testArrayOne: ['a', 'b'],
+          testArrayTwo: ['a', 'b', 'c', 'z'],
+          pending: true
+        };
+        // create the block
+        const eventHash = await helpers.testHasher(event);
+        meta.eventHash = eventHash;
+        events.push({
+          event,
+          meta
+        });
+      }
+
+      await Promise.all(events.map(event => ledgerStorage.events.add(event)));
+
+      // patch the event
+      const patch = [
+        {op: 'unset', changes: {meta: {pending: 1}}},
+        {op: 'set', changes: {meta: {consensus: Date.now()}}},
+        {op: 'add', changes: {meta: {testArrayOne: 'c'}}},
+        {op: 'remove', changes: {meta: {testArrayTwo: 'z'}}}
+      ];
+
+      const eventUpdates = events.map(({meta}) => ({
+        eventHash: meta.eventHash, patch
+      }));
+
+      // add bad event
+      eventUpdates.push({
+        eventHash: 'ni:///sha-256;INVALID',
+        patch: [
+          {op: 'unset', changes: {meta: {pending: 1}}}
+        ]
+      });
+
+      let result;
+      let err;
+      try {
+        result = await ledgerStorage.events.updateMany({events: eventUpdates});
+      } catch(e) {
+        err = e;
+      }
+
+      should.exist(err);
+      should.not.exist(result);
+      err.name.should.equal('OperationError');
+    });
+  });
+
   describe('remove API', () => {
     it('should remove event', async () => {
       const event = bedrock.util.clone(configEventTemplate);

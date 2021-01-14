@@ -22,7 +22,7 @@ configBlockTemplate.id = exampleLedgerId + '/blocks/1';
 const eventBlockTemplate = bedrock.util.clone(mockData.eventBlocks.alpha);
 const opTemplate = mockData.operations.alpha;
 
-describe.only('Block Storage API', () => {
+describe('Block Storage API', () => {
   let ledgerStorage;
 
   beforeEach(async () => {
