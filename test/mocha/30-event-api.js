@@ -798,6 +798,31 @@ describe('Event Storage API', () => {
       }
     });
 
+    it('should update many events idempotently', async () => {
+      // patch the event
+      const patch = [
+        {op: 'unset', changes: {meta: {pending: 1}}},
+        {op: 'set', changes: {meta: {consensus: Date.now()}}}
+      ];
+
+      const eventUpdates = events.map(({meta}) => ({
+        eventHash: meta.eventHash, patch
+      }));
+
+      // dispatch updateMany call N times
+      const count = 3;
+      for(let i = 0; i < count; i++) {
+        await ledgerStorage.events.updateMany({events: eventUpdates});
+      }
+
+      for(const event of events) {
+        const {eventHash} = event.meta;
+        const result = await ledgerStorage.events.get(eventHash);
+        should.exist(result.meta.consensus);
+        should.not.exist(result.meta.pending);
+      }
+    });
+
     it('should fail to update many with an invalid event', async () => {
       // patch the event
       const patch = [
