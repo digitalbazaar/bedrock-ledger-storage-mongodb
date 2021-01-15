@@ -797,7 +797,8 @@ describe('Event Storage API', () => {
         should.not.exist(result.meta.pending);
       }
     });
-    it('should fail to update many invalid events', async () => {
+
+    it('should fail to update many with an invalid event', async () => {
       // patch the event
       const patch = [
         {op: 'unset', changes: {meta: {pending: 1}}},
@@ -827,6 +828,37 @@ describe('Event Storage API', () => {
       should.exist(err);
       should.not.exist(result);
       err.name.should.equal('OperationError');
+    });
+
+    it('should fail to update many with a non-idempotent patch', async () => {
+      // patch the event
+      const patch = [
+        {op: 'unset', changes: {meta: {pending: 1}}},
+        {op: 'set', changes: {meta: {consensus: Date.now()}}}
+      ];
+
+      const eventUpdates = events.map(({meta}, idx) => {
+        // add a non-idempotent operation to the last updates
+        if(idx === events.length - 1) {
+          patch.push({op: 'add', changes: {meta: {testArrayOne: 'c'}}});
+        }
+
+        return {
+          eventHash: meta.eventHash, patch
+        };
+      });
+
+      let result;
+      let err;
+      try {
+        result = await ledgerStorage.events.updateMany({events: eventUpdates});
+      } catch(e) {
+        err = e;
+      }
+
+      should.exist(err);
+      should.not.exist(result);
+      err.name.should.equal('NotAllowedError');
     });
   });
 
