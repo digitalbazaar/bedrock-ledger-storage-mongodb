@@ -798,7 +798,7 @@ describe('Event Storage API', () => {
       }
     });
 
-    it('should update many events idempotently', async () => {
+    it('should update many events N times', async () => {
       // patch the event
       const patch = [
         {op: 'unset', changes: {meta: {pending: 1}}},
@@ -823,7 +823,7 @@ describe('Event Storage API', () => {
       }
     });
 
-    it('should fail to update many with an invalid event', async () => {
+    it('should fail to update many with an invalid event update', async () => {
       // patch the event
       const patch = [
         {op: 'unset', changes: {meta: {pending: 1}}},
@@ -836,9 +836,14 @@ describe('Event Storage API', () => {
 
       // add bad event
       eventUpdates.push({
-        eventHash: 'ni:///sha-256;INVALID',
+        eventHash: eventUpdates[eventUpdates.length - 1].eventHash,
         patch: [
-          {op: 'unset', changes: {meta: {pending: 1}}}
+          {
+            op: 'set',
+            changes: {
+              meta: {eventHash: eventUpdates[eventUpdates.length - 2].eventHash}
+            }
+          }
         ]
       });
 
@@ -851,39 +856,24 @@ describe('Event Storage API', () => {
       }
 
       should.exist(err);
+      should.exist(err.details);
+      should.exist(err.details.errors);
+      should.exist(err.details.writeErrors);
+      should.exist(err.details.writeConcernErrors);
       should.not.exist(result);
+
       err.name.should.equal('OperationError');
-    });
+      err.details.errors.length.should.equal(0);
+      err.details.writeErrors.length.should.equal(1);
+      err.details.writeConcernErrors.length.should.equal(0);
 
-    it('should fail to update many with a non-idempotent patch', async () => {
-      // patch the event
-      const patch = [
-        {op: 'unset', changes: {meta: {pending: 1}}},
-        {op: 'set', changes: {meta: {consensus: Date.now()}}}
-      ];
+      const writeError = err.details.writeErrors[0];
+      // the update with an error, should be the last update operation
+      writeError.err.index.should.equal(eventUpdates.length - 1);
+      // the error should have the duplicate key error code
+      writeError.err.code.should.equal(11000);
+      writeError.err.errmsg.should.contain('E11000 duplicate key error');
 
-      const eventUpdates = events.map(({meta}, idx) => {
-        // add a non-idempotent operation to the last updates
-        if(idx === events.length - 1) {
-          patch.push({op: 'add', changes: {meta: {testArrayOne: 'c'}}});
-        }
-
-        return {
-          eventHash: meta.eventHash, patch
-        };
-      });
-
-      let result;
-      let err;
-      try {
-        result = await ledgerStorage.events.updateMany({events: eventUpdates});
-      } catch(e) {
-        err = e;
-      }
-
-      should.exist(err);
-      should.not.exist(result);
-      err.name.should.equal('NotAllowedError');
     });
   });
 
