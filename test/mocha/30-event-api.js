@@ -754,6 +754,129 @@ describe('Event Storage API', () => {
     });
   });
 
+  describe('updateMany API', () => {
+    let events;
+
+    beforeEach(async () => {
+      const count = 50;
+      events = [];
+      for(let i = 0; i < count; i++) {
+        const event = bedrock.util.clone(configEventTemplate);
+        event.ledgerConfiguration.creator = `https://example.com/${uuid()}`;
+        const meta = {
+          pending: true
+        };
+        // create the block
+        const eventHash = await helpers.testHasher(event);
+        meta.eventHash = eventHash;
+        events.push({
+          event,
+          meta
+        });
+      }
+
+      await Promise.all(events.map(event => ledgerStorage.events.add(event)));
+    });
+
+    it('should update many events', async () => {
+      // patch the event
+      const patch = [
+        {op: 'unset', changes: {meta: {pending: 1}}},
+        {op: 'set', changes: {meta: {consensus: Date.now()}}}
+      ];
+
+      const eventUpdates = events.map(({meta}) => ({
+        eventHash: meta.eventHash, patch
+      }));
+
+      await ledgerStorage.events.updateMany({events: eventUpdates});
+      for(const event of events) {
+        const {eventHash} = event.meta;
+        const result = await ledgerStorage.events.get(eventHash);
+        should.exist(result.meta.consensus);
+        should.not.exist(result.meta.pending);
+      }
+    });
+
+    it('should update many events N times', async () => {
+      // patch the event
+      const patch = [
+        {op: 'unset', changes: {meta: {pending: 1}}},
+        {op: 'set', changes: {meta: {consensus: Date.now()}}}
+      ];
+
+      const eventUpdates = events.map(({meta}) => ({
+        eventHash: meta.eventHash, patch
+      }));
+
+      // dispatch updateMany call N times
+      const count = 3;
+      for(let i = 0; i < count; i++) {
+        await ledgerStorage.events.updateMany({events: eventUpdates});
+      }
+
+      for(const event of events) {
+        const {eventHash} = event.meta;
+        const result = await ledgerStorage.events.get(eventHash);
+        should.exist(result.meta.consensus);
+        should.not.exist(result.meta.pending);
+      }
+    });
+
+    it('should fail to update many with an invalid event update', async () => {
+      // patch the event
+      const patch = [
+        {op: 'unset', changes: {meta: {pending: 1}}},
+        {op: 'set', changes: {meta: {consensus: Date.now()}}}
+      ];
+
+      const eventUpdates = events.map(({meta}) => ({
+        eventHash: meta.eventHash, patch
+      }));
+
+      // add bad event
+      eventUpdates.push({
+        eventHash: eventUpdates[eventUpdates.length - 1].eventHash,
+        patch: [
+          {
+            op: 'set',
+            changes: {
+              meta: {eventHash: eventUpdates[eventUpdates.length - 2].eventHash}
+            }
+          }
+        ]
+      });
+
+      let result;
+      let err;
+      try {
+        result = await ledgerStorage.events.updateMany({events: eventUpdates});
+      } catch(e) {
+        err = e;
+      }
+
+      should.exist(err);
+      should.exist(err.details);
+      should.exist(err.details.errors);
+      should.exist(err.details.writeErrors);
+      should.exist(err.details.writeConcernErrors);
+      should.not.exist(result);
+
+      err.name.should.equal('OperationError');
+      err.details.errors.length.should.equal(0);
+      err.details.writeErrors.length.should.equal(1);
+      err.details.writeConcernErrors.length.should.equal(0);
+
+      const writeError = err.details.writeErrors[0];
+      // the update with an error, should be the last update operation
+      writeError.err.index.should.equal(eventUpdates.length - 1);
+      // the error should have the duplicate key error code
+      writeError.err.code.should.equal(11000);
+      writeError.err.errmsg.should.contain('E11000 duplicate key error');
+
+    });
+  });
+
   describe('remove API', () => {
     it('should remove event', async () => {
       const event = bedrock.util.clone(configEventTemplate);
