@@ -265,5 +265,33 @@ describe('Operation Storage API', () => {
       result.executionStats.executionStages.inputStage.indexName.should.be.
         oneOf(['operation.operationHash.core.1', 'operation.eventHash.core.1']);
     });
+    it('properly indexed with recordId param', async () => {
+      const result = await ledgerStorage.operations.exists(
+        {explain: true, recordId: 'foobar'});
+      const {inputStage} = result.executionStats.executionStages;
+      inputStage.stage.should.equal('PROJECTION_COVERED');
+      inputStage.inputStage.stage.should.equal('IXSCAN');
+      inputStage.inputStage.indexName.should.equal('operation.recordId.core.1');
+    });
+    it('properly shows existence recordId param', async () => {
+      const eventTemplate = mockData.events.alpha;
+      const opTemplate = mockData.operations.alpha;
+      const testRecordId = `https://example.com/event/${uuid()}`;
+      // the helper creates events without consensus by default
+      await helpers.addEvent({
+        consensus: true, eventTemplate, ledgerStorage, opTemplate,
+        recordId: testRecordId
+      });
+
+      const result = await ledgerStorage.operations.exists(
+        {recordId: testRecordId});
+
+      result.should.equal(true);
+    });
+    it('properly does not show existence with recordId param', async () => {
+      const recordId = 'foobar';
+      const result = await ledgerStorage.operations.exists({recordId});
+      result.should.equal(false);
+    });
   });
 });
