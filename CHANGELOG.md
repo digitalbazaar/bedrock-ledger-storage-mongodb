@@ -1,9 +1,10 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
-## 4.0.1 - TBD
+## 4.0.1 - 2021-04-07
 
-## Changed
-- Fixed a bug where an object was being passed to MongoDB's `cursor.explain` method.
+### Fixed
+- Fixed a bug where an object was being passed to MongoDB's
+  `cursor.explain` method.
 
 ## 4.0.0 - 2020-12-01
 
