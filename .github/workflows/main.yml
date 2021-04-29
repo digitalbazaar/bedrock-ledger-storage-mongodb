@@ -13,7 +13,7 @@ jobs:
           - 27017:27017
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 14.x]
+        node-version: [12.x, 14.x]
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
@@ -72,4 +72,3 @@ jobs:
       with:
         file: ./test/coverage/lcov.info
         fail_ci_if_error: true
-
