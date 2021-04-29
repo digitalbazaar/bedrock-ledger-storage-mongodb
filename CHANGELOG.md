@@ -1,9 +1,14 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
-## 4.1.0 - 2020-12-xx
+## 5.0.0 - TBD
 
 ### Changed
+- **BREAKING**: Drop support for Node 10.
 - Include "mergeHeight" in retrieved merge events.
+
+### Added
+- Add bulk update API for events.
+- Add exists API for operations.
 
 ## 4.0.1 - 2021-04-07
 
