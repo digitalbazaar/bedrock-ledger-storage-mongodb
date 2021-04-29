@@ -1,6 +1,6 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
-## 5.0.0 - TBD
+## 5.0.0 - 2021-04-29
 
 ### Changed
 - **BREAKING**: Drop support for Node 10.
