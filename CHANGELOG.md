@@ -1,5 +1,10 @@
 # bedrock-ledger-storage-mongodb ChangeLog
 
+## 5.1.0 - 2021-xx-xx
+
+### Added
+- Added index support covered queries for aggregateStageEventProjection.
+
 ## 5.0.0 - 2021-04-29
 
 ### Changed
