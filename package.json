@@ -1,6 +1,6 @@
 {
   "name": "bedrock-ledger-storage-mongodb",
-  "version": "5.1.0",
+  "version": "5.1.1-0",
   "description": "Bedrock ledger storage module for MongoDB",
   "license": "SEE LICENSE IN LICENSE.md",
   "main": "lib",
